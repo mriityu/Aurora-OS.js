@@ -1,4 +1,4 @@
-# Aurora OS.js v0.5.1
+# Aurora OS.js v0.5.2
 
 A modern, web-based desktop operating system interface built with React, Tailwind CSS, and Radix UI.
 
@@ -47,14 +47,13 @@ A modern, web-based desktop operating system interface built with React, Tailwin
 
 ## Release Notes
 
-### v0.5.1
-- **Native App Support**: Packaged with Electron for Windows.
-- **Window Frame Option**: Added `--frame` flag / `WINDOW_FRAME` env var for native window management.
-- **Performance**: Added "Reduce Motion" and "Disable Shadows" settings affecting all system components.
-- **Applet Optimizations**: Notification Center and Desktop now respect performance settings.
+### v0.5.2
+- **CI/CD**: Added GitHub Actions workflow for automated testing.
+- **Code Quality**: Implemented ESLint and fixed code consistency issues.
+- **Maintenance**: Improved `.gitignore` and project configuration.
 
 [View full version history](HISTORY.md)
 
 ## License
 
-MIT
+Not yet available

@@ -1,6 +1,6 @@
 {
       "name": "aurora-os-js",
-      "version": "0.5.1",
+      "version": "0.5.2",
       "private": true,
       "dependencies": {
             "@radix-ui/react-accordion": "^1.2.3",
@@ -50,6 +50,7 @@
             "vaul": "^1.1.2"
       },
       "devDependencies": {
+            "@eslint/js": "^9.39.1",
             "@types/node": "^20.10.0",
             "@types/react": "^19.2.7",
             "@types/react-dom": "^19.2.3",
@@ -59,16 +60,22 @@
             "cross-env": "^10.1.0",
             "electron": "^39.2.6",
             "electron-builder": "^26.0.12",
+            "eslint": "^9.39.1",
+            "eslint-plugin-react-hooks": "^7.0.1",
+            "eslint-plugin-react-refresh": "^0.4.24",
+            "globals": "^16.5.0",
             "postcss": "^8.5.6",
             "tailwindcss": "^4.1.17",
             "tailwindcss-animate": "^1.0.7",
             "typescript": "^5.9.3",
+            "typescript-eslint": "^8.48.1",
             "vite": "6.3.5",
             "wait-on": "^9.0.3"
       },
       "main": "dist-electron/main.js",
       "scripts": {
             "dev": "vite",
+            "lint": "eslint .",
             "build": "tsc && vite build",
             "preview": "vite preview",
             "ts:electron": "tsc -p tsconfig.electron.json",

@@ -78,7 +78,7 @@ export function Terminal() {
         ];
         break;
 
-      case 'ls':
+      case 'ls': {
         const lsPath = args[0] ? resolvePath(args[0]) : currentPath;
         const contents = listDirectory(lsPath);
         if (contents) {
@@ -94,8 +94,9 @@ export function Terminal() {
           error = true;
         }
         break;
+      }
 
-      case 'cd':
+      case 'cd': {
         if (args.length === 0) {
           setCurrentPath('/Users/guest');
           output = [];
@@ -111,12 +112,13 @@ export function Terminal() {
           }
         }
         break;
+      }
 
       case 'pwd':
         output = [currentPath];
         break;
 
-      case 'cat':
+      case 'cat': {
         if (args.length === 0) {
           output = ['cat: missing file operand'];
           error = true;
@@ -131,8 +133,9 @@ export function Terminal() {
           }
         }
         break;
+      }
 
-      case 'mkdir':
+      case 'mkdir': {
         if (args.length === 0) {
           output = ['mkdir: missing operand'];
           error = true;
@@ -146,8 +149,9 @@ export function Terminal() {
           }
         }
         break;
+      }
 
-      case 'touch':
+      case 'touch': {
         if (args.length === 0) {
           output = ['touch: missing file operand'];
           error = true;
@@ -161,8 +165,9 @@ export function Terminal() {
           }
         }
         break;
+      }
 
-      case 'rm':
+      case 'rm': {
         if (args.length === 0) {
           output = ['rm: missing operand'];
           error = true;
@@ -177,6 +182,7 @@ export function Terminal() {
           }
         }
         break;
+      }
 
       case 'echo':
         output = [args.join(' ')];

@@ -17,9 +17,10 @@ export function useThemeColors() {
         switch (themeMode) {
             case 'shades':
                 return mixColors(NEUTRAL_BASE, accentColor, 0.15); // Subtle 15% tint
-            case 'contrast':
+            case 'contrast': {
                 const complement = getComplementaryColor(accentColor);
                 return mixColors(NEUTRAL_BASE, complement, 0.15); // Subtle 15% tint
+            }
             case 'neutral':
             default:
                 return NEUTRAL_BASE;
