@@ -73,3 +73,6 @@ npm test
 
 Not yet available
 
+## AI disclosure
+
+"Aurora OS" is a human-writen project that makes use of AI-powered IDE's to generate documentation, GitHub integrations, bug testing, and roadmap tracking.
