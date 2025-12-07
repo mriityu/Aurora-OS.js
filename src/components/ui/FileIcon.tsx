@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import {
     FileText,
     Music,
@@ -28,7 +29,8 @@ export function FileIcon({ name, type, accentColor = '#3b82f6', className = "w-f
     // Generate unique ID for gradient
     // We utilize a deterministic ID based on name where possible to avoid hydration mismatch if this were SSR
     // But for client side purely, this is fine.
-    const uniqueId = `${name.replace(/\s+/g, '-')}-${Math.random().toString(36).substr(2, 9)}`;
+    // Fixed lint error (math.random) by using useId
+    const uniqueId = useId();
 
     // Gradient Logic
     const lightAccent = lightenColor(accentColor, 20);
@@ -113,27 +115,6 @@ export function FileIcon({ name, type, accentColor = '#3b82f6', className = "w-f
     const lowerName = name.toLowerCase();
 
     if (lowerName.endsWith('.mp3') || lowerName.endsWith('.wav') || lowerName.endsWith('.flac')) {
-        // Keep specific colors for media types, but maybe apply gradient if desired? 
-        // User asked for "standard standard icons, reactive to accent color".
-        // But previously we had colored icons (Pink Music, etc).
-        // User said: "All icons in Finder... same gradient logic I see on folder".
-        // Use gradient on stroke for EVERYTHING?
-        // Let's assume generic text files definitely need it. 
-        // Media files might stay colored OR use the gradient. The prompt "reactive to accent color" implies uniformity.
-        // Applying gradient everywhere for maximum consistency as per "standardize this across all icons".
-        // Actually, if I remove 'text-pink-400' and use gradient, it becomes accent-colored.
-        // Let's stick to the specific colors for media (Standard OS behavior) BUT applies gradient?
-        // Valid interpretation: Media icons keep their distinct color (Pink) but maybe gradient??
-        // Simpler: Just apply the Accent Gradient to Generic/Text/Trash/Settings. Keep Media distinct if they are distinct.
-        // Re-reading: "make this the standard icon for text files... It also should comply to the accent color... standardize scale... apply same gradient logic"
-        // Most conservative fit: Apply accent gradient to generic files. Keep legacy colors for media UNLESS specifically asked?
-        // "reactive to accent color - the size in Terminal is good right now".
-        // I will use `renderIconWithGradient` but PASS the color class if it exists?
-        // Wait, if I pass a color class (text-pink-400), `stroke` is set via CSS class `stroke-current`.
-        // If I set `style={{ stroke: url(...) }}` it overrides class.
-        // I will maintain distinct colors for media (Pink, Green, Purple) but Apply the Gradient TO THEM?
-        // No, `lightAccent` is based on `accentColor`. If I apply that to a Pink icon, it becomes Blue-ish.
-        // So I will only apply the accent gradient to the Default/Generic icons + System icons.
         return renderIconWithGradient(Music, 'text-pink-400');
     }
     if (lowerName.endsWith('.jpg') || lowerName.endsWith('.png') || lowerName.endsWith('.gif') || lowerName.endsWith('.webp')) {

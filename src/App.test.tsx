@@ -41,20 +41,20 @@ window.ResizeObserver = ResizeObserverMock;
 // Mock motion/react
 vi.mock('motion/react', () => ({
     motion: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         div: ({ children, ...props }: any) => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { initial, animate, exit, transition, whileHover, whileTap, ...validProps } = props;
             return <div {...validProps}>{children}</div>;
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         button: ({ children, ...props }: any) => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { initial, animate, exit, transition, whileHover, whileTap, ...validProps } = props;
             return <button {...validProps}>{children}</button>;
         },
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 

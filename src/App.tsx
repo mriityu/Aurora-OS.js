@@ -13,7 +13,7 @@ import { Browser } from './components/apps/Browser';
 import { Terminal } from './components/apps/Terminal';
 import { PlaceholderApp } from './components/apps/PlaceholderApp';
 import { AppProvider } from './components/AppContext';
-import { FileSystemProvider, useFileSystem } from './components/FileSystemContext';
+import { FileSystemProvider, useFileSystem, type FileSystemContextType } from './components/FileSystemContext';
 import { Toaster } from './components/ui/sonner';
 import { getGridConfig, gridToPixel, pixelToGrid, findNextFreeCell, gridPosToKey, rearrangeGrid, type GridPosition } from './utils/gridSystem';
 
@@ -49,7 +49,8 @@ function loadIconPositions(): Record<string, GridPosition> {
       if (firstKey && data[firstKey] && typeof data[firstKey].x === 'number') {
         const config = getGridConfig(window.innerWidth, window.innerHeight);
         const gridPositions: Record<string, GridPosition> = {};
-        Object.entries(data).forEach(([key, pos]: [string, any]) => {
+        Object.entries(data).forEach(([key, value]) => {
+          const pos = value as { x: number; y: number };
           gridPositions[key] = pixelToGrid(pos.x, pos.y, config);
         });
         return gridPositions;
@@ -82,7 +83,7 @@ function OS() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const { listDirectory, resolvePath, getNodeAtPath, moveNode, moveNodeById } = useFileSystem();
+  const { listDirectory, resolvePath, getNodeAtPath, moveNodeById } = useFileSystem() as unknown as FileSystemContextType;
 
   // Grid-based Icon Positions State
   const [iconGridPositions, setIconGridPositions] = useState<Record<string, GridPosition>>(loadIconPositions);
@@ -93,7 +94,7 @@ function OS() {
   }, [iconGridPositions]);
 
   // Derive desktop icons from filesystem + grid positions
-  const desktopIcons = useMemo(() => {
+  const { icons: desktopIcons, newPositions } = useMemo(() => {
     const desktopPath = resolvePath('~/Desktop');
     const files = listDirectory(desktopPath) || [];
     const config = getGridConfig(windowSize.width, windowSize.height);
@@ -125,13 +126,22 @@ function OS() {
       occupiedCells.add(gridPosToKey(gridPos));
     });
 
-    // Save any new positions
-    if (Object.keys(newPositions).length > 0) {
-      setIconGridPositions(prev => ({ ...prev, ...newPositions }));
-    }
-
-    return icons;
+    return { icons, newPositions };
   }, [listDirectory, resolvePath, iconGridPositions, windowSize]);
+
+  // Sync new grid positions to state
+  useEffect(() => {
+    if (Object.keys(newPositions).length > 0) {
+      // Use setTimeout to avoid synchronous state update cycle during render phase
+      setTimeout(() => {
+        setIconGridPositions(prev => {
+          const merged = { ...prev, ...newPositions };
+          if (Object.keys(prev).length === Object.keys(merged).length) return prev;
+          return merged;
+        });
+      }, 0);
+    }
+  }, [newPositions]);
 
   const openWindowRef = useRef<(type: string, data?: { path?: string }) => void>(() => { });
 
@@ -259,8 +269,7 @@ function OS() {
       if (conflictingIcon.type === 'folder') {
         const targetPixelPos = gridToPixel(iconGridPositions[conflictingIcon.id], config);
 
-        // Calculate centers
-        // Icon graphic is roughly centered in 100x120 cell, ~50px down
+        // Calculate centers (Icon graphic is roughly centered + offset)
         const targetCenter = { x: targetPixelPos.x + 50, y: targetPixelPos.y + 50 };
         const dragCenter = { x: position.x + 50, y: position.y + 50 };
 
@@ -272,9 +281,7 @@ function OS() {
         if (distance < 35) {
           const sourceIcon = desktopIcons.find(i => i.id === id);
           if (sourceIcon) {
-            // Use ID-based move for robustness (avoids name ambiguity)
             const destParentPath = resolvePath(`~/Desktop/${conflictingIcon.name}`);
-
             moveNodeById(id, destParentPath);
 
             // Clean up grid position for moved item safely
@@ -283,7 +290,7 @@ function OS() {
               delete next[id];
               return next;
             });
-            return; // Done
+            return;
           }
         }
       }
@@ -306,7 +313,7 @@ function OS() {
         [id]: targetGridPos
       }));
     }
-  }, [desktopIcons, iconGridPositions, windowSize, resolvePath, moveNode, moveNodeById]);
+  }, [desktopIcons, iconGridPositions, windowSize, resolvePath, moveNodeById]);
 
   const toggleNotifications = useCallback(() => {
     setShowNotifications(prev => !prev);

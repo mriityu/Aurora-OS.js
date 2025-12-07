@@ -68,7 +68,7 @@ function DesktopComponent({ onDoubleClick, icons, onUpdateIconPosition, onIconDo
         draggingIcons.forEach(id => {
           const icon = iconsRef.current.find(i => i.id === id);
           if (icon) {
-            let newX = icon.position.x + deltaX;
+            const newX = icon.position.x + deltaX;
             let newY = icon.position.y + deltaY;
             newY = Math.max(0, newY);
             onUpdateIconPosition(id, { x: newX, y: newY });

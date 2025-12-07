@@ -73,7 +73,7 @@ function createUserHome(username: string): any {
   };
 }
 
-interface FileSystemContextType {
+export interface FileSystemContextType {
   fileSystem: FileNode;
   currentPath: string;
   currentUser: string;
@@ -528,7 +528,7 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     });
 
     return true;
-  }, [getNodeAtPath, deleteNode, resolvePath, fileSystem]);
+  }, [getNodeAtPath, deleteNode, resolvePath]);
 
   // Helper to find node and its parent by ID
   const findNodeAndParent = useCallback((root: FileNode, targetId: string): { node: FileNode, parent: FileNode } | null => {
