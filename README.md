@@ -1,4 +1,4 @@
-# Aurora OS.js [![Version](https://img.shields.io/badge/Version-v0.6.2--patch-blue)](https://github.com/mental-os/Aurora-OS.js) [![GitHub Pages](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml) [![Dependabot](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates) [![Build](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml)
+# Aurora OS.js [![Version](https://img.shields.io/badge/Version-v0.6.2--patch4-blue)](https://github.com/mental-os/Aurora-OS.js) [![GitHub Pages](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml) [![Dependabot](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates) [![Build](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml)
 
 A modern, web-based desktop operating system interface built with React, Tailwind CSS, and Radix UI.
 
@@ -55,16 +55,11 @@ npm test
 
 ## Release Notes
 
-## v0.6.2-patch3
-- **Environment**: Added Vite chunking for better performance.
-- **Desktop**: Added dragging constrains to prevent Windows going off-screen.
-- **Filesystem**: Improved special folders consistency (.Trash and .Config).
-- **Finder**: Fixed visibility of hidden files. Terminal will show hidden files.
-- **Dock**: Fixed active Window dot indicator to respect the accent color.
-- **Terminal**: Fixed path display in prompt.
-- **Finder**: Added full-path breadcrumbs to navigate through directories, with drag-to-move functionality.
-- **Finder**: Fixed breadcrumbs to show correct path if opened from Terminal.
-- **Environment**: Added Content Security Policy (CSP) to prevent XSS attacks, and other various web-standard security measures.
+## v0.6.2-patch4
+- **Terminal**: Improved ZSH-like experience with autocomplete, command history, pipe support, wildcard support, and more.
+- **Finder**: Improved item selecting/deselecting and added the Trash functionality.
+- **Dock**: Improved app icon behavior and added the Trash functionality.
+- **App bar**: Removed the search icon as it is not planned to be implemented in the near future.
 
 [View full version history](HISTORY.md)
 

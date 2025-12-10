@@ -30,6 +30,8 @@ export interface FileSystemContextType {
   listDirectory: (path: string) => FileNode[] | null;
   moveNode: (fromPath: string, toPath: string) => boolean;
   moveNodeById: (id: string, destParentPath: string) => boolean;
+  moveToTrash: (path: string) => boolean;
+  emptyTrash: () => void;
   resolvePath: (path: string) => string;
   resetFileSystem: () => void;
 }
@@ -304,6 +306,66 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileSystem, resolvePath, getNodeAtPath, findNodeAndParent]);
 
+  const moveToTrash = useCallback((path: string): boolean => {
+    const resolved = resolvePath(path);
+    const trashPath = resolvePath('~/.Trash');
+
+    // If already in trash, permanent delete
+    if (resolved.startsWith(trashPath)) {
+      return deleteNode(path);
+    }
+
+    const fileName = resolved.split('/').pop();
+    if (!fileName) return false;
+
+    // Handle collision
+    let destPath = `${trashPath}/${fileName}`;
+    let counter = 1;
+
+    while (getNodeAtPath(destPath)) {
+      const extIndex = fileName.lastIndexOf('.');
+      if (extIndex > 0) {
+        const name = fileName.substring(0, extIndex);
+        const ext = fileName.substring(extIndex);
+        destPath = `${trashPath}/${name} ${counter}${ext}`;
+      } else {
+        destPath = `${trashPath}/${fileName} ${counter}`;
+      }
+      counter++;
+    }
+
+    return moveNode(path, destPath);
+  }, [resolvePath, getNodeAtPath, moveNode, deleteNode]);
+
+  const emptyTrash = useCallback(() => {
+    setFileSystem(prevFS => {
+      const newFS = deepCloneFileSystem(prevFS);
+      const trashPath = resolvePath('~/.Trash'); // resolve in callback? context resolvePath is stable
+      // Actually resolvePath depends on currentPath/homePath in scope, but we know .Trash is always at ~
+      // And we need to find it in the newFS tree.
+      // Simpler: Just find .Trash in newFS manually or use standard traversal since we know structure
+
+      // We assume .Trash is at root or user home.
+      // Let's use the same traversal logic as deleteNode but target .Trash children
+      const parts = trashPath.split('/').filter(p => p);
+      let current = newFS;
+
+      for (const part of parts) {
+        if (current.children) {
+          const found = current.children.find(c => c.name === part);
+          if (found) current = found;
+          else return newFS; // Trash not found?
+        }
+      }
+
+      if (current && current.children) {
+        current.children = [];
+      }
+
+      return newFS;
+    });
+  }, [resolvePath]);
+
   const createFile = useCallback((path: string, name: string, content: string = ''): boolean => {
     const resolved = resolvePath(path);
     const node = getNodeAtPath(resolved);
@@ -432,6 +494,8 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
         listDirectory,
         moveNode,
         moveNodeById,
+        moveToTrash,
+        emptyTrash,
         resolvePath,
         resetFileSystem,
       }}

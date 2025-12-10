@@ -32,7 +32,7 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
     getNodeAtPath,
     createFile,
     createDirectory,
-    deleteNode,
+    moveToTrash,
     readFile,
     resolvePath: contextResolvePath,
     homePath,
@@ -67,6 +67,37 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
     }
 
     return '/' + parts.join('/');
+  };
+
+  // Helper to expand globs like *.txt
+  const expandGlob = (pattern: string): string[] => {
+    // Simple implementation: only supports * in filename, not directory path yet
+    // e.g. *.txt, data_*, *
+
+    // If no wildcard, return as is
+    if (!pattern.includes('*')) {
+      return [pattern];
+    }
+
+    const resolvedPath = resolvePath(currentPath); // Resolve current dir to list files
+    // If pattern contains /, strict it to that dir? 
+    // For now, let's assume globbing is only in current directory for simplicity.
+
+    if (pattern.includes('/')) {
+      // TODO: Advanced path globbing
+      return [pattern];
+    }
+
+    const files = listDirectory(resolvedPath);
+    if (!files) return [pattern]; // Fail gracefully
+
+    const regex = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
+
+    const matches = files
+      .filter(f => regex.test(f.name))
+      .map(f => f.name);
+
+    return matches.length > 0 ? matches : [pattern]; // If no matches, return pattern (bash behavior)
   };
 
   const getAutocompleteCandidates = (partial: string, isCommand: boolean): string[] => {
@@ -153,16 +184,23 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
     }
   };
 
-  const executeCommand = (input: string) => {
-    const trimmed = input.trim();
+  const executeCommand = (cmdInput: string) => {
+    const trimmed = cmdInput.trim();
     if (!trimmed) {
       setHistory([...history, { command: '', output: [], path: currentPath }]);
       return;
     }
 
+    // Split logic that respects quotes? For now simple split
     const parts = trimmed.split(/\s+/);
     const command = parts[0];
-    const args = parts.slice(1);
+    const rawArgs = parts.slice(1);
+
+    // Expand globs in args
+    const args: string[] = [];
+    rawArgs.forEach(arg => {
+      args.push(...expandGlob(arg));
+    });
 
     let output: (string | ReactNode)[] = [];
     let error = false;
@@ -190,42 +228,70 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
         break;
 
       case 'ls': {
-        const lsPath = args[0] ? resolvePath(args[0]) : currentPath;
-        // const showHidden = args.includes('-a') || args.includes('-la') || args.includes('-al');
-        const longFormat = args.includes('-l') || args.includes('-la') || args.includes('-al');
-        const contents = listDirectory(lsPath);
-        if (contents) {
-          const filteredContents = contents;
-          // User requested standard behavior: ls shows all files (like -a) by default
-          // if (!showHidden) {
-          //   filteredContents = contents.filter(node => !node.name.startsWith('.'));
-          // }
-          if (filteredContents.length === 0) {
-            output = ['(empty directory)'];
-          } else if (longFormat) {
-            output = filteredContents.map(node => {
-              const perms = node.permissions || (node.type === 'directory' ? 'drwxr-xr-x' : '-rw-r--r--');
-              const owner = node.owner || currentUser;
-              const size = node.size?.toString().padStart(6) || '     0';
-              const name = node.type === 'directory' ? `\x1b[34m${node.name}\x1b[0m` : node.name;
-              return `${perms}  ${owner}  ${size}  ${name}`;
-            });
-          } else {
-            output = filteredContents.map(node => {
-              return (
-                <div key={node.id} className="flex items-center gap-2">
-                  <div className="w-4 h-4 shrink-0 inline-flex items-center justify-center">
-                    <FileIcon name={node.name} type={node.type} accentColor={accentColor} />
-                  </div>
-                  <span>{node.type === 'directory' ? node.name + '/' : node.name}</span>
+        const pathsToList = args.length > 0 ? args.filter(a => !a.startsWith('-')) : ['']; // Default to current
+        // Handle flags
+        const longFormat = args.includes('-l') || args.includes('-la') || args.includes('-al') || args.includes('-ll');
+
+        // Loop through all paths
+        const allOutputs: (string | ReactNode)[] = [];
+
+        let hasErrors = false;
+
+        pathsToList.forEach((pathArg, idx) => {
+          const lsPath = pathArg ? resolvePath(pathArg) : currentPath;
+
+          // If listing multiple directories, show headers
+          if (pathsToList.length > 1) {
+            if (idx > 0) allOutputs.push(''); // Spacer
+            allOutputs.push(`${pathArg || '.'}:`);
+          }
+
+          const contents = listDirectory(lsPath);
+          if (contents) {
+            const filteredContents = contents;
+            // We show all by default
+
+            if (filteredContents.length === 0) {
+              // empty
+            } else if (longFormat) {
+              const lines = filteredContents.map(node => {
+                const perms = node.permissions || (node.type === 'directory' ? 'drwxr-xr-x' : '-rw-r--r--');
+                const owner = node.owner || currentUser;
+                const size = node.size?.toString().padStart(6) || '     0';
+                const name = node.type === 'directory' ? `\x1b[34m${node.name}\x1b[0m` : node.name;
+                return `${perms}  ${owner}  ${size}  ${name}`;
+              });
+              allOutputs.push(...lines);
+            } else {
+              const grid = (
+                <div key={lsPath} className="flex flex-wrap gap-x-4 gap-y-1">
+                  {filteredContents.map(node => (
+                    <div key={node.id} className="flex items-center gap-2">
+                      <div className="w-4 h-4 shrink-0 inline-flex items-center justify-center">
+                        <FileIcon
+                          name={node.name}
+                          type={node.type}
+                          accentColor={accentColor}
+                          isEmpty={node.children?.length === 0}
+                        />
+                      </div>
+                      <span className={node.type === 'directory' ? 'font-bold' : ''}>
+                        {node.name}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               );
-            });
+              allOutputs.push(grid);
+            }
+          } else {
+            allOutputs.push(`ls: ${pathArg}: No such file or directory`);
+            hasErrors = true;
           }
-        } else {
-          output = [`ls: ${lsPath}: No such file or directory`];
-          error = true;
-        }
+        });
+
+        output = allOutputs;
+        if (hasErrors && pathsToList.length === 1) error = true; // Only flag error if single command failed
         break;
       }
 
@@ -264,14 +330,18 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
           output = ['cat: missing file operand'];
           error = true;
         } else {
-          const filePath = resolvePath(args[0]);
-          const content = readFile(filePath);
-          if (content !== null) {
-            output = content.split('\n');
-          } else {
-            output = [`cat: ${args[0]}: No such file or directory`];
-            error = true;
-          }
+          const catOutputs: string[] = [];
+          args.forEach(arg => {
+            const filePath = resolvePath(arg);
+            const content = readFile(filePath);
+            if (content !== null) {
+              catOutputs.push(...content.split('\n'));
+            } else {
+              catOutputs.push(`cat: ${arg}: No such file or directory`);
+              error = true; // warning?
+            }
+          });
+          output = catOutputs;
         }
         break;
       }
@@ -281,18 +351,19 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
           output = ['mkdir: missing operand'];
           error = true;
         } else {
-          const fullPath = resolvePath(args[0]);
-          const lastSlashIndex = fullPath.lastIndexOf('/');
-          const parentPath = lastSlashIndex === 0 ? '/' : fullPath.substring(0, lastSlashIndex);
-          const name = fullPath.substring(lastSlashIndex + 1);
+          // Allow multiple
+          args.forEach(arg => {
+            const fullPath = resolvePath(arg);
+            const lastSlashIndex = fullPath.lastIndexOf('/');
+            const parentPath = lastSlashIndex === 0 ? '/' : fullPath.substring(0, lastSlashIndex);
+            const name = fullPath.substring(lastSlashIndex + 1);
 
-          const success = createDirectory(parentPath, name);
-          if (success) {
-            output = [];
-          } else {
-            output = [`mkdir: cannot create directory '${args[0]}'`];
-            error = true;
-          }
+            const success = createDirectory(parentPath, name);
+            if (!success) {
+              output.push(`mkdir: cannot create directory '${arg}'`);
+              error = true;
+            }
+          });
         }
         break;
       }
@@ -302,18 +373,18 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
           output = ['touch: missing file operand'];
           error = true;
         } else {
-          const fullPath = resolvePath(args[0]);
-          const lastSlashIndex = fullPath.lastIndexOf('/');
-          const parentPath = lastSlashIndex === 0 ? '/' : fullPath.substring(0, lastSlashIndex);
-          const name = fullPath.substring(lastSlashIndex + 1);
+          args.forEach(arg => {
+            const fullPath = resolvePath(arg);
+            const lastSlashIndex = fullPath.lastIndexOf('/');
+            const parentPath = lastSlashIndex === 0 ? '/' : fullPath.substring(0, lastSlashIndex);
+            const name = fullPath.substring(lastSlashIndex + 1);
 
-          const success = createFile(parentPath, name, '');
-          if (success) {
-            output = [];
-          } else {
-            output = [`touch: cannot create file '${args[0]}'`];
-            error = true;
-          }
+            const success = createFile(parentPath, name, '');
+            if (!success) {
+              output.push(`touch: cannot create file '${arg}'`);
+              error = true;
+            }
+          });
         }
         break;
       }
@@ -323,14 +394,16 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
           output = ['rm: missing operand'];
           error = true;
         } else {
-          const targetPath = resolvePath(args[0]);
-          const success = deleteNode(targetPath);
-          if (success) {
-            output = [];
-          } else {
-            output = [`rm: cannot remove '${args[0]}': No such file or directory`];
-            error = true;
-          }
+          args.forEach(arg => {
+            const targetPath = resolvePath(arg);
+            // Check if recursive flag is present? (simplified rm)
+            // For now, always try moveToTrash which handles file/dir
+            const success = moveToTrash(targetPath);
+            if (!success && !arg.includes('*')) {
+              output.push(`rm: cannot remove '${arg}': No such file or directory`);
+              error = true;
+            }
+          });
         }
         break;
       }
@@ -347,19 +420,15 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
       default: {
         // Check PATH for executable
         let foundPath: string | null = null;
+        const cmd = command;
 
-        // Check if command is a relative or absolute path
-        if (command.includes('/')) {
-          const resolved = resolvePath(command);
+        if (cmd.includes('/')) {
+          const resolved = resolvePath(cmd);
           const node = getNodeAtPath(resolved);
           if (node && node.type === 'file') foundPath = resolved;
         } else {
-          // Search PATH
           for (const dir of PATH) {
-            // PATH directories are absolute
-            // Ensure trailing slash logic isn't messing up
-            // dir: /bin. command: ls. -> /bin/ls
-            const checkPath = (dir === '/' ? '' : dir) + '/' + command;
+            const checkPath = (dir === '/' ? '' : dir) + '/' + cmd;
             const node = getNodeAtPath(checkPath);
             if (node && node.type === 'file') {
               foundPath = checkPath;
@@ -373,45 +442,97 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
           if (content && content.startsWith('#!app ')) {
             const appId = content.slice(6).trim();
 
-            // Resolve arguments ? 
-            // Currently args are raw strings from split. 
-            // For Finder /home/user, arg is /home/user.
-            // We might want to resolve it to absolute path to help the app?
-            // But 'Finder' app expects 'initialPath'.
-            // It's safer to resolve it here IF it looks like a path?
-            // Or let App handle data?
-            // Let's passed raw args + resolved args?
-            // "openWindow" takes simple structure.
-            // I'll resolve the first arg IF it exists, just in case.
-            const resolvedArgs = args.map(arg => {
+            // Resolve args for app
+            const resolvedAppArgs = args.map(arg => {
               if (!arg.startsWith('-')) {
                 return resolvePath(arg);
               }
               return arg;
             });
 
-            onLaunchApp?.(appId, resolvedArgs);
-            output = []; // Silent launch
+            onLaunchApp?.(appId, resolvedAppArgs);
+            output = [];
           } else if (content && content.startsWith('#!')) {
-            output = [`${command}: script execution not fully supported`];
+            output = [`${cmd}: script execution not fully supported`];
           } else {
-            output = [`${command}: binary file`];
+            output = [`${cmd}: binary file`];
           }
         } else {
-          output = [`${command}: command not found`];
+          output = [`${cmd}: command not found`];
           error = true;
         }
       }
     }
 
-    setHistory([...history, { command: trimmed, output, error, path: currentPath }]);
-    setCommandHistory([...commandHistory, trimmed]);
+    setHistory(prev => [...prev, { command: trimmed, output, error, path: currentPath }]);
+    setCommandHistory(prev => {
+      // Don't add duplicates consecutively
+      if (prev.length > 0 && prev[prev.length - 1] === trimmed) return prev;
+      return [...prev, trimmed];
+    });
     setHistoryIndex(-1);
   };
 
+  const ghostText = (() => {
+    if (!input) return '';
+    // Find the most recent command that starts with current input
+    for (let i = commandHistory.length - 1; i >= 0; i--) {
+      if (commandHistory[i].startsWith(input)) {
+        return commandHistory[i].slice(input.length);
+      }
+    }
+    return '';
+  })();
+
+  const isCommandValid = (cmd: string): boolean => {
+    if (!cmd) return false;
+    if (BUILTINS.includes(cmd)) return true;
+
+    // Check absolute/relative path
+    if (cmd.includes('/')) {
+      const node = getNodeAtPath(resolvePath(cmd));
+      return node?.type === 'file';
+    }
+
+    // Check PATH
+    for (const dir of PATH) {
+      const checkPath = (dir === '/' ? '' : dir) + '/' + cmd;
+      const node = getNodeAtPath(checkPath);
+      if (node?.type === 'file') return true;
+    }
+    return false;
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Shortcuts
+    if (e.ctrlKey) {
+      if (e.key === 'l') {
+        e.preventDefault();
+        setHistory([{ command: '', output: [], path: currentPath }]);
+        return;
+      }
+      if (e.key === 'c') {
+        e.preventDefault();
+        // "Cancel" command
+        setHistory(prev => [...prev, { command: input + '^C', output: [], path: currentPath }]);
+        setInput('');
+        return;
+      }
+      if (e.key === 'u') {
+        e.preventDefault();
+        setInput('');
+        return;
+      }
+    }
+
     if (e.key === 'Tab') {
       handleTabCompletion(e);
+      return;
+    }
+
+    if (e.key === 'ArrowRight' && ghostText) {
+      e.preventDefault();
+      setInput(input + ghostText);
       return;
     }
 
@@ -451,7 +572,7 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
     }
 
     return (
-      <span>
+      <span className="whitespace-nowrap mr-2">
         <span style={{ color: accentColor }}>{currentUser}</span>
         <span style={{ color: '#94a3b8' }}>@</span>
         <span style={{ color: accentColor }}>aurora</span>
@@ -462,48 +583,78 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
     );
   };
 
+  // Parsing input for syntax highlighting
+  const renderInputOverlay = () => {
+    const fullText = input;
+    const firstSpaceIndex = fullText.indexOf(' ');
+    const commandPart = firstSpaceIndex === -1 ? fullText : fullText.substring(0, firstSpaceIndex);
+    const restPart = firstSpaceIndex === -1 ? '' : fullText.substring(firstSpaceIndex);
+
+    const isValid = isCommandValid(commandPart);
+
+    return (
+      <span className="pointer-events-none whitespace-pre relative z-10">
+        <span style={{ color: isValid ? accentColor : '#ef4444' }}>{commandPart}</span>
+        <span className="text-white">{restPart}</span>
+        <span className="text-white/40">{ghostText}</span>
+      </span>
+    );
+  };
+
   const content = (
     <div
       className="h-full p-4 font-mono text-sm overflow-y-auto"
       ref={terminalRef}
       onClick={() => inputRef.current?.focus()}
     >
-      <div className="space-y-2">
+      <div className="space-y-1">
         {history.map((entry, index) => (
           <div key={index}>
             {entry.command && (
-              <div className="flex gap-2">
-                <span className="text-green-400">{getPrompt(entry.path)}</span>
-                <span className="text-white">{entry.command}</span>
+              <div className="flex flex-wrap">
+                {getPrompt(entry.path)}
+                <span className="text-white whitespace-pre-wrap break-all">{entry.command}</span>
               </div>
             )}
-            {entry.output.map((line, lineIndex) => (
-              <div
-                key={lineIndex}
-                className={entry.error ? 'text-red-400' : 'text-white/80'}
-              >
-                {line}
-              </div>
-            ))}
+            <div className="pl-0">
+              {entry.output.map((line, lineIndex) => (
+                <div
+                  key={lineIndex}
+                  className={entry.error ? 'text-red-400' : 'text-white/80'}
+                >
+                  {line}
+                </div>
+              ))}
+            </div>
           </div>
         ))}
 
-        <div className="flex gap-2">
-          <span className="text-green-400">{getPrompt()}</span>
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="flex-1 bg-transparent text-white outline-none caret-white"
-            autoFocus
-            spellCheck={false}
-          />
+        <div className="flex relative">
+          {getPrompt()}
+
+          <div className="relative flex-1 group">
+            {/* Overlay Layer for Syntax Highlighting */}
+            <div className="absolute inset-0 top-0 left-0 pointer-events-none select-none whitespace-pre break-all">
+              {renderInputOverlay()}
+            </div>
+
+            {/* Interaction Layer */}
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="w-full bg-transparent outline-none text-transparent caret-white relative z-20 break-all"
+              autoFocus
+              spellCheck={false}
+              autoComplete="off"
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 
-  return <AppTemplate content={content} hasSidebar={false} contentClassName="overflow-hidden" />;
+  return <AppTemplate content={content} hasSidebar={false} contentClassName="overflow-hidden bg-[#1e1e1e]/90" />;
 }

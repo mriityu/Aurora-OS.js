@@ -1,7 +1,13 @@
 # Version History
 
+## v0.6.2-patch4
+- **Terminal**: Improved ZSH-like experience with autocomplete, command history, pipe support, wildcard support, and more.
+- **Finder**: Improved item selecting/deselecting and added the Trash functionality.
+- **Dock**: Improved app icon behavior and added the Trash functionality.
+- **App bar**: Removed the search icon as it is not planned to be implemented in the near future.
+
 ## v0.6.2-patch3
-- **Environment**: Added Vite chunking for better performance.
+
 - **Desktop**: Added dragging constrains to prevent Windows going off-screen.
 - **Filesystem**: Improved special folders consistency (.Trash and .Config).
 - **Finder**: Fixed visibility of hidden files. Terminal will show hidden files.

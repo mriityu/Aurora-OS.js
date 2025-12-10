@@ -267,6 +267,7 @@ function DesktopComponent({ onDoubleClick, icons, onUpdateIconPosition, onIconDo
                 type={icon.type === 'folder' ? 'directory' : 'file'}
                 accentColor={accentColor}
                 className="w-full h-full"
+                isEmpty={icon.isEmpty}
               />
             </div>
 

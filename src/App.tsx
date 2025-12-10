@@ -33,6 +33,7 @@ export interface DesktopIcon {
   name: string;
   type: 'folder' | 'file';
   position: { x: number; y: number };
+  isEmpty?: boolean;
 }
 
 const POSITIONS_STORAGE_KEY = 'aurora-os-desktop-positions';
@@ -120,7 +121,8 @@ function OS() {
         id: file.id,
         name: file.name,
         type: file.type === 'directory' ? 'folder' : 'file',
-        position: pixelPos
+        position: pixelPos,
+        isEmpty: file.children?.length === 0
       });
 
       occupiedCells.add(gridPosToKey(gridPos));

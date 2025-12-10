@@ -79,4 +79,69 @@ describe('FileSystemContext', () => {
         });
         expect(success).toBe(false);
     });
+
+    describe('Trash Logic', () => {
+        it('moves file to trash', () => {
+            const { result } = renderHook(() => useFileSystem(), { wrapper });
+            const desktop = '/home/user/Desktop';
+
+            // Create file
+            act(() => { result.current.createFile(desktop, 'junk.txt'); });
+
+            // Move to trash
+            let success = false;
+            act(() => {
+                success = result.current.moveToTrash(`${desktop}/junk.txt`);
+            });
+
+            expect(success).toBe(true);
+            expect(result.current.getNodeAtPath(`${desktop}/junk.txt`)).toBeNull();
+            expect(result.current.getNodeAtPath('/home/user/.Trash/junk.txt')).not.toBeNull();
+        });
+
+        it('handles trash collisions by renaming', () => {
+            const { result } = renderHook(() => useFileSystem(), { wrapper });
+            const desktop = '/home/user/Desktop';
+
+            // Create two files
+            act(() => {
+                result.current.createFile(desktop, 'file.txt');
+                result.current.createFile(desktop, 'file_1.txt'); // placeholder to ensure distinct creation
+            });
+
+            // Move first one
+            act(() => { result.current.moveToTrash(`${desktop}/file.txt`); });
+
+            // Re-create file.txt at source
+            act(() => { result.current.createFile(desktop, 'file.txt'); });
+
+            // Move second one
+            act(() => { result.current.moveToTrash(`${desktop}/file.txt`); });
+
+            expect(result.current.getNodeAtPath('/home/user/.Trash/file.txt')).not.toBeNull();
+            expect(result.current.getNodeAtPath('/home/user/.Trash/file 1.txt')).not.toBeNull();
+        });
+
+        it('empties trash', () => {
+            const { result } = renderHook(() => useFileSystem(), { wrapper });
+            const desktop = '/home/user/Desktop';
+
+            act(() => {
+                result.current.createFile(desktop, 'rubbish.txt');
+            });
+
+            act(() => {
+                result.current.moveToTrash(`${desktop}/rubbish.txt`);
+            });
+
+            expect(result.current.getNodeAtPath('/home/user/.Trash/rubbish.txt')).not.toBeNull();
+
+            act(() => { result.current.emptyTrash(); });
+
+            // Trash folder should check for children being empty, but the folder itself might remain or be empty.
+            // Based on implementation, .Trash node always exists but children are cleared.
+            const trash = result.current.getNodeAtPath('/home/user/.Trash');
+            expect(trash?.children?.length).toBe(0);
+        });
+    });
 });

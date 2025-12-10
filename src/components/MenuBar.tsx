@@ -1,4 +1,4 @@
-import { Apple, Wifi, Battery, Volume2, Bell, Search } from 'lucide-react';
+import { Apple, Wifi, Battery, Volume2, Bell, } from 'lucide-react';
 import { useState, useEffect, memo } from 'react';
 
 interface MenuBarProps {
@@ -88,9 +88,6 @@ function MenuBarComponent({ onNotificationsClick, focusedApp }: MenuBarProps) {
 
       {/* Right side */}
       <div className="flex items-center gap-4">
-        <button className="text-white/70 hover:text-white transition-colors">
-          <Search className="w-4 h-4" />
-        </button>
         <button className="text-white/70 hover:text-white transition-colors">
           <Battery className="w-4 h-4" />
         </button>

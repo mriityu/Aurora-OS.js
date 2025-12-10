@@ -73,6 +73,9 @@ describe('Aurora OS Integration', () => {
 
         const finder = buttons.find(b => b.getAttribute('aria-label') === 'Finder');
         expect(finder).toBeInTheDocument();
+
+        const trash = buttons.find(b => b.getAttribute('aria-label') === 'Trash');
+        expect(trash).toBeInTheDocument();
     });
 
     it('loads persistence data on boot', () => {

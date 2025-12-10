@@ -13,6 +13,7 @@ import {
   Monitor,
   Music,
   Image,
+  Trash,
   Trash2,
   Settings,
   Home
@@ -88,7 +89,7 @@ export function FileManager({ initialPath }: { initialPath?: string }) {
   const { accentColor } = useAppContext();
   // Drag and Drop Logic
   const [dragTargetId, setDragTargetId] = useState<string | null>(null);
-  const { listDirectory, homePath, moveNodeById } = useFileSystem();
+  const { listDirectory, homePath, moveNodeById, getNodeAtPath, moveToTrash } = useFileSystem();
 
   const [containerRef, { width }] = useElementSize();
   const isMobile = width < 450;
@@ -259,95 +260,100 @@ export function FileManager({ initialPath }: { initialPath?: string }) {
   }), [handleSidebarDragOver, handleSidebarDrop]);
 
   // Sidebar configuration
-  const fileManagerSidebar = useMemo(() => ({
-    sections: [
-      {
-        title: 'Favourites',
-        items: [
-          {
-            id: 'home',
-            icon: Home,
-            label: 'Home',
-            action: () => navigateTo(homePath),
-            ...sidebarDropProps(homePath)
-          },
-          {
-            id: 'desktop',
-            icon: Monitor,
-            label: 'Desktop',
-            action: () => navigateTo(`${homePath}/Desktop`),
-            ...sidebarDropProps(`${homePath}/Desktop`)
-          },
-          {
-            id: 'documents',
-            icon: FileText,
-            label: 'Documents',
-            action: () => navigateTo(`${homePath}/Documents`),
-            ...sidebarDropProps(`${homePath}/Documents`)
-          },
-          {
-            id: 'downloads',
-            icon: Download,
-            label: 'Downloads',
-            action: () => navigateTo(`${homePath}/Downloads`),
-            ...sidebarDropProps(`${homePath}/Downloads`)
-          },
-          {
-            id: 'pictures',
-            icon: Image,
-            label: 'Pictures',
-            action: () => navigateTo(`${homePath}/Pictures`),
-            ...sidebarDropProps(`${homePath}/Pictures`)
-          },
-          {
-            id: 'music',
-            icon: Music,
-            label: 'Music',
-            action: () => navigateTo(`${homePath}/Music`),
-            ...sidebarDropProps(`${homePath}/Music`)
-          },
-        ]
-      },
-      {
-        title: 'System',
-        items: [
-          {
-            id: 'root',
-            icon: HardDrive,
-            label: '/',
-            action: () => navigateTo('/'),
-            ...sidebarDropProps('/')
-          },
-          {
-            id: 'usr',
-            icon: FolderOpen,
-            label: '/usr',
-            action: () => navigateTo('/usr'),
-            ...sidebarDropProps('/usr')
-          },
-          {
-            id: 'etc',
-            icon: Settings,
-            label: '/etc',
-            action: () => navigateTo('/etc'),
-            ...sidebarDropProps('/etc')
-          },
-        ]
-      },
-      {
-        title: 'Locations',
-        items: [
-          {
-            id: 'trash',
-            icon: Trash2,
-            label: 'Trash',
-            action: () => navigateTo(`${homePath}/.Trash`),
-            ...sidebarDropProps(`${homePath}/.Trash`)
-          },
-        ]
-      },
-    ]
-  }), [homePath, navigateTo, sidebarDropProps]);
+  const fileManagerSidebar = useMemo(() => {
+    const trashNode = getNodeAtPath(`${homePath}/.Trash`);
+    const isTrashEmpty = !trashNode?.children || trashNode.children.length === 0;
+
+    return {
+      sections: [
+        {
+          title: 'Favourites',
+          items: [
+            {
+              id: 'home',
+              icon: Home,
+              label: 'Home',
+              action: () => navigateTo(homePath),
+              ...sidebarDropProps(homePath)
+            },
+            {
+              id: 'desktop',
+              icon: Monitor,
+              label: 'Desktop',
+              action: () => navigateTo(`${homePath}/Desktop`),
+              ...sidebarDropProps(`${homePath}/Desktop`)
+            },
+            {
+              id: 'documents',
+              icon: FileText,
+              label: 'Documents',
+              action: () => navigateTo(`${homePath}/Documents`),
+              ...sidebarDropProps(`${homePath}/Documents`)
+            },
+            {
+              id: 'downloads',
+              icon: Download,
+              label: 'Downloads',
+              action: () => navigateTo(`${homePath}/Downloads`),
+              ...sidebarDropProps(`${homePath}/Downloads`)
+            },
+            {
+              id: 'pictures',
+              icon: Image,
+              label: 'Pictures',
+              action: () => navigateTo(`${homePath}/Pictures`),
+              ...sidebarDropProps(`${homePath}/Pictures`)
+            },
+            {
+              id: 'music',
+              icon: Music,
+              label: 'Music',
+              action: () => navigateTo(`${homePath}/Music`),
+              ...sidebarDropProps(`${homePath}/Music`)
+            },
+          ]
+        },
+        {
+          title: 'System',
+          items: [
+            {
+              id: 'root',
+              icon: HardDrive,
+              label: '/',
+              action: () => navigateTo('/'),
+              ...sidebarDropProps('/')
+            },
+            {
+              id: 'usr',
+              icon: FolderOpen,
+              label: '/usr',
+              action: () => navigateTo('/usr'),
+              ...sidebarDropProps('/usr')
+            },
+            {
+              id: 'etc',
+              icon: Settings,
+              label: '/etc',
+              action: () => navigateTo('/etc'),
+              ...sidebarDropProps('/etc')
+            },
+          ]
+        },
+        {
+          title: 'Locations',
+          items: [
+            {
+              id: 'trash',
+              icon: isTrashEmpty ? Trash : Trash2,
+              label: 'Trash',
+              action: () => navigateTo(`${homePath}/.Trash`),
+              ...sidebarDropProps(`${homePath}/.Trash`)
+            },
+          ]
+        },
+      ]
+    };
+  }, [homePath, navigateTo, sidebarDropProps, getNodeAtPath]);
 
   const toolbar = (
     <div className="flex items-center justify-between w-full">
@@ -365,6 +371,27 @@ export function FileManager({ initialPath }: { initialPath?: string }) {
           className={`p-1.5 rounded-md transition-colors ${historyIndex >= history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-white/5'}`}
         >
           <ChevronRight className="w-4 h-4 text-white/50" />
+        </button>
+
+        <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+        <button
+          onClick={() => {
+            if (selectedItem) {
+              const item = items.find(i => i.id === selectedItem);
+              if (item) {
+                const fullPath = currentPath === '/' ? `/${item.name}` : `${currentPath}/${item.name}`;
+                moveToTrash(fullPath);
+                setSelectedItem(null);
+                toast.success('Moved to Trash');
+              }
+            }
+          }}
+          disabled={!selectedItem}
+          className={`p-1.5 rounded-md transition-colors ${!selectedItem ? 'opacity-30 cursor-not-allowed' : 'hover:bg-red-500/20 text-red-400'}`}
+          title="Move to Trash"
+        >
+          <Trash2 className="w-4 h-4" />
         </button>
 
 
@@ -504,6 +531,13 @@ export function FileManager({ initialPath }: { initialPath?: string }) {
       onDragOver={handleContainerDragOver}
       onDragLeave={handleContainerDragLeave}
       onDrop={handleContainerDrop}
+      onClick={(e) => {
+        // Deselect if clicking on background (not on a button)
+        const target = e.target as HTMLElement;
+        if (!target.closest('button')) {
+          setSelectedItem(null);
+        }
+      }}
     >
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-white/40">

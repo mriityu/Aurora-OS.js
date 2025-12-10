@@ -1,12 +1,13 @@
-import { FolderOpen, Settings, Mail, Calendar, Image, Music, Video, Terminal, Globe, MessageSquare } from 'lucide-react';
+import { FolderOpen, Settings, Mail, Calendar, Image, Music, Video, Terminal, Globe, MessageSquare, Trash, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState, useEffect, useMemo, memo } from 'react';
 import type { WindowState } from '../App';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useAppContext } from './AppContext';
+import { useFileSystem } from './FileSystemContext';
 
 interface DockProps {
-  onOpenApp: (appType: string) => void;
+  onOpenApp: (appType: string, data?: any) => void;
   onRestoreWindow: (windowId: string) => void;
   onFocusWindow: (windowId: string) => void;
   windows: WindowState[];
@@ -28,6 +29,11 @@ const dockApps = [
 function DockComponent({ onOpenApp, onRestoreWindow, onFocusWindow, windows }: DockProps) {
   const { dockBackground, blurStyle } = useThemeColors();
   const { reduceMotion, disableShadows, disableGradients, accentColor } = useAppContext();
+  const { getNodeAtPath, homePath } = useFileSystem();
+
+  const trashNode = getNodeAtPath(`${homePath}/.Trash`);
+  const isTrashEmpty = !trashNode?.children || trashNode.children.length === 0;
+
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [shouldHide, setShouldHide] = useState(false);
 
@@ -204,6 +210,40 @@ function DockComponent({ onOpenApp, onRestoreWindow, onFocusWindow, windows }: D
               </motion.button>
             );
           })}
+
+
+          {/* Separator */}
+          <div className="w-8 h-[1px] bg-white/10 my-1 mx-auto" />
+
+          {/* Trash Icon */}
+          <motion.button
+            aria-label="Trash"
+            className={`relative w-12 h-12 rounded-xl flex items-center justify-center text-white 
+                   ${!disableShadows ? 'shadow-lg hover:shadow-xl' : ''} transition-all border border-white/5
+                   ${disableGradients ? '' : 'bg-gradient-to-br from-gray-700 to-gray-900'}`}
+            style={disableGradients ? { backgroundColor: '#374151' } : {}}
+            onMouseEnter={() => setHoveredIndex(dockApps.length)}
+            onMouseLeave={() => setHoveredIndex(null)}
+            onClick={() => {
+              // Open Finder at .Trash
+              onOpenApp('finder', { path: `${homePath}/.Trash` });
+            }}
+            whileHover={reduceMotion ? { scale: 1, x: 0 } : { scale: 1.1, x: 8 }}
+            whileTap={reduceMotion ? { scale: 1 } : { scale: 0.95 }}
+          >
+            {isTrashEmpty ? <Trash className="w-6 h-6" /> : <Trash2 className="w-6 h-6" />}
+
+            {hoveredIndex === dockApps.length && (
+              <motion.div
+                className="absolute left-full ml-3 px-3 py-1.5 bg-gray-900/90 backdrop-blur-md text-white text-xs rounded-lg whitespace-nowrap border border-white/20"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0 }}
+              >
+                Trash
+              </motion.div>
+            )}
+          </motion.button>
         </div>
       </motion.div>
     </div>
