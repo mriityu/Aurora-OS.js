@@ -1,3 +1,16 @@
+## v0.7.2-patch2
+- **Terminal Implementation**:
+    - **Advanced Architecture**: Implemented `su` and `sudo` for user switching and privilege escalation simulation.
+    - **Output Redirection**: Added support for standard shell redirection, allowing file creation and appending (e.g., `echo "data" > file.txt`).
+    - **Permissions**: Fully implemented `chmod` (permissions) and `chown` (ownership) commands integrated with the virtual filesystem security model.
+- **Login Screen**:
+    - **Recovery Options**: Added "Soft Reset" (Reload) and "Hard Reset" (Factory Wipe) links to the login screen footer for emergency system recovery.
+- **System Logic**:
+    - **Authentication**: Verified and hardened `/etc/passwd` and `/etc/group` synchronization logic, ensuring rigorous "Dual-State" consistency between memory and file content.
+- **Infrastructure & Quality**:
+    - **CI/CD Optimization**: Consolidated deployment pipelines (`deploy.yml`) to include verification steps (Test, Lint) and eliminated redundant builds on `main`.
+    - **Code Quality**: Resolved all ESLint warnings and expanded test suite coverage to include FileSystem permissions and ownership logic.
+
 ## v0.7.2-patch
 - **True Lock Screen**:
     - **Overlay Architecture**: Lock Screen now overlays the running desktop instead of unmounting it, keeping apps (e.g., Music) active in the background.

@@ -14,8 +14,9 @@ interface FileNode {
   type: 'file' | 'directory';
   content?: string;
   children?: FileNode[];
-  permissions?: string; // 'rwxr-xr-x'
+  permissions?: string; // e.g. 'rwxr-xr-x'
   owner?: string;
+  group?: string; 
   size?: number;
   modified?: Date;
 }
@@ -28,6 +29,14 @@ interface User {
   fullName: string;
   homeDir: string;
   shell: string;
+  groups?: string[]; // Supplementary groups
+}
+
+interface Group {
+  groupName: string;
+  password?: string;
+  gid: number;
+  members: string[]; // usernames
 }
 
 // Functions
@@ -52,6 +61,12 @@ function parsePasswd(content: string): User[]
 function formatPasswd(users: User[]): string
 /**
  * Logic to sync User objects with the textual content of /etc/passwd.
+ */
+
+function parseGroup(content: string): Group[]
+function formatGroup(groups: Group[]): string
+/**
+ * Logic to sync Group objects with the textual content of /etc/group.
  */
 
 function moveNodeById(id: string, destPath: string): boolean
@@ -130,6 +145,9 @@ function getComplementaryColor(hex: string): string
 
 function hexToRgb(hex: string): { r: number; g: number; b: number }
 function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number }
+function rgbToHex(r: number, g: number, b: number): string
+function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number }
+function getColorShades(hex: string): { lightest: string, light: string, base: string, dark: string, darkest: string }
 ```
 
 ## 2. Global State & Contexts (`src/components`)
@@ -143,6 +161,7 @@ interface FileSystemContextType {
   // State
   fileSystem: FileNode;
   users: User[];
+  groups: Group[];
   currentUser: string | null;
   currentPath: string;
 
@@ -153,6 +172,9 @@ interface FileSystemContextType {
   addUser(username: string, fullName: string, password?: string): boolean
   deleteUser(username: string): boolean
 
+  addGroup(groupName: string, members?: string[]): boolean
+  deleteGroup(groupName: string): boolean
+
   writeFile(path: string, content: string): boolean
   readFile(path: string): string | null
   createFile(path: string, name: string, content?: string): boolean
@@ -162,6 +184,9 @@ interface FileSystemContextType {
   deleteNode(path: string): boolean
   
   resetFileSystem(): void
+
+  chmod(path: string, mode: string): boolean
+  chown(path: string, owner: string, group?: string): boolean
 }
 ```
 
@@ -180,10 +205,30 @@ Global configuration state.
 
 ## 3. Applications (`src/components/apps` & `FileManager.tsx`)
 
+
 ### Finder (`FileManager.tsx`)
 The primary file explorer.
 - **`navigateTo(path)`**: **[SECURE]** Pre-checks `read` and `execute` permissions before entering a directory. Prevents access to restricted folders (e.g., `/root`).
 - **Sidebar & Breadcrumbs**: Dynamic navigation components that respect the current browsing context.
+
+### Terminal (`Terminal.tsx` & `src/utils/terminal`)
+Zsh-like terminal emulator with modular command architecture.
+
+**Command Structure (`TerminalCommand`)**:
+```typescript
+interface TerminalCommand {
+    name: string;
+    description: string;
+    usage: string;
+    execute: (context: CommandContext) => CommandResult | Promise<CommandResult>;
+}
+```
+
+**Key Features**:
+- **Output Redirection**: Parses `>` and `>>` to write command output to files (supports overwriting and appending).
+- **User Switching**: `su` and `sudo` commands allow switching the active simulation user.
+- **Registry**: Commands are registered in `registry.ts` for O(1) lookup.
+
 
 ## 4. Custom Hooks (`src/hooks`)
 

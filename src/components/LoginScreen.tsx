@@ -9,7 +9,7 @@ import { feedback } from '../services/soundFeedback';
 import { useAppContext } from './AppContext';
 
 export function LoginScreen() {
-    const { users, login, currentUser, logout } = useFileSystem();
+    const { users, login, currentUser, logout, resetFileSystem } = useFileSystem();
     const { exposeRoot, accentColor, isLocked, setIsLocked } = useAppContext();
 
     // If locked, default to current user
@@ -248,8 +248,28 @@ export function LoginScreen() {
                 )}
 
                 {/* Footer */}
-                <div className="absolute bottom-6 left-0 right-0 text-center">
+                <div className="absolute bottom-6 left-0 right-0 text-center flex flex-col gap-2 items-center">
                     <p className="text-white/20 text-xs font-mono">v{pkg.version} • Secure System</p>
+                    <div className="flex gap-4 text-xs font-mono text-white/10">
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="hover:text-white/40 transition-colors"
+                        >
+                            Soft Reset
+                        </button>
+                        <span>•</span>
+                        <button
+                            onClick={() => {
+                                if (window.confirm('Hard Reset: This will wipe all data. Continue?')) {
+                                    resetFileSystem();
+                                    window.location.reload();
+                                }
+                            }}
+                            className="hover:text-red-400/60 transition-colors"
+                        >
+                            Hard Reset
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

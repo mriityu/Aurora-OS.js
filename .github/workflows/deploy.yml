@@ -49,8 +49,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Lint
+        run: npm run lint
+        
+      - name: Test
+        run: npm test
+        
+      - name: Type Check
+        run: npx tsc --noEmit
+
+      - name: Build Web
         run: npm run build
+
+      - name: Build Electron (Linux Check)
+        run: npm run ts:electron
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -1,4 +1,4 @@
-# Aurora OS.js [![Version](https://img.shields.io/badge/Version-v0.7.2_patch-blue)](https://github.com/mental-os/Aurora-OS.js) [![GitHub Pages](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml) [![Dependabot](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates) [![Build](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml)
+# Aurora OS.js [![Version](https://img.shields.io/badge/Version-v0.7.2_patch2-blue)](https://github.com/mental-os/Aurora-OS.js) [![GitHub Pages](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml) [![Dependabot](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates) [![Build](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml)
 
 A modern, web-based desktop operating system interface built with React, Tailwind CSS, and Radix UI.
 
@@ -56,10 +56,18 @@ npm test
 
 ## Release Notes
 
-### v0.7.2-patch
-- **True Lock Screen**: Overlay architecture keeps apps running while locked. Unique "Switch Account" flow prevents accidental data loss.
-- **Session Persistence**: Windows and desktop icons are now saved and restored per-user.
-- **Security**: Strict differentiation between "Locking" (suspend) and "Logging Out" (terminate).
+### v0.7.2-patch2
+- **Terminal Implementation**:
+    - **Advanced Architecture**: Implemented `su` and `sudo` for user switching and privilege escalation simulation.
+    - **Output Redirection**: Added support for standard shell redirection, allowing file creation and appending (e.g., `echo "data" > file.txt`).
+    - **Permissions**: Fully implemented `chmod` (permissions) and `chown` (ownership) commands integrated with the virtual filesystem security model.
+- **Login Screen**:
+    - **Recovery Options**: Added "Soft Reset" (Reload) and "Hard Reset" (Factory Wipe) links to the login screen footer for emergency system recovery.
+- **System Logic**:
+    - **Authentication**: Verified and hardened `/etc/passwd` and `/etc/group` synchronization logic, ensuring rigorous "Dual-State" consistency between memory and file content.
+- **Infrastructure & Quality**:
+    - **CI/CD Optimization**: Consolidated deployment pipelines (`deploy.yml`) to include verification steps (Test, Lint) and eliminated redundant builds on `main`.
+    - **Code Quality**: Resolved all ESLint warnings and expanded test suite coverage to include FileSystem permissions and ownership logic.
 
 [View full version history](HISTORY.md)
 

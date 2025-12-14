@@ -159,4 +159,60 @@ describe('FileSystemContext', () => {
             expect(trash?.children?.length).toBe(0);
         });
     });
+
+    describe('Permissions & Ownership', () => {
+        it('chmod updates file permissions', () => {
+            const { result } = renderHook(() => useFileSystem(), { wrapper });
+            // Login as root to ensure we can chmod anything
+            act(() => { result.current.login('root', 'admin'); });
+
+            const file = '/root/test.txt';
+            act(() => { result.current.createFile('/root', 'test.txt'); });
+
+            act(() => {
+                result.current.chmod(file, '777');
+            });
+
+            const node = result.current.getNodeAtPath(file);
+            expect(node?.permissions).toBe('-rwxrwxrwx');
+
+            act(() => {
+                result.current.chmod(file, '644');
+            });
+            expect(result.current.getNodeAtPath(file)?.permissions).toBe('-rw-r--r--');
+        });
+
+        it('chown updates owner and group', () => {
+            const { result } = renderHook(() => useFileSystem(), { wrapper });
+            act(() => { result.current.login('root', 'admin'); });
+
+            const file = '/root/owned.txt';
+            act(() => { result.current.createFile('/root', 'owned.txt'); });
+
+            act(() => {
+                result.current.chown(file, 'user', 'users');
+            });
+
+            const node = result.current.getNodeAtPath(file);
+            expect(node?.owner).toBe('user');
+            expect(node?.group).toBe('users');
+        });
+
+        it('manages groups', () => {
+            const { result } = renderHook(() => useFileSystem(), { wrapper });
+            act(() => { result.current.login('root', 'admin'); });
+
+            act(() => {
+                result.current.addGroup('developers', ['user']);
+            });
+
+            expect(result.current.groups.find(g => g.groupName === 'developers')).toBeDefined();
+
+            act(() => {
+                result.current.deleteGroup('developers');
+            });
+
+            expect(result.current.groups.find(g => g.groupName === 'developers')).toBeUndefined();
+        });
+    });
 });

@@ -207,6 +207,21 @@ export function checkPermissions(
     return checkChar !== '-';
 }
 
+export function octalToPermissions(mode: string, type: 'file' | 'directory'): string {
+    if (mode.length !== 3) return type === 'directory' ? 'drwxr-xr-x' : '-rw-r--r--'; // Fallback
+
+    const map = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx'];
+
+    // Validate octal
+    if (!/^[0-7]{3}$/.test(mode)) return type === 'directory' ? 'drwxr-xr-x' : '-rw-r--r--';
+
+    const u = parseInt(mode[0]);
+    const g = parseInt(mode[1]);
+    const o = parseInt(mode[2]);
+
+    return (type === 'directory' ? 'd' : '-') + map[u] + map[g] + map[o];
+}
+
 // Normalized Initial File System
 export const initialFileSystem: any = {
     name: '/',
@@ -253,8 +268,8 @@ export const initialFileSystem: any = {
             permissions: 'drwxr-xr-x', // 755
             owner: 'root',
             children: [
-                { name: 'passwd', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: 'root:admin:0:0:root:/root:/bin/bash\nuser:1234:1000:1000:User:/home/user:/bin/bash\nguest:guest:1001:1001:Guest:/home/guest:/bin/bash' },
-                { name: 'group', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: 'root:x:0:\nusers:x:100:user,guest\nadmin:x:10:user' },
+                { name: 'passwd', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: 'root:admin:0:0:System Administrator:/root:/bin/bash\nuser:1234:1000:1000:User:/home/user:/bin/bash\nguest:guest:1001:1001:Guest:/home/guest:/bin/bash' },
+                { name: 'group', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: 'root:x:0:root\nusers:x:100:user,guest\nadmin:x:10:user' },
                 { name: 'hostname', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: 'aurora' },
                 { name: 'hosts', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: '127.0.0.1\tlocalhost\n::1\t\tlocalhost' },
                 { name: 'os-release', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: `NAME="Aurora OS"\nVERSION="${pkg.version}"\nID=${pkg.name}\nPRETTY_NAME="Aurora OS.js"` },
