@@ -75,7 +75,13 @@ export const ls: TerminalCommand = {
                     allOutputs.push(grid);
                 }
             } else {
-                allOutputs.push(`ls: ${pathArg}: No such file or directory`);
+                // Determine if it's a permission error or not found
+                const node = fileSystem.getNodeAtPath(lsPath);
+                if (node) {
+                    allOutputs.push(`ls: cannot open directory '${pathArg || '.'}': Permission denied`);
+                } else {
+                    allOutputs.push(`ls: ${pathArg || '.'}: No such file or directory`);
+                }
                 error = true;
             }
         });

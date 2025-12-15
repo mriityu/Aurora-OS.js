@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect, ReactNode } from 'react';
+import { useState, useRef, useEffect, ReactNode, useCallback } from 'react';
+import { validateIntegrity } from '../../utils/integrity';
 import { useFileSystem } from '../FileSystemContext';
 import { useAppContext } from '../AppContext';
 import { AppTemplate } from './AppTemplate';
-// FileIcon and checkPermissions removed as they are now used inside command modules
 import { getCommand, commands, getAllCommands } from '../../utils/terminal/registry';
 import pkg from '../../../package.json';
+import { getColorShades } from '../../utils/colors';
 
 interface CommandHistory {
   command: string;
@@ -14,6 +15,56 @@ interface CommandHistory {
   accentColor?: string;
   user?: string;
 }
+
+// Helper to safely parse command input respecting quotes
+// Returns [command, args[], redirectOp, redirectPath]
+const parseCommandInput = (input: string): { command: string; args: string[]; redirectOp: string | null; redirectPath: string | null } => {
+  // Regex to match tokens: quotes, redirection ops, or regular words
+  // matches: "string", 'string', >>, >, word
+  const regex = /"([^"]*)"|'([^']*)'|(>>?)|([^\s"']+)/g;
+  const tokens: string[] = [];
+  let match;
+
+  while ((match = regex.exec(input)) !== null) {
+    if (match[1] !== undefined) tokens.push(match[1]); // Double quote content
+    else if (match[2] !== undefined) tokens.push(match[2]); // Single quote content
+    else if (match[3] !== undefined) tokens.push(match[3]); // Redirection op
+    else if (match[4] !== undefined) tokens.push(match[4]); // Word
+    else tokens.push(match[0]); // Fallback
+  }
+
+  if (tokens.length === 0) return { command: '', args: [], redirectOp: null, redirectPath: null };
+
+  // Scan for redirection
+  let redirectIndex = -1;
+  let redirectOp: string | null = null;
+
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i] === '>' || tokens[i] === '>>') {
+      redirectIndex = i;
+      redirectOp = tokens[i];
+      break;
+    }
+  }
+
+  if (redirectIndex !== -1) {
+    const commandParts = tokens.slice(0, redirectIndex);
+    const pathPart = tokens[redirectIndex + 1] || null;
+    return {
+      command: commandParts[0] || '',
+      args: commandParts.slice(1),
+      redirectOp,
+      redirectPath: pathPart
+    };
+  }
+
+  return {
+    command: tokens[0],
+    args: tokens.slice(1),
+    redirectOp: null,
+    redirectPath: null
+  };
+};
 
 const PATH = ['/bin', '/usr/bin'];
 // const BUILTINS = ['cd', 'export', 'alias']; // Replaced by registry
@@ -82,14 +133,18 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
   // Each Terminal instance has its own working directory (independent windows)
   const [currentPath, setCurrentPath] = useState(homePath);
 
+  // Smart Scroll: Only scroll if user was already at bottom or it's a new command
   useEffect(() => {
     if (terminalRef.current) {
+      // Simple heuristic: Always scroll for now to ensure visibility of new commands.
+      // Real smart scroll requires tracking "wasAtBottom" before render.
+      // For this improvement, let's stick to auto-scroll but maybe smooth?
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
   }, [history]);
 
   // Use context's resolvePath but with our local currentPath
-  const resolvePath = (path: string): string => {
+  const resolvePath = useCallback((path: string): string => {
     if (path.startsWith('/')) return contextResolvePath(path);
     if (path === '~') return homePath;
     if (path.startsWith('~/')) return homePath + path.slice(1);
@@ -106,7 +161,7 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
       }
     }
     return '/' + parts.join('/');
-  };
+  }, [currentPath, contextResolvePath, homePath]);
 
   // Helper to expand globs like *.txt
   const expandGlob = (pattern: string): string[] => {
@@ -128,10 +183,13 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
     return matches.length > 0 ? matches : [pattern];
   };
 
-  const getAutocompleteCandidates = (partial: string, isCommand: boolean): string[] => {
+  const getAutocompleteCandidates = useCallback((partial: string, isCommand: boolean): string[] => {
     const candidates: string[] = [];
     if (isCommand) {
-      candidates.push(...Object.keys(commands).filter(c => c.startsWith(partial)));
+      candidates.push(...Object.values(commands) // Use values to check hidden status
+        .filter(c => !c.hidden && c.name.startsWith(partial))
+        .map(c => c.name));
+
       for (const pathDir of PATH) {
         const files = listDirectory(pathDir, activeTerminalUser);
         if (files) {
@@ -147,7 +205,7 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
       let searchPrefix = partial;
       const lastSlash = partial.lastIndexOf('/');
       if (lastSlash !== -1) {
-        const dirPart = partial.substring(0, lastSlash);
+        const dirPart = lastSlash === 0 ? '/' : partial.substring(0, lastSlash);
         searchPrefix = partial.substring(lastSlash + 1);
         searchDir = resolvePath(dirPart);
       }
@@ -161,7 +219,7 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
       }
     }
     return Array.from(new Set(candidates)).sort();
-  };
+  }, [activeTerminalUser, currentPath, listDirectory, resolvePath]);
 
   const handleTabCompletion = (e: React.KeyboardEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -187,15 +245,21 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
           newInput = parts.join(' ').slice(0, -(partial.length)) + completion;
         }
         // Fix joining logic if needed
-        const before = input.lastIndexOf(partial);
-        newInput = input.substring(0, before) + completion; // simple replacement
+        // lines 190-191 were destructive causing the bug, relying on lines 179-188 logic which is correct
       }
       setInput(newInput);
       setGhostText('');
     } else {
       setHistory(prev => [
         ...prev,
-        { command: input, output: candidates, error: false, path: currentPath }
+        {
+          command: input,
+          output: candidates,
+          error: false,
+          path: currentPath,
+          user: activeTerminalUser,
+          accentColor: termAccent
+        }
       ]);
     }
   };
@@ -215,7 +279,7 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
     } else {
       setGhostText('');
     }
-  }, [input, currentPath]); // Dep on currentPath for file search
+  }, [input, currentPath, getAutocompleteCandidates]); // Dep on currentPath for file search
 
 
   const isCommandValid = (cmd: string): boolean => {
@@ -241,30 +305,20 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
       return;
     }
 
-    // Handle Output Redirection (> and >>)
-    let commandStr = trimmed;
-    let redirectPath: string | null = null;
-    let appendMode = false;
+    // Parse command using robust parser
+    const { command, args: rawArgs, redirectOp, redirectPath } = parseCommandInput(trimmed);
 
-    if (commandStr.includes('>>')) {
-      const parts = commandStr.split('>>');
-      commandStr = parts[0].trim();
-      redirectPath = parts[1]?.trim();
-      appendMode = true;
-    } else if (commandStr.includes('>')) {
-      const parts = commandStr.split('>');
-      commandStr = parts[0].trim();
-      redirectPath = parts[1]?.trim();
-      appendMode = false;
-    }
-
-    const parts = commandStr.split(/\s+/);
-    const command = parts[0];
-    const rawArgs = parts.slice(1);
-
+    // Expand globs in args
     const args: string[] = [];
     rawArgs.forEach(arg => {
-      args.push(...expandGlob(arg));
+      // Don't expand if it was quoted (how to detect? parseCommandInput strips quotes...)
+      // For now, expand simple globs. Ideally parser should flag quotes.
+      // Simplification: just expand everything for now, or check for *
+      if (arg.includes('*')) {
+        args.push(...expandGlob(arg));
+      } else {
+        args.push(arg);
+      }
     });
 
     let output: (string | ReactNode)[] = [];
@@ -317,15 +371,16 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
 
       } else {
         let foundPath: string | null = null;
-        const cmd = command;
 
-        if (cmd.includes('/')) {
-          const resolved = resolvePath(cmd);
+        // Try command as path
+        if (command.includes('/')) {
+          const resolved = resolvePath(command);
           const node = getNodeAtPath(resolved);
           if (node && node.type === 'file') foundPath = resolved;
         } else {
+          // search PATH
           for (const dir of PATH) {
-            const checkPath = (dir === '/' ? '' : dir) + '/' + cmd;
+            const checkPath = (dir === '/' ? '' : dir) + '/' + command;
             const node = getNodeAtPath(checkPath);
             if (node && node.type === 'file') {
               foundPath = checkPath;
@@ -346,6 +401,7 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
               cmdError = true;
             }
           } else {
+            // Binary execution simulation not implemented fully
             cmdOutput = [`${command}: command not found (binary execution not fully simmed)`];
             cmdError = true;
           }
@@ -370,20 +426,56 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
       return;
     }
 
-    if (redirectPath) {
-      const textContent = output.filter(o => typeof o === 'string' || typeof o === 'number').join('\n');
-      if (redirectPath && textContent) {
+    if (redirectOp && redirectPath) {
+      // Safely extract text content from output (ignore ReactNodes to prevent [object Object])
+      const textContent = output
+        .map(o => {
+          if (typeof o === 'string') return o;
+          if (typeof o === 'number') return String(o);
+          return ''; // Skip ReactNodes/Objects for file writing
+        })
+        .filter(s => s !== '')
+        .join('\n');
+
+      if (redirectPath) {
         let finalContent = textContent;
-        const existing = readFile(redirectPath);
-        if (appendMode && existing) {
-          finalContent = existing + '\n' + textContent;
-        }
-        const success = writeFile(redirectPath, finalContent);
-        if (!success) {
-          output = [`Failed to write to ${redirectPath}`];
+        const appendMode = redirectOp === '>>';
+
+        // Resolve redirect path
+        const absRedirectPath = resolvePath(redirectPath);
+        const existingNode = getNodeAtPath(absRedirectPath);
+        const parentPath = absRedirectPath.substring(0, absRedirectPath.lastIndexOf('/')) || '/';
+        const fileName = absRedirectPath.substring(absRedirectPath.lastIndexOf('/') + 1);
+
+        // Check parent existence
+        const parentNode = getNodeAtPath(parentPath);
+        if (!parentNode || parentNode.type !== 'directory') {
+          output = [`zsh: no such file or directory: ${redirectPath}`];
           error = true;
         } else {
-          output = [];
+          // Simple write logic
+          // If append, read first
+          if (appendMode && existingNode && existingNode.type === 'file' && existingNode.content !== undefined) {
+            finalContent = existingNode.content + '\n' + textContent;
+          }
+
+          if (existingNode) {
+            // File exists, update it
+            const success = writeFile(absRedirectPath, finalContent, activeTerminalUser);
+            if (!success) {
+              output = [`zsh: permission denied: ${redirectPath}`];
+              error = true;
+            }
+          } else {
+            // File does not exist, create it
+            const success = createFile(parentPath, fileName, finalContent, activeTerminalUser);
+            if (!success) {
+              output = [`zsh: permission denied: ${redirectPath}`];
+              error = true;
+            }
+          }
+
+          if (!error) output = []; // Silence output on successful redirect
         }
       }
     }
@@ -404,6 +496,34 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.ctrlKey) {
+      switch (e.key) {
+        case 'l':
+          e.preventDefault();
+          setHistory([]);
+          return;
+        case 'c':
+          e.preventDefault();
+          setInput('');
+          setHistory(prev => [
+            ...prev,
+            {
+              command: input + '^C',
+              output: [],
+              error: false,
+              path: currentPath,
+              user: activeTerminalUser,
+              accentColor: termAccent
+            }
+          ]);
+          return;
+        case 'u':
+          e.preventDefault();
+          setInput('');
+          return;
+      }
+    }
+
     if (e.key === 'Enter') {
       executeCommand(input);
     } else if (e.key === 'ArrowUp') {
@@ -412,27 +532,17 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
       if (historyIndex < commandHistory.length - 1) {
         const newIndex = historyIndex + 1;
         setHistoryIndex(newIndex);
-        // commandHistory is ordered old -> new. Reverse logic needed for navigation?
-        // Usually Up means "previous command" (newest to oldest).
-        // If array is [a, b, c], Up 1 should be c. Up 2 should be b.
-        // Index 0 = c? Index 1 = b?
-        // Let's treat historyIndex as "distance from end".
-        // 0-based index from end: 0 is last command.
-
-        const reverseHistory = [...commandHistory].reverse();
-        if (newIndex < reverseHistory.length) {
-          setInput(reverseHistory[newIndex]);
-        }
+        // Optimized: direct index access from end
+        const cmd = commandHistory[commandHistory.length - 1 - newIndex];
+        if (cmd) setInput(cmd);
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (historyIndex > 0) {
         const newIndex = historyIndex - 1;
         setHistoryIndex(newIndex);
-        const reverseHistory = [...commandHistory].reverse();
-        if (newIndex < reverseHistory.length) {
-          setInput(reverseHistory[newIndex]);
-        }
+        const cmd = commandHistory[commandHistory.length - 1 - newIndex];
+        if (cmd) setInput(cmd);
       } else if (historyIndex === 0) {
         setHistoryIndex(-1);
         setInput('');
@@ -450,6 +560,7 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
   };
 
   const termAccent = getTerminalAccentColor();
+  const shades = getColorShades(termAccent);
 
   const getPrompt = (path: string = currentPath) => {
     let displayPath: string;
@@ -474,33 +585,137 @@ export function Terminal({ onLaunchApp }: TerminalProps) {
   };
 
   const renderInputOverlay = () => {
-    const fullText = input;
-    const firstSpaceIndex = fullText.indexOf(' ');
-    const commandPart = firstSpaceIndex === -1 ? fullText : fullText.substring(0, firstSpaceIndex);
-    const restPart = firstSpaceIndex === -1 ? '' : fullText.substring(firstSpaceIndex);
-    const isValid = isCommandValid(commandPart);
+    // Advanced Syntax Highlighting
+    // Reuse parser regex manually or just split for simple highlighting
+    // We want to highlight:
+    // - Command (First word): Accent Base
+    // - Flags (-f, --foo): Accent Light
+    // - Strings ("foo"): Accent Lightest (High visibility)
+    // - Operators (>, >>, |): Complementary or White? Let's use shades.darkest or just white.
+
+    const tokens: ReactNode[] = [];
+    const regex = /("([^"]*)")|('([^']*)')|(\s+)|([^\s"']+)/g;
+    let match;
+    let index = 0;
+
+    // Naive recreation of input for coloring.
+    // We strictly follow the input string to maintain spacing.
+    // Since regex doesn't capture "everything", we might miss chars if regex is bad.
+    // Safer approach: use the simple split logic I used before but refine it? 
+    // Or just iterate standard split?
+    // Let's stick to the previous simple logic BUT colored better.
+    // Actually, to correctly highlight strings including spaces inside them, we MUST use regex match.
+    // The previous regex `regex` in parseCommandInput works well.
+    // Let's copy it but slightly adapted to catch whitespace too?
+    // /("([^"]*)")|('([^']*)')|(\s+)|([^\s"']+)/g  <-- this catches whitespace group
+
+    // We iterate the input string.
+
+    // We need to know which token is the command (first non-whitespace).
+    let isCommandPosition = true;
+
+    while ((match = regex.exec(input)) !== null) {
+      const fullMatch = match[0];
+
+      const isString = match[1] !== undefined || match[3] !== undefined; // "..." or '...'
+      const isWhitespace = match[5] !== undefined;
+      const isWord = match[6] !== undefined;
+
+      let color = 'white';
+
+      if (isWhitespace) {
+        // preserve whitespace
+        tokens.push(<span key={index++} className="whitespace-pre">{fullMatch}</span>);
+        continue; // don't change isCommandPosition
+      }
+
+      if (isCommandPosition && isWord) {
+        // First word -> Command -> Base Accent
+        // Valid command? 
+        const isValid = isCommandValid(fullMatch);
+        color = isValid ? shades.base : '#ef4444'; // Red if invalid
+        isCommandPosition = false;
+      } else if (isString) {
+        // String -> Lightest Accent
+        color = shades.lightest;
+      } else if (fullMatch.startsWith('-')) {
+        // Flag -> Light Accent
+        color = shades.light;
+      } else if (['>', '>>', '|', '&&', ';'].includes(fullMatch)) {
+        // Operator -> Darkest Accent (maybe too dark? Try white or a distinct color)
+        // Let's try secondary accent? For now, 'white' or shades.light
+        // shades.light is good for "special" chars.
+        color = shades.light;
+        // Reset command position after pipe/and/semicolon
+        if (['|', '&&', ';'].includes(fullMatch)) isCommandPosition = true;
+      } else {
+        // Argument -> White/Default
+        color = 'white';
+      }
+
+      tokens.push(
+        <span key={index++} style={{ color }}>{fullMatch}</span>
+      );
+    }
 
     return (
-      <span className="pointer-events-none whitespace-pre relative z-10">
-        <span style={{ color: isValid ? termAccent : '#ef4444' }}>{commandPart}</span>
-        <span className="text-white">{restPart}</span>
+      <span className="pointer-events-none whitespace-pre relative z-10 break-all">
+        {tokens}
         <span className="text-white/40">{ghostText}</span>
       </span>
     );
   };
 
+  // Integrity Check Effect
+  const integrityCheckRun = useRef(false);
+  useEffect(() => {
+    if (integrityCheckRun.current) return;
+
+    // Small delay to ensure it appears after possible initial renders
+    const timer = setTimeout(() => {
+      if (!validateIntegrity()) {
+        integrityCheckRun.current = true; // Mark as run to prevent spam
+        setHistory(prev => [
+          ...prev,
+          {
+            command: '',
+            output: [
+              <div className="text-red-500 font-bold bg-red-950/30 p-2 border border-red-500/50 rounded mb-2">
+                CRITICAL ERROR: SYSTEM INTEGRITY COMPROMISED<br />
+                The system has detected unauthorized modifications to core identity files.<br />
+                Entering Safe Mode: Write access disabled. Root access disabled.
+              </div>
+            ],
+            path: currentPath || '~',
+            user: activeTerminalUser,
+            accentColor: '#ef4444'
+          }
+        ]);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [activeTerminalUser, currentPath]);
+
   const content = (
     <div
       className="flex-1 overflow-y-auto p-2 font-mono text-sm space-y-1 scrollbar-hide"
       ref={terminalRef}
-      onClick={() => inputRef.current?.focus()}
+      onClick={() => {
+        const selection = window.getSelection();
+        if (!selection || selection.toString().length === 0) {
+          inputRef.current?.focus();
+        }
+      }}
     >
-      <div className="text-gray-400 mb-2">Aurora OS terminal [v{pkg.version}]</div>
+      <div className="text-gray-400 mb-2">{pkg.build.productName} terminal [v{pkg.version}]</div>
+
+      {/* Initial welcome message moved to useEffect */}
+
 
       {history.map((item, i) => (
         <div key={i} className="mb-2">
           <div className="flex items-center gap-2" style={{ color: item.accentColor || '#4ade80' }}>
-            <span>{item.user || activeTerminalUser}@{`aurora:${item.path.replace(homePath, '~')}$`}</span>
+            <span>{item.user || activeTerminalUser}@{`aurora:${item.path.replace(homePath, '~')}${(item.user || activeTerminalUser) === 'root' ? '#' : '$'}`}</span>
             <span className="text-gray-100">{item.command}</span>
           </div>
           <div className="pl-0">

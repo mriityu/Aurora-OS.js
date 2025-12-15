@@ -1,9 +1,5 @@
 # Known Bugs & Limitations
 
-## Windows Management
-Should focus window if pressed anywhere inside the unfocused windows - right now it only works for the draggable area (title bar)
-
-Should minimize windows towards floating dock positions - right know is off-centered
-
-
-And, of course... many others that I didn't got time to test yet.
+### Terminal
+- **Ghost Text**: Might flicker on rapid typing due to `useEffect` dependency updates.
+- **Integrity Check**: If system is compromised, the 'Critical Error' banner might appear multiple times if not properly ref-guarded (Fixed with `useRef`).

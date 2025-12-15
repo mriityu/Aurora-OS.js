@@ -1,4 +1,6 @@
 import { useState, useRef } from 'react';
+import pkg from '../../../package.json';
+
 import { Terminal, Code, Cpu, Activity, PartyPopper, Bell, Volume2, HardDrive, FileJson, RefreshCw, Trash2, Download, Upload, XCircle, ChevronRight, ChevronDown, Copy } from 'lucide-react';
 import { AppTemplate } from './AppTemplate';
 import { GlassButton } from '../ui/GlassButton';
@@ -371,7 +373,7 @@ export function DevCenter() {
                     <div className="flex flex-col items-center justify-center h-full text-white/50 space-y-4">
                         <Activity className="w-16 h-16 opacity-50" />
                         <h2 className="text-xl font-medium text-white/80">Developer Dashboard</h2>
-                        <p>Welcome to the Aurora OS Developer Center.</p>
+                        <p>Welcome to the {pkg.build.productName} Developer Center.</p>
                     </div>
                 );
         }

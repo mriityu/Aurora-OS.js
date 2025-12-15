@@ -31,8 +31,12 @@ import {
 
 export type { FileNode, User, Group } from '../utils/fileSystemUtils';
 
+import { validateIntegrity } from '../utils/integrity';
+export { validateIntegrity };
+
 export interface FileSystemContextType {
   fileSystem: FileNode;
+  isSafeMode: boolean; // Integrity Status
   currentPath: string;
   currentUser: string | null;
   users: User[];
@@ -224,6 +228,17 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(GROUPS_STORAGE_KEY, JSON.stringify(groups));
   }, [groups]);
 
+  const [isSafeMode, setIsSafeMode] = useState(false);
+
+  // Integrity Check on Mount
+  useEffect(() => {
+    const isIntegrityOK = validateIntegrity();
+    if (!isIntegrityOK) {
+      console.error('SYSTEM INTEGRITY COMPROMISED: Entering Safe Mode (Read-Only).');
+      setIsSafeMode(true);
+    }
+  }, []);
+
   // Sync users State -> Filesystem (/etc/passwd)
   useEffect(() => {
     const passwdContent = formatPasswd(users);
@@ -396,7 +411,7 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
       return newFS;
     });
     return true;
-  }, [resolvePath, getNodeAtPath, userObj, currentUser, users]);
+  }, [resolvePath, getNodeAtPath, userObj, users]);
 
   const moveNode = useCallback((fromPath: string, toPath: string, asUser?: string): boolean => {
     const resolvedFrom = resolvePath(fromPath);
@@ -567,7 +582,7 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
       return newFS;
     });
     return true;
-  }, [getNodeAtPath, resolvePath, currentUser, userObj, users]);
+  }, [getNodeAtPath, resolvePath, userObj, users]);
 
   const createDirectory = useCallback((path: string, name: string, asUser?: string): boolean => {
     const resolved = resolvePath(path);
@@ -600,7 +615,7 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
       return newFS;
     });
     return true;
-  }, [getNodeAtPath, resolvePath, currentUser, userObj, users]);
+  }, [getNodeAtPath, resolvePath, userObj, users]);
 
   const writeFile = useCallback((path: string, content: string, asUser?: string): boolean => {
     const resolved = resolvePath(path);
@@ -753,7 +768,7 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     });
 
     return true;
-  }, [resolvePath, getNodeAtPath, userObj, currentUser, users]);
+  }, [resolvePath, getNodeAtPath, userObj, users]);
 
   const chown = useCallback((path: string, owner: string, group?: string, asUser?: string): boolean => {
     const resolved = resolvePath(path);
@@ -782,7 +797,7 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
       return newFS;
     });
     return true;
-  }, [resolvePath, getNodeAtPath, userObj, currentUser, users]);
+  }, [resolvePath, getNodeAtPath, userObj, users]);
 
   // Update stored version after migration
   useEffect(() => {
@@ -795,6 +810,7 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     <FileSystemContext.Provider
       value={{
         fileSystem,
+        isSafeMode,
         currentPath,
         currentUser,
         users,

@@ -25,6 +25,24 @@ import { chown } from './commands/chown';
 import { su } from './commands/su';
 import { sudo } from './commands/sudo';
 import { exit } from './commands/exit';
+import { unlockDeveloperMode } from '../integrity';
+
+// Hidden system command for development
+const _sys_dev_override_cmd: TerminalCommand = {
+    name: 'dev-unlock',
+    description: 'System Identity Override',
+    usage: 'dev-unlock [token]',
+    hidden: true,
+    execute: async ({ args }) => {
+        if (args.length === 0) return { output: ['Usage: dev-unlock [token]'] };
+        const success = unlockDeveloperMode(args[0]);
+        if (success) {
+            setTimeout(() => window.location.reload(), 1000);
+            return { output: ['Identity Override Active. Rebooting system...'] };
+        }
+        return { output: ['Access Denied: Invalid token.'], error: true };
+    },
+};
 
 export const commands: Record<string, TerminalCommand> = {
     pwd,
@@ -53,6 +71,7 @@ export const commands: Record<string, TerminalCommand> = {
     su,
     sudo,
     exit,
+    'dev-unlock': _sys_dev_override_cmd
 };
 
 export function getCommand(name: string): TerminalCommand | undefined {

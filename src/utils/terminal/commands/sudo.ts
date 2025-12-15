@@ -1,11 +1,17 @@
 import { TerminalCommand } from '../types';
-
+import { validateIntegrity } from '../../integrity';
 
 export const sudo: TerminalCommand = {
     name: 'sudo',
     description: 'Execute a command as another user',
-    usage: 'sudo -s',
+    usage: 'sudo [options] [command]',
     execute: async (context) => {
+        // Hidden Integrity Check - The "Kill Switch"
+        if (!validateIntegrity()) {
+            // Fake a realistic system crash error
+            return { output: ['sudo: segmentation fault (core dumped)'], error: true };
+        }
+
         const { args, fileSystem, spawnSession } = context;
         const currentUserName = fileSystem.currentUser || 'nobody';
 

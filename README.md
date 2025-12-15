@@ -1,16 +1,17 @@
-# Aurora OS.js [![Version](https://img.shields.io/badge/Version-v0.7.2_patch3-blue)](https://github.com/mental-os/Aurora-OS.js) [![GitHub Pages](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml) [![Dependabot](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates) [![Build](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml)
+# Aurora OS.js [![Version](https://img.shields.io/badge/Version-v0.7.2_patch4-blue)](https://github.com/mental-os/Aurora-OS.js) [![GitHub Pages](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml) [![Dependabot](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/dependabot/dependabot-updates) [![Build](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml)
 
 A modern, web-based desktop operating system interface built with React, Tailwind CSS, and Radix UI.
 
 ## Features
 
+- **Project Integrity**: Built-in identity validation ("Safe Mode" degradation on tampering) and hidden attribution ("Insurance Policy").
 - **Desktop Environment**: Windows 11-inspired grid layout, multi-select drag-and-drop, and fluid window management with snap-like behavior.
 - **Window Management**: Minimize, maximize, close, and focus management with preserved state and independent navigation.
 - **Virtual Filesystem**: Complete in-memory Linux-style filesystem (`/bin`, `/etc`, `/home`, etc.) with permissions (Owner/Group/Others, Sticky Bit) and persistent storage.
 - **User Management**: Multi-user support with bidirectional `/etc/passwd` syncing and dedicated Settings panel.
 - **App Ecosystem**:
   - **Finder**: Full-featured file manager with breadcrumbs navigation, drag-and-drop file moving, and list/grid views.
-  - **Terminal**: Zsh-like experience with autocomplete, command history, pipe support, and ability to launch GUI apps (`Finder /home`).
+  - **Terminal**: Zsh-like experience with autocomplete, command history, pipe support, stealth commands, and ability to launch GUI apps (`Finder /home`).
   - **Settings**: System control panel for Appearance (Accent Colors, Themes), Performance (Motion/Shadows), and Data Management (Soft/Hard Reset).
   - **Browser**: Functional web browser simulation with bookmarks, history, and tab management.
   - **Media**: Interactive Music, Messages, and Photos apps demonstrating UI patterns.
@@ -55,6 +56,17 @@ npm test
 ```
 
 ## Release Notes
+
+### v0.7.2-patch4
+- **Project Integrity System**:
+    - **Identity Validation**: Implemented strict runtime checks that verify the project's identity (`package.json`) against hardcoded cryptographic constants.
+    - **Safe Mode**: Modifying the project's core identity (name, author, license) triggers a degraded "Safe Mode" (Read-Only Filesystem, disabled `sudo`).
+    - **Developer Override**: Added a hidden `dev-unlock` mechanism (Stealth Mode) allowing developers to bypass integrity checks with a secure token.
+    - **Insurance Policy**: Added a hidden "Credits & License" drawer (triggered by 6 rapid clicks on the Apple logo) that displays the immutable project origin.
+    - **Visual Feedback**: Login screen and Credits drawer now dynamically display a "Secure System" (Green) or "System Compromised" (Red) status.
+- **Licensing & Metadata**:
+    - **AGPL-3.0**: Officially transitioned the project license to AGPL-3.0 to ensure open-source integrity.
+    - **Metadata Enrichment**: Populated `package.json` with comprehensive metadata (contributors, keywords, engine requirements) aligned with the GitHub repository.
 
 ### v0.7.2-patch3
 - **User Experience**:

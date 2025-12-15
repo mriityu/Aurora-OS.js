@@ -3,8 +3,9 @@ import { useState, useRef, useEffect } from 'react';
 import pkg from '../../package.json';
 import { useFileSystem, User } from './FileSystemContext';
 import { cn } from './ui/utils';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { feedback } from '../services/soundFeedback';
+import { validateIntegrity } from '../utils/integrity';
 import { hasSavedSession, clearSession } from '../utils/memory';
 
 import { useAppContext } from './AppContext';
@@ -116,7 +117,7 @@ export function LoginScreen() {
                             }}
                         />
                     </div>
-                    <h1 className="text-4xl font-bold text-white tracking-tight drop-shadow-md">Aurora OS</h1>
+                    <h1 className="text-4xl font-bold text-white tracking-tight drop-shadow-md">{pkg.build.productName}</h1>
                 </div>
 
                 {/* User Selection Stage */}
@@ -300,7 +301,27 @@ export function LoginScreen() {
 
                 {/* Footer */}
                 <div className="absolute bottom-6 left-0 right-0 text-center flex flex-col gap-2 items-center">
-                    <p className="text-white/20 text-xs font-mono">v{pkg.version} • Secure System</p>
+                    <div className="flex items-center gap-2 text-xs font-mono">
+                        <a
+                            href="https://github.com/mental-os/Aurora-OS.js"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-white/20 hover:text-white/50 transition-colors"
+                        >
+                            v{pkg.version}
+                        </a>
+                        <span className="text-white/10">•</span>
+                        {validateIntegrity() ? (
+                            <span className="text-emerald-500/50 flex items-center gap-1.5 bg-emerald-500/5 px-2 py-0.5 rounded-full border border-emerald-500/10">
+                                <ShieldCheck className="w-3 h-3" /> Original Distribution
+                            </span>
+                        ) : (
+                            <span className="text-red-500 flex items-center gap-1.5 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20 animate-pulse">
+                                <AlertTriangle className="w-3 h-3" /> Unauthorized Distribution
+                            </span>
+                        )}
+                    </div>
+
                     <div className="flex gap-4 text-xs font-mono text-white/10">
                         <button
                             onClick={() => window.location.reload()}

@@ -1,3 +1,16 @@
+## v0.7.2-patch4
+- **Project Integrity System**:
+    - **Identity Validation**: Implemented strict runtime checks that verify the project's identity (`package.json`) against hardcoded cryptographic constants.
+    - **Safe Mode**: Modifying the project's core identity (name, author, license) triggers a degraded "Safe Mode" (Read-Only Filesystem, disabled `sudo`).
+    - **Developer Override**: Added a hidden `dev-unlock` mechanism (Stealth Mode) allowing developers to bypass integrity checks with a secure token.
+    - **Insurance Policy**: Added a hidden "Credits & License" drawer (triggered by 6 rapid clicks on the Apple logo) that displays the immutable project origin.
+    - **Visual Feedback**: Login screen and Credits drawer now dynamically display a "Secure System" (Green) or "System Compromised" (Red) status.
+- **Licensing & Metadata**:
+    - **AGPL-3.0**: Officially transitioned the project license to AGPL-3.0 to ensure open-source integrity.
+    - **Metadata Enrichment**: Populated `package.json` with comprehensive metadata (contributors, keywords, engine requirements) aligned with the GitHub repository.
+- **Maintenance**:
+    - **Dependency Bumps**: Updated `vite`, `recharts`, `typescript-eslint`, `autoprefixer`, and `@types/node` to latest stable versions.
+
 ## v0.7.2-patch3
 - **User Experience**:
     - **Seamless Session Switching**: "Switch User" now suspends the session (preserving open windows/apps) instead of logging out, allowing users to resume exactly where they left off.

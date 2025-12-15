@@ -257,7 +257,7 @@ export const initialFileSystem: any = {
             permissions: 'drwxr-xr-x', // 755
             owner: 'root',
             children: [
-                { name: 'kernel', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: `Aurora OS Kernel ${pkg.version}` },
+                { name: 'kernel', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: `${pkg.build.productName} Kernel ${pkg.version}` },
                 { name: 'initrd', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: 'Initial ramdisk' },
             ],
         },
@@ -272,14 +272,14 @@ export const initialFileSystem: any = {
                 { name: 'group', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: 'root:x:0:root\nusers:x:100:user,guest\nadmin:x:10:user' },
                 { name: 'hostname', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: 'aurora' },
                 { name: 'hosts', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: '127.0.0.1\tlocalhost\n::1\t\tlocalhost' },
-                { name: 'os-release', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: `NAME="Aurora OS"\nVERSION="${pkg.version}"\nID=${pkg.name}\nPRETTY_NAME="Aurora OS.js"` },
+                { name: 'os-release', type: 'file', permissions: '-rw-r--', owner: 'root', content: `NAME="${pkg.build.productName}"\nVERSION="${pkg.version}"\nID=${pkg.name}\nPRETTY_NAME="${pkg.build.productName}"` },
                 {
                     name: 'apt',
                     type: 'directory',
                     permissions: 'drwxr-xr-x',
                     owner: 'root',
                     children: [
-                        { name: 'sources.list', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: '# Aurora package sources\ndeb https://packages.aurora.os/stable main' },
+                        { name: 'sources.list', type: 'file', permissions: '-rw-r--r--', owner: 'root', content: `# ${pkg.build.productName} package sources\ndeb https://packages.aurora.os/stable main` },
                     ],
                 },
             ],
@@ -300,7 +300,7 @@ export const initialFileSystem: any = {
                             owner: 'user',
                             permissions: 'drwxr-xr-x',
                             children: [
-                                { name: 'TEST.txt', type: 'file', content: `NAME="Aurora OS"\nVERSION="${pkg.version}"\nID=${pkg.name}\nPRETTY_NAME="Aurora OS.js"`, size: 60, owner: 'user', permissions: '-rw-r--r--' }
+                                { name: 'TEST.txt', type: 'file', content: `NAME="${pkg.build.productName}"\nVERSION="${pkg.version}"\nID=${pkg.name}\nPRETTY_NAME="${pkg.build.productName}"`, size: 60, owner: 'user', permissions: '-rw-r--r--' }
                             ]
                         },
                         {
@@ -370,7 +370,7 @@ export const initialFileSystem: any = {
                     permissions: 'drwxr-xr-x',
                     owner: 'root',
                     children: [
-                        { name: 'version', type: 'file', permissions: '-r--r--r--', owner: 'root', content: '0.5.2-aurora' },
+                        { name: 'version', type: 'file', permissions: '-r--r--r--', owner: 'root', content: pkg.version },
                     ],
                 },
                 {

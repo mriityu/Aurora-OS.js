@@ -1,8 +1,43 @@
 {
       "name": "aurora-os-js",
-      "version": "0.7.2-patch3",
+      "version": "0.7.2-patch4",
       "private": true,
       "type": "module",
+      "author": "Cătălin-Robert Drăgoiu",
+      "license": "AGPL-3.0",
+      "description": "A browser-based OS hacking simulator powered by web technology.",
+      "homepage": "https://mental-os.github.io/Aurora-OS.js/",
+      "keywords": [
+            "browser-os",
+            "hacking-simulator",
+            "react",
+            "typescript",
+            "vite",
+            "tailwind",
+            "radix-ui",
+            "lucide-icons",
+            "game",
+            "web-desktop",
+            "electron",
+            "operating-system"
+      ],
+      "repository": {
+            "type": "git",
+            "url": "git+https://github.com/mental-os/Aurora-OS.js.git"
+      },
+      "bugs": {
+            "url": "https://github.com/mental-os/Aurora-OS.js/issues"
+      },
+      "engines": {
+            "node": ">=18.0.0"
+      },
+      "contributors": [
+            {
+                  "name": "Cătălin-Robert Drăgoiu aka. mental.os()",
+                  "email": "robert.dragoiu@gmail.com",
+                  "url": "https://github.com/mental-os"
+            }
+      ],
       "dependencies": {
             "@radix-ui/react-accordion": "^1.2.3",
             "@radix-ui/react-alert-dialog": "^1.1.6",

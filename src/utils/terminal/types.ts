@@ -26,5 +26,6 @@ export interface TerminalCommand {
     name: string;
     description: string;
     usage?: string;
+    hidden?: boolean;
     execute: (context: CommandContext) => Promise<CommandResult> | CommandResult;
 }

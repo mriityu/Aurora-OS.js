@@ -1,6 +1,8 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
+import pkg from '../../package.json';
 import { Apple, Wifi, Battery } from 'lucide-react';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { CreditsDrawer } from './Credits/CreditsDrawer';
 import { cn } from './ui/utils';
 import { useAppContext } from './AppContext';
 import { useFileSystem } from './FileSystemContext';
@@ -61,6 +63,27 @@ function MenuBarComponent({ focusedApp, onOpenApp }: MenuBarProps) {
       day: 'numeric'
     })
   );
+
+  // Hidden Credits Trigger
+  const [showCredits, setShowCredits] = useState(false);
+  const clickCountRef = useRef(0);
+  const lastClickTimeRef = useRef(0);
+
+  const handleAppleClick = () => {
+    const now = Date.now();
+    if (now - lastClickTimeRef.current > 2000) {
+      // Reset if too slow
+      clickCountRef.current = 0;
+    }
+
+    lastClickTimeRef.current = now;
+    clickCountRef.current++;
+
+    if (clickCountRef.current >= 6) {
+      setShowCredits(true);
+      clickCountRef.current = 0;
+    }
+  };
 
   useEffect(() => {
     const updateTime = () => {
@@ -154,94 +177,112 @@ function MenuBarComponent({ focusedApp, onOpenApp }: MenuBarProps) {
       style={{ background: menuBarBackground, ...blurStyle }}
     >
       {/* Left side */}
-      <div className="flex items-center gap-1">
-        <Menubar className="border-none bg-transparent h-7 p-0 space-x-0 shadow-none gap-4">
+      <div className="flex items-center space-x-4">
+        <Menubar className="border-none bg-transparent h-auto p-0 space-x-1">
           <MenubarMenu>
-            <MenubarTrigger className="px-0 w-8 justify-center data-[state=open]:bg-white/10 data-[state=open]:text-white focus:bg-white/10 focus:text-white rounded-md h-7 items-center flex">
+            <MenubarTrigger
+              className="bg-transparent focus:bg-white/10 data-[state=open]:bg-white/10 px-2 py-0.5 h-7 rounded-sm cursor-default"
+              onClick={handleAppleClick}
+            >
               <Apple className="w-4 h-4 fill-current" />
             </MenubarTrigger>
+
+            {/* Hidden Credits Drawer */}
+            <CreditsDrawer isOpen={showCredits} onClose={() => setShowCredits(false)} />
+
             <MenubarContent
               className={cn("border-white/10 text-white min-w-[14rem] p-1 z-[10000]", !disableShadows ? "shadow-xl" : "shadow-none")}
               style={{ background: getBackgroundColor(0.8), ...blurStyle }}
             >
-              <MenubarItem onClick={() => {
-                // Direct link to About section
-                sessionStorage.setItem('settings-pending-section', 'about');
-                window.dispatchEvent(new CustomEvent('aurora-open-settings-section', { detail: 'about' }));
-                onOpenApp?.('settings');
-              }}>
-                <Tooltip>
-                  <TooltipTrigger className="w-full text-left">About This Computer...</TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={10}>
-                    <p>View system information</p>
-                  </TooltipContent>
-                </Tooltip>
-                {/* <MenubarShortcut>⌘M</MenubarShortcut> */}
-              </MenubarItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <MenubarItem onClick={() => {
+                    // Direct link to About section
+                    sessionStorage.setItem('settings-pending-section', 'about');
+                    window.dispatchEvent(new CustomEvent('aurora-open-settings-section', { detail: 'about' }));
+                    onOpenApp?.('settings');
+                  }}>
+                    About This Computer...
+                  </MenubarItem>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={10}>
+                  <p>View system information</p>
+                </TooltipContent>
+              </Tooltip>
               <MenubarSeparator className="bg-white/10" />
-              <MenubarItem onClick={() => onOpenApp?.('settings')}>
-                <Tooltip>
-                  <TooltipTrigger className="w-full text-left">System Settings...</TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={10}>
-                    <p>View system settings</p>
-                  </TooltipContent>
-                </Tooltip>
-              </MenubarItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <MenubarItem onClick={() => onOpenApp?.('settings')}>
+                    System Settings...
+                  </MenubarItem>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={10}>
+                  <p>View system settings</p>
+                </TooltipContent>
+              </Tooltip>
               <MenubarItem>App Store...<MenubarShortcut>Soon</MenubarShortcut></MenubarItem>
               <MenubarSeparator className="bg-white/10" />
-              <MenubarItem onClick={() => {
-                // Lock Screen -> Overlay LoginScreen but KEEP session
-                setIsLocked(true);
-              }}>
-                <Tooltip>
-                  <TooltipTrigger className="w-full text-left">Lock Screen</TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={10}>
-                    <p>Return to login screen while <b>keeping session</b></p>
-                  </TooltipContent>
-                </Tooltip>
-              </MenubarItem>
-              <MenubarItem onClick={() => {
-                // Switch User -> Logout to suspend, keep storage
-                logout();
-              }}>
-                <Tooltip>
-                  <TooltipTrigger className="w-full text-left">Switch User...</TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={10}>
-                    <p>Return to user selection screen while <b>keeping session</b></p>
-                  </TooltipContent>
-                </Tooltip>
-              </MenubarItem>
-              <MenubarItem onClick={() => {
-                // Log Out -> Clear windows session
-                if (currentUser) {
-                  clearSession(currentUser);
-                }
-                logout();
-              }}>
-                <Tooltip>
-                  <TooltipTrigger className="w-full text-left">Log Out {currentUser ? currentUser : 'User'}...</TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={10}>
-                    <p>Return to user selection screen while <b>clearing session</b></p>
-                  </TooltipContent>
-                </Tooltip>
-              </MenubarItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <MenubarItem onClick={() => {
+                    // Lock Screen -> Overlay LoginScreen but KEEP session
+                    setIsLocked(true);
+                  }}>
+                    Lock Screen
+                  </MenubarItem>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={10}>
+                  <p>Return to login screen while <b>keeping session</b></p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <MenubarItem onClick={() => {
+                    // Switch User -> Logout to suspend, keep storage
+                    logout();
+                  }}>
+                    Switch User...
+                  </MenubarItem>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={10}>
+                  <p>Return to user selection screen while <b>keeping session</b></p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <MenubarItem onClick={() => {
+                    // Log Out -> Clear windows session
+                    if (currentUser) {
+                      clearSession(currentUser);
+                    }
+                    logout();
+                  }}>
+                    Log Out {currentUser ? currentUser : 'User'}...
+                  </MenubarItem>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={10}>
+                  <p>Return to user selection screen while <b>clearing session</b></p>
+                </TooltipContent>
+              </Tooltip>
               <MenubarSeparator className="bg-white/10" />
-              <MenubarItem
-                onClick={() => {
-                  // Hard Reset -> PANIC
-                  hardReset();
-                  window.location.reload();
-                }}
-                className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
-              >
-                <Tooltip>
-                  <TooltipTrigger className="w-full text-left">PANIC</TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={10}>
-                    <p><b>Warning:</b> This will reset AuroraOS to factory defaults. Good as a panic button if something goes wrong, too.</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Badge variant="destructive" className="ml-auto text-[10px] h-5 px-1.5">Hard Reset</Badge>
-              </MenubarItem>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <MenubarItem
+                    onClick={() => {
+                      // Hard Reset -> PANIC
+                      hardReset();
+                      window.location.reload();
+                    }}
+                    className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
+                  >
+                    <span className="flex-1 text-left">PANIC</span>
+                    <Badge variant="destructive" className="ml-auto text-[10px] h-5 px-1.5">Hard Reset</Badge>
+                  </MenubarItem>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={10}>
+                  <p><b>Warning:</b> This will reset {pkg.build.productName} to factory defaults. Good as a panic button if something goes wrong, too.</p>
+                </TooltipContent>
+              </Tooltip>
             </MenubarContent>
           </MenubarMenu>
 

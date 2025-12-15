@@ -506,7 +506,7 @@ export function Settings() {
 
         {activeSection === 'about' && (
           <div>
-            <h2 className="text-2xl text-white mb-6">About Aurora OS</h2>
+            <h2 className="text-2xl text-white mb-6">About {pkg.build.productName}</h2>
             {/* System Info */}
             <div className="bg-black/20 rounded-xl p-6 mb-6 border border-white/5">
               <h3 className="text-lg text-white mb-4">System Information</h3>
