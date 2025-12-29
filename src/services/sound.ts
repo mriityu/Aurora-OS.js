@@ -2,25 +2,29 @@ import { Howl } from 'howler';
 import { STORAGE_KEYS } from '../utils/memory';
 
 // Sound constants
-// We must prepend the base URL (which is ./ in production) to ensure sounds load correctly
-// on GitHub Pages or subdirectories.
-const BASE = import.meta.env.BASE_URL;
-const soundPath = (path: string) => `${BASE}${path.startsWith('/') ? path.slice(1) : path}`;
+import successSound from '../assets/sounds/warning.wav';
+import warningSound from '../assets/sounds/warning.wav';
+import errorSound from '../assets/sounds/error.wav';
+import folderSound from '../assets/sounds/folder.wav';
+import windowOpenSound from '../assets/sounds/window-open.wav';
+import windowCloseSound from '../assets/sounds/window-close.wav';
+import clickSound from '../assets/sounds/click.wav';
+import hoverSound from '../assets/sounds/hover.wav';
 
 const SOUNDS = {
     // System
-    success: soundPath('sounds/warning.wav'),
-    warning: soundPath('sounds/warning.wav'),
-    error: soundPath('sounds/error.wav'),
+    success: successSound,
+    warning: warningSound,
+    error: errorSound,
 
     // UI
-    folder: soundPath('sounds/folder.wav'),
-    'window-open': soundPath('sounds/window-open.wav'),
-    'window-close': soundPath('sounds/window-close.wav'),
+    folder: folderSound,
+    'window-open': windowOpenSound,
+    'window-close': windowCloseSound,
 
     // Feedback
-    click: soundPath('sounds/click.wav'),
-    hover: soundPath('sounds/hover.wav'),
+    click: clickSound,
+    hover: hoverSound,
 };
 
 type SoundType = keyof typeof SOUNDS;

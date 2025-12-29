@@ -309,7 +309,8 @@ export const initialFileSystem: any = {
                             owner: 'user',
                             permissions: 'drwxr-xr-x',
                             children: [
-                                { name: 'README.txt', type: 'file', content: 'Welcome to Aurora OS!\n\nThis is your personal documents folder.', size: 60, owner: 'user', permissions: '-rw-r--r--' },
+                                { name: 'WELCOME.md', type: 'file', content: '# Welcome to Aurora OS\n\nYou are now using the most advanced web-based operating system simulation.\n\n## Getting Started\n1. Use the **Terminal** to explore the system at a deeper level.\n2. Check **Settings** to customize your experience.\n3. Explore `/var/log` if you are curious about system events.\n\n## Tips\n- Use `Ctrl+C` to interrupt running commands.\n- Use `sudo` for administrative tasks (root password: admin).\n', size: 300, owner: 'user', permissions: '-rw-r--r--' },
+                                { name: 'PROJECT_NOTES.txt', type: 'file', content: 'TODO:\n- Fix the reality anchor stability glitch.\n- Investigate why /tmp is accumulating strange temp files.\n- Update the firewall rules.\n', size: 120, owner: 'user', permissions: '-rw-r--r--' },
                                 { name: 'Notes', type: 'directory', children: [], owner: 'user', permissions: 'drwxr-xr-x' },
                             ],
                         },
@@ -452,7 +453,7 @@ export const initialFileSystem: any = {
                     permissions: 'drwxr-xr-x',
                     owner: 'root',
                     children: [
-                        { name: 'system.log', type: 'file', permissions: '-rw-r-----', owner: 'root', content: '' },
+                        { name: 'system.log', type: 'file', permissions: '-rw-r-----', owner: 'root', content: '[    0.000000] Linux version 6.6.6-aurora (gcc version 12.2.0) #1 SMP PREEMPT_DYNAMIC\n[    0.002314] Command line: BOOT_IMAGE=/boot/kernel root=/dev/nvme0n1p2 ro quiet splash\n[    0.003451] x86/fpu: Supporting XSAVE feature 0x001: \'x87 floating point registers\'\n[    0.152341] pci 0000:00:02.0: vgaarb: setting as boot-time VGA device\n[    0.892314] systemd[1]: Detected architecture x86-64.\n[    1.234112] aurora-os: integrity verification passed.\n[    2.100231] [FAILED] Failed to start Service Module: "Reality_Anchor".\n[    2.100452] See "systemctl status reality-anchor.service" for details.\n[    2.400000] Finished Initialization.' },
                         { name: 'auth.log', type: 'file', permissions: '-rw-r-----', owner: 'root', content: '' },
                     ],
                 },

@@ -15,6 +15,8 @@ interface AppContextType {
   setDisableShadows: (enabled: boolean) => void;
   disableGradients: boolean;
   setDisableGradients: (enabled: boolean) => void;
+  wallpaper: string;
+  setWallpaper: (id: string) => void;
   devMode: boolean;
   setDevMode: (enabled: boolean) => void;
   exposeRoot: boolean;
@@ -43,6 +45,7 @@ interface UserPreferences {
   reduceMotion: boolean;
   disableShadows: boolean;
   disableGradients: boolean;
+  wallpaper: string;
 }
 
 interface SystemConfig {
@@ -57,6 +60,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   reduceMotion: false,
   disableShadows: false,
   disableGradients: false,
+  wallpaper: 'default',
 };
 
 const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
@@ -147,7 +151,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [systemConfig, setSystemConfig] = useState<SystemConfig>(() => loadSystemConfig());
 
   // Destructure for easy access
-  const { accentColor, themeMode, blurEnabled, reduceMotion, disableShadows, disableGradients } = preferences;
+  const { accentColor, themeMode, blurEnabled, reduceMotion, disableShadows, disableGradients, wallpaper } = preferences;
   const { devMode, exposeRoot } = systemConfig;
 
   // Function to switch context to a different user
@@ -186,6 +190,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setReduceMotion = (enabled: boolean) => setPreferences(s => ({ ...s, reduceMotion: enabled }));
   const setDisableShadows = (enabled: boolean) => setPreferences(s => ({ ...s, disableShadows: enabled }));
   const setDisableGradients = (enabled: boolean) => setPreferences(s => ({ ...s, disableGradients: enabled }));
+  const setWallpaper = (id: string) => setPreferences(s => ({ ...s, wallpaper: id }));
 
   // Setters for System Config
   const setDevMode = (enabled: boolean) => setSystemConfig(s => ({ ...s, devMode: enabled }));
@@ -238,6 +243,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setDisableShadows,
       disableGradients,
       setDisableGradients,
+      wallpaper,
+      setWallpaper,
       devMode,
       setDevMode,
       exposeRoot,

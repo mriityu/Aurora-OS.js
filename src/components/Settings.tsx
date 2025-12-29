@@ -11,6 +11,17 @@ import { cn } from './ui/utils';
 import { GlassButton } from './ui/GlassButton';
 import { GlassInput } from './ui/GlassInput';
 import pkg from '../../package.json';
+import defaultWallpaper from '../assets/images/background.png';
+import orbitWallpaper from '../assets/images/wallpaper-orbit.png';
+import meshWallpaper from '../assets/images/wallpaper-mesh.png';
+import dunesWallpaper from '../assets/images/wallpaper-dunes.png';
+
+const WALLPAPERS = [
+  { id: 'default', name: 'Nebula', src: defaultWallpaper },
+  { id: 'orbit', name: 'Orbit', src: orbitWallpaper },
+  { id: 'mesh', name: 'Flux', src: meshWallpaper },
+  { id: 'dunes', name: 'Midnight Dunes', src: dunesWallpaper },
+];
 
 const settingsSidebar = {
   sections: [
@@ -87,7 +98,9 @@ export function Settings() {
     devMode,
     setDevMode,
     exposeRoot,
-    setExposeRoot
+    setExposeRoot,
+    wallpaper,
+    setWallpaper
   } = useAppContext();
   const { users, addUser, deleteUser, currentUser } = useFileSystem();
   const [customColor, setCustomColor] = useState(accentColor);
@@ -122,6 +135,51 @@ export function Settings() {
         {activeSection === 'appearance' && (
           <div>
             <h2 className="text-2xl text-white mb-6">Appearance</h2>
+
+            {/* Wallpaper Selection */}
+            <div className="bg-black/20 rounded-xl p-6 mb-6 border border-white/5">
+              <h3 className="text-lg text-white mb-4">Desktop Wallpaper</h3>
+              <p className="text-sm text-white/60 mb-6">
+                Select a background for your desktop environment
+              </p>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {WALLPAPERS.map((wp) => (
+                  <button
+                    key={wp.id}
+                    onClick={() => setWallpaper(wp.id)}
+                    className={cn(
+                      "group relative aspect-[16/9] rounded-lg overflow-hidden border-2 transition-all",
+                      wallpaper === wp.id
+                        ? "border-white ring-2 ring-white/20 ring-offset-2 ring-offset-black/50"
+                        : "border-transparent hover:border-white/50"
+                    )}
+                  >
+                    <img
+                      src={wp.src}
+                      alt={wp.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className={cn(
+                      "absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity",
+                      wallpaper === wp.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    )}>
+                      {wallpaper === wp.id && (
+                        <div className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
+                          <span className="text-xs font-bold text-white uppercase tracking-wider">Active</span>
+                        </div>
+                      )}
+                      {wallpaper !== wp.id && (
+                        <span className="text-xs font-bold text-white uppercase tracking-wider translate-y-2 group-hover:translate-y-0 transition-transform">Use</span>
+                      )}
+                    </div>
+                    <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                      <span className="text-bg text-white/90 text-xs font-medium">{wp.name}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Accent Color Section */}
             <div className="bg-black/20 rounded-xl p-6 mb-6 border border-white/5">

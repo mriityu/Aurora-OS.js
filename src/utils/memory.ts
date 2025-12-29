@@ -19,6 +19,7 @@ export const STORAGE_KEYS = {
     // Hard memory keys (core data, dangerous to forget)
     FILESYSTEM: 'aurora-filesystem',
     USERS: 'aurora-users',
+    VERSION: 'aurora-version',
 } as const;
 
 const MEMORY_CONFIG = {
@@ -37,7 +38,8 @@ const MEMORY_CONFIG = {
     hard: {
         exact: [
             STORAGE_KEYS.FILESYSTEM,
-            STORAGE_KEYS.USERS
+            STORAGE_KEYS.USERS,
+            STORAGE_KEYS.VERSION
         ] as string[],
         prefixes: [] // Future proofing
     }

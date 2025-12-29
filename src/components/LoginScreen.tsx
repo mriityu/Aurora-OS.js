@@ -1,12 +1,10 @@
-
 import { useState, useRef, useEffect } from 'react';
-import pkg from '../../package.json';
 import { useFileSystem, User } from './FileSystemContext';
 import { cn } from './ui/utils';
-import { ArrowRight, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import { GameScreenLayout } from './Game/GameScreenLayout';
 import { feedback } from '../services/soundFeedback';
-import { validateIntegrity } from '../utils/integrity';
-import { hasSavedSession, clearSession } from '../utils/memory';
+import { hasSavedSession, clearSession, softReset } from '../utils/memory';
 
 import { useAppContext } from './AppContext';
 
@@ -27,9 +25,18 @@ export function LoginScreen() {
     // Focus input when user is selected
     useEffect(() => {
         if (selectedUser && inputRef.current) {
-            setTimeout(() => inputRef.current?.focus(), 100);
+            // setTimeout(() => inputRef.current?.focus(), 100);
         }
     }, [selectedUser]);
+
+    /*
+    console.log('[LoginScreen] Render', {
+        hasUser: !!selectedUser,
+        passLen: password.length,
+        loggingIn: isLoggingIn,
+        disabled: !password || isLoggingIn
+    });
+    */
 
     const handleUserClick = (user: User) => {
         feedback.click();
@@ -40,43 +47,47 @@ export function LoginScreen() {
     };
 
     const handleLogin = async () => {
-        if (!selectedUser) return;
-
-        setIsLoggingIn(true);
-        setError(false);
-
-        // Small artificial delay for effect
-        await new Promise(resolve => setTimeout(resolve, 600));
-
-        // If locked, we just check password against current user data without full login() call
-        // Actually, login() handles auth check well.
-        // But if locked, we just want to UNLOCK (setIsLocked(false))
-
-        let success = false;
-
-        if (isLocked) {
-            // Verify password manually or reuse login logic?
-            // Use login logic but if success, just setIsLocked(false)
-            // We can check password directly if we have access, or use login() which sets currentUser (already set).
-            // Let's use simple check:
-            if (selectedUser.password === password) {
-                success = true;
-                setIsLocked(false);
-                feedback.click(); // Success sound
-            } else {
-                success = false;
-            }
-        } else {
-            success = login(selectedUser.username, password);
-            if (success) feedback.click();
+        if (!selectedUser) {
+            return;
         }
 
-        if (!success) {
+        try {
+            setIsLoggingIn(true);
+            setError(false);
+
+            // Removing artificial delay for debugging/responsiveness
+            // await new Promise(resolve => setTimeout(resolve, 600));
+
+            let success = false;
+
+            if (isLocked) {
+                // Now using the robust login() function so verify password against authoritative source
+                // avoiding stale state issues in selectedUser
+                success = login(selectedUser.username, password);
+
+                if (success) {
+                    feedback.click();
+                    setIsLocked(false);
+                }
+            } else {
+                success = login(selectedUser.username, password);
+                if (success) feedback.click();
+            }
+
+            if (!success) {
+                setIsLoggingIn(false);
+                setError(true);
+                // feedback.error(); // If error sound existed
+                inputRef.current?.focus();
+            } else {
+                // On success, we expect unmount. 
+                // But just in case, stop spinning.
+                setIsLoggingIn(false);
+            }
+        } catch (e) {
+            console.error('Login error:', e);
             setIsLoggingIn(false);
             setError(true);
-            feedback.click(); // Error sound ideally
-            inputRef.current?.focus();
-            // Shake effect could be added here
         }
     };
 
@@ -102,25 +113,36 @@ export function LoginScreen() {
     };
 
     return (
-        <div className="h-screen w-screen overflow-hidden bg-[url('https://images.unsplash.com/photo-1477346611705-65d1883cee1e?auto=format&fit=crop&q=80&w=3870')] bg-cover bg-center flex items-center justify-center relative">
-            {/* Backdrop Blur Overlay */}
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
-
-            <div className="z-10 w-full max-w-md p-8 flex flex-col items-center">
-                {/* Logo / Header */}
-                <div className="mb-12 text-center">
-                    <div className="w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-2xl mx-auto mb-6">
-                        <div
-                            className="w-12 h-12 rounded-full shadow-lg animate-pulse"
-                            style={{
-                                background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`
-                            }}
-                        />
-                    </div>
-                    <h1 className="text-4xl font-bold text-white tracking-tight drop-shadow-md">{pkg.build.productName}</h1>
-                </div>
-
-                {/* User Selection Stage */}
+        <GameScreenLayout
+            zIndex={50000}
+            footerActions={
+                <>
+                    <button
+                        onClick={() => {
+                            softReset();
+                            window.location.reload();
+                        }}
+                        className="hover:text-white/40 transition-colors"
+                    >
+                        Soft Reset
+                    </button>
+                    <span>•</span>
+                    <button
+                        onClick={() => {
+                            if (window.confirm('Hard Reset: This will wipe all data. Continue?')) {
+                                resetFileSystem();
+                                window.location.reload();
+                            }
+                        }}
+                        className="hover:text-red-400/60 transition-colors"
+                    >
+                        Hard Reset
+                    </button>
+                </>
+            }
+        >
+            {/* User Selection / Login Container */}
+            <div className="w-full max-w-md flex flex-col items-center">
                 {!selectedUser ? (
                     <div className="w-full flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <h2 className="text-white/80 text-center mb-4 text-lg font-medium">Select User</h2>
@@ -221,7 +243,9 @@ export function LoginScreen() {
                                     Log Out
                                 </button>
                                 <button
-                                    onClick={handleLogin}
+                                    onClick={() => {
+                                        handleLogin();
+                                    }}
                                     disabled={!password || isLoggingIn}
                                     className={cn(
                                         "flex-[3] py-3 px-6 rounded-xl font-medium text-white shadow-lg transition-all",
@@ -298,52 +322,7 @@ export function LoginScreen() {
                         </div>
                     </div>
                 )}
-
-                {/* Footer */}
-                <div className="absolute bottom-6 left-0 right-0 text-center flex flex-col gap-2 items-center">
-                    <div className="flex items-center gap-2 text-xs font-mono">
-                        <a
-                            href="https://github.com/mental-os/Aurora-OS.js"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-white/20 hover:text-white/50 transition-colors"
-                        >
-                            v{pkg.version}
-                        </a>
-                        <span className="text-white/10">•</span>
-                        {validateIntegrity() ? (
-                            <span className="text-emerald-500/50 flex items-center gap-1.5 bg-emerald-500/5 px-2 py-0.5 rounded-full border border-emerald-500/10">
-                                <ShieldCheck className="w-3 h-3" /> Original Distribution
-                            </span>
-                        ) : (
-                            <span className="text-red-500 flex items-center gap-1.5 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20 animate-pulse">
-                                <AlertTriangle className="w-3 h-3" /> Unauthorized Distribution
-                            </span>
-                        )}
-                    </div>
-
-                    <div className="flex gap-4 text-xs font-mono text-white/10">
-                        <button
-                            onClick={() => window.location.reload()}
-                            className="hover:text-white/40 transition-colors"
-                        >
-                            Soft Reset
-                        </button>
-                        <span>•</span>
-                        <button
-                            onClick={() => {
-                                if (window.confirm('Hard Reset: This will wipe all data. Continue?')) {
-                                    resetFileSystem();
-                                    window.location.reload();
-                                }
-                            }}
-                            className="hover:text-red-400/60 transition-colors"
-                        >
-                            Hard Reset
-                        </button>
-                    </div>
-                </div>
             </div>
-        </div>
+        </GameScreenLayout>
     );
 }

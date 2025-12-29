@@ -57,38 +57,21 @@ npm test
 
 ## Release Notes
 
-### v0.7.2-patch4
-- **Project Integrity System**:
-    - **Identity Validation**: Implemented strict runtime checks that verify the project's identity (`package.json`) against hardcoded cryptographic constants.
-    - **Safe Mode**: Modifying the project's core identity (name, author, license) triggers a degraded "Safe Mode" (Read-Only Filesystem, disabled `sudo`).
-    - **Developer Override**: Added a hidden `dev-unlock` mechanism (Stealth Mode) allowing developers to bypass integrity checks with a secure token.
-    - **Insurance Policy**: Added a hidden "Credits & License" drawer (triggered by 6 rapid clicks on the Apple logo) that displays the immutable project origin.
-    - **Visual Feedback**: Login screen and Credits drawer now dynamically display a "Secure System" (Green) or "System Compromised" (Red) status.
-- **Licensing & Metadata**:
-    - **AGPL-3.0**: Officially transitioned the project license to AGPL-3.0 to ensure open-source integrity.
-    - **Metadata Enrichment**: Populated `package.json` with comprehensive metadata (contributors, keywords, engine requirements) aligned with the GitHub repository.
-
-### v0.7.2-patch3
-- **User Experience**:
-    - **Seamless Session Switching**: "Switch User" now suspends the session (preserving open windows/apps) instead of logging out, allowing users to resume exactly where they left off.
-    - **Visual Indicators**: Added "active" (Amber pulsing dot) and "resume" (Blue text) badges on the Login Screen to clearly indicate running or saved sessions.
-    - **Explicit Controls**: Added a dedicated "Log Out" button on the password entry screen for forcefully clearing a suspended session.
-    - **Menu Bar**: Added "Switch User" to the Apple menu and modernized the "Log Out" action.
-    - **Tooltips**: Added high-performance tooltips to Menu Bar items (e.g., "About This Computer") with corrected z-indexing and positioning.
-- **Codebase Refactoring**:
-    - **Window Management Hook**: Extracted complex window logic (open, close, minimize, persistence) from `App.tsx` into a reusable `src/hooks/useWindowManager.ts`, reducing main component size by ~20%.
-    - **Session Architecture**: Centralized all session storage logic in `src/utils/memory.ts`, eliminating redundant keys and scattered `localStorage` calls across the app.
-- **Bug Fixes**:
-    - **Switch Flow**: Fixed a regression where switching users would incorrectly return to the desktop due to a missing state clearing call.
-    - **Tooltip Rendering**: Fixed tooltips appearing behind the menu bar or off-screen.
-- **Migration System**:
-    - **Smart Merge Algorithm**: Implemented a non-destructive migration strategy for version updates.
-    - **Persistence**: New features are added to users' filesystems while strictly preserving existing modifications, preventing "hard resets" and respecting user customization.
-- **Terminal & Security**:
-    - **Session Isolation**: `sudo` and `su` commands now spawn isolated sessions within the terminal tab, changing the effective user only for that specific shell context without affecting the global desktop session.
-    - **Dynamic UI**: Terminal prompt and input colors now dynamically reflect the active user (Red for root, System Accent for User, Purple for others).
-    - **History Persistence**: Command history is now consistently saved per-session and accurately preserved even after `clear`, behaving like ZSH.
-    - **Isolation Logic**: File operations (touch, rm, etc.) strictly respect the effective terminal user's permissions, allowing true multi-user simulation (e.g., standard users cannot delete root-owned files in `/var`).
+### v0.7.3
+- **Boot Generation Engine**:
+    - **Dynamic Parsing**: The boot sequence now analyzes `package.json` in real-time to generate authentic log entries based on your actual dependencies (`react`, `framer-motion`, etc.).
+    - **Hardware Probing**: Integrated `hardware.ts` to safe-probe the host machine, displaying real CPU core counts, RAM, and specific GPU models (e.g., "Apple M1", "NVIDIA RTX") in the logs.
+    - **Variable Speed**: Implemented non-linear log scrolling logic to simulate realistic processing delays and network bursts.
+- **System Integrity**:
+    - **Secure Boot**: Integrated `integrity.ts` into the startup flow to verify the "Distributor" identity against the signed codebase.
+    - **Visual Feedback**: Boot logs now strictly adhere to the "Mental OS" palette (Cyan `SECURE` / Pink `WARNING`) instead of generic rainbow colors.
+    - **Identity**: Added support for a custom `"nickname"` field in `package.json` to display hacker aliases in the boot logs.
+- **Documentation**:
+    - **Definitive Reference**: Completely rewrote `CODEBASE_DOCUMENTATION.md` into a file-by-file technical manual.
+    - **Restoration**: Restored detailed TypeScript interfaces and function signatures for all utilities, hooks, and services.
+- **Architecture**:
+    - **Lazy Loading**: The core `OS` component is now lazily loaded to prioritize the Boot Sequence performance.
+    - **Robustness**: Implemented defensive error boundaries and type-safety fixes for the hardware probing logic.
 
 [View full version history](HISTORY.md)
 

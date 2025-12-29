@@ -1,9 +1,10 @@
 {
       "name": "aurora-os-js",
-      "version": "0.7.2-patch4",
+      "version": "0.7.3",
       "private": true,
       "type": "module",
       "author": "Cătălin-Robert Drăgoiu",
+      "nickname": "mental.os()",
       "license": "AGPL-3.0",
       "description": "A browser-based OS hacking simulator powered by web technology.",
       "homepage": "https://mental-os.github.io/Aurora-OS.js/",

@@ -1,3 +1,19 @@
+## v0.7.3
+- **Boot Generation Engine**:
+    - **Dynamic Parsing**: The boot sequence now analyzes `package.json` in real-time to generate authentic log entries based on your actual dependencies (`react`, `framer-motion`, etc.).
+    - **Hardware Probing**: Integrated `hardware.ts` to safe-probe the host machine, displaying real CPU core counts, RAM, and specific GPU models (e.g., "Apple M1", "NVIDIA RTX") in the logs.
+    - **Variable Speed**: Implemented non-linear log scrolling logic to simulate realistic processing delays and network bursts.
+- **System Integrity**:
+    - **Secure Boot**: Integrated `integrity.ts` into the startup flow to verify the "Distributor" identity against the signed codebase.
+    - **Visual Feedback**: Boot logs now strictly adhere to the "Mental OS" palette (Cyan `SECURE` / Pink `WARNING`) instead of generic rainbow colors.
+    - **Identity**: Added support for a custom `"nickname"` field in `package.json` to display hacker aliases in the boot logs.
+- **Documentation**:
+    - **Definitive Reference**: Completely rewrote `CODEBASE_DOCUMENTATION.md` into a file-by-file technical manual.
+    - **Restoration**: Restored detailed TypeScript interfaces and function signatures for all utilities, hooks, and services.
+- **Architecture**:
+    - **Lazy Loading**: The core `OS` component is now lazily loaded to prioritize the Boot Sequence performance.
+    - **Robustness**: Implemented defensive error boundaries and type-safety fixes for the hardware probing logic.
+
 ## v0.7.2-patch4
 - **Project Integrity System**:
     - **Identity Validation**: Implemented strict runtime checks that verify the project's identity (`package.json`) against hardcoded cryptographic constants.

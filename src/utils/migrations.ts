@@ -25,7 +25,9 @@ export function migrateGroups(storedGroups: Group[], defaultGroups: Group[]): Gr
     return migrated;
 }
 
-export const SYSTEM_VERSION_KEY = 'aurora-version';
+import { STORAGE_KEYS } from './memory';
+
+export const SYSTEM_VERSION_KEY = STORAGE_KEYS.VERSION;
 
 // Paths that should be forcefully reset ONLY if they are critically 
 // incompatible with the new engine (Schema/Format changes). 

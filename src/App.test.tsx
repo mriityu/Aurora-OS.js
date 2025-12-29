@@ -58,6 +58,11 @@ vi.mock('motion/react', () => ({
     AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 
+// Mock GameRoot to bypass intro/menu/boot sequence
+vi.mock('./components/Game/GameRoot', () => ({
+    GameRoot: ({ children }: any) => <>{children}</>,
+}));
+
 describe('Aurora OS Integration', () => {
     beforeEach(() => {
         localStorageMock.clear();
@@ -68,8 +73,9 @@ describe('Aurora OS Integration', () => {
         render(<App />);
 
         // Verify Login Screen is present
-        expect(screen.getByText('Aurora OS')).toBeInTheDocument();
-        expect(screen.getByText('Select User')).toBeInTheDocument();
+        // Verify Login Screen is present
+        expect(screen.getByText(/Select User/i)).toBeInTheDocument();
+        expect(screen.getByText(/Soft Reset/i)).toBeInTheDocument();
 
         // Finder (Dock) should NOT be present yet
         const finder = screen.queryByLabelText('Finder');

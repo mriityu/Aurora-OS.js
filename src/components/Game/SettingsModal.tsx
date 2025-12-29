@@ -1,0 +1,148 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Volume2, Monitor, RefreshCw, Trash2, X, VolumeX } from 'lucide-react';
+import { cn } from '../ui/utils';
+import { feedback } from '../../services/soundFeedback';
+import { soundManager } from '../../services/sound';
+import { useFileSystem } from '../FileSystemContext';
+
+interface SettingsModalProps {
+    onClose: () => void;
+}
+
+export function SettingsModal({ onClose }: SettingsModalProps) {
+    const [volume, setVolume] = useState(soundManager.getVolume('master') * 100);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const { resetFileSystem } = useFileSystem();
+
+    // Sync fullscreen state
+    useEffect(() => {
+        const checkFullscreen = () => setIsFullscreen(!!document.fullscreenElement);
+        checkFullscreen();
+        document.addEventListener('fullscreenchange', checkFullscreen);
+        return () => document.removeEventListener('fullscreenchange', checkFullscreen);
+    }, []);
+
+    const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newVol = parseInt(e.target.value);
+        setVolume(newVol);
+        soundManager.setVolume('master', newVol / 100);
+    };
+
+    const toggleFullscreen = () => {
+        feedback.click();
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(() => { });
+        } else {
+            document.exitFullscreen().catch(() => { });
+        }
+    };
+
+    const handleSoftReset = () => {
+        if (confirm('Soft Reset: This will reload the application but keep your data. Continue?')) {
+            window.location.reload();
+        }
+    };
+
+    const handleFactoryReset = () => {
+        if (confirm('FACTORY RESET: This will wipe ALL data, users, and files appropriately. This cannot be undone. Are you sure?')) {
+            feedback.click();
+            resetFileSystem();
+            setTimeout(() => window.location.reload(), 500);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+            <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                className="bg-zinc-900/90 border border-white/10 p-8 max-w-lg w-full rounded-2xl shadow-2xl relative"
+            >
+                <div className="flex justify-between items-center mb-8">
+                    <h2 className="text-2xl font-bold text-white tracking-wide">Simulation Settings</h2>
+                    <button
+                        onClick={() => { feedback.click(); onClose(); }}
+                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="space-y-8">
+                    {/* Volume Control */}
+                    <div className="space-y-3">
+                        <div className="flex justify-between text-white/80">
+                            <span className="flex items-center gap-2 font-medium">
+                                <Volume2 className="w-4 h-4" /> Master Volume
+                            </span>
+                            <span className="font-mono text-sm">{volume}%</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <VolumeX className="w-4 h-4 text-white/30" />
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={volume}
+                                onChange={handleVolumeChange}
+                                className="flex-1 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white hover:[&::-webkit-slider-thumb]:scale-110 transition-all"
+                            />
+                            <Volume2 className="w-4 h-4 text-white/30" />
+                        </div>
+                    </div>
+
+                    {/* Display Control */}
+                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+                        <div className="flex items-center gap-3 text-white/80">
+                            <Monitor className="w-5 h-5" />
+                            <div className="flex flex-col">
+                                <span className="font-medium">Full Screen</span>
+                                <span className="text-xs text-white/40">Immersive mode</span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={toggleFullscreen}
+                            className={cn(
+                                "px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border",
+                                isFullscreen
+                                    ? "bg-white text-black border-white hover:bg-white/90"
+                                    : "bg-transparent text-white border-white/20 hover:bg-white/10"
+                            )}
+                        >
+                            {isFullscreen ? 'Exit' : 'Enter'}
+                        </button>
+                    </div>
+
+                    <div className="h-px bg-white/10 my-6" />
+
+                    {/* Reset Controls */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <button
+                            onClick={handleSoftReset}
+                            className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-white/5 hover:bg-blue-500/10 border border-white/5 hover:border-blue-500/30 transition-all group"
+                        >
+                            <RefreshCw className="w-6 h-6 text-blue-400 group-hover:rotate-180 transition-transform duration-500" />
+                            <span className="text-sm font-medium text-blue-100">Soft Reset</span>
+                            <span className="text-[10px] text-white/30">Reload Application</span>
+                        </button>
+
+                        <button
+                            onClick={handleFactoryReset}
+                            className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-white/5 hover:bg-red-500/10 border border-white/5 hover:border-red-500/30 transition-all group"
+                        >
+                            <Trash2 className="w-6 h-6 text-red-400 group-hover:shake" />
+                            <span className="text-sm font-medium text-red-100">Factory Reset</span>
+                            <span className="text-[10px] text-white/30">Wipe All Data</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div className="mt-8 text-center text-xs text-white/20 font-mono">
+                    Aurora OS v0.7.3 • BIOS Configuration
+                </div>
+            </motion.div>
+        </div>
+    );
+}

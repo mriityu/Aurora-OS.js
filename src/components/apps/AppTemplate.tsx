@@ -4,6 +4,7 @@ import { useAppContext } from '../AppContext';
 import { useThemeColors } from '../../hooks/useThemeColors';
 import { useElementSize } from '../../hooks/useElementSize';
 import { cn } from '../ui/utils';
+import { LAYOUT_CONFIG } from '../../config/layout';
 
 interface AppTemplateProps {
   sidebar?: {
@@ -54,8 +55,8 @@ export function AppTemplate({
   // Calculate breakpoint: either redundant usage of sidebarCollapseBreakpoint or derived from minContentWidth
   // Default to 500 if neither is provided.
   // Sidebar width is w-64 (256px) when expanded.
-  const SIDEBAR_WIDTH = 256;
-  const effectiveBreakpoint = sidebarCollapseBreakpoint ?? (minContentWidth ? minContentWidth + SIDEBAR_WIDTH : 500);
+  const SIDEBAR_WIDTH = LAYOUT_CONFIG.SIDEBAR.WIDTH_EXPANDED;
+  const effectiveBreakpoint = sidebarCollapseBreakpoint ?? (minContentWidth ? minContentWidth + SIDEBAR_WIDTH : LAYOUT_CONFIG.SIDEBAR.BREAKPOINT_OFFSET);
 
   // Explicit breakpoint for collapsing sidebar
   // Treat 0 (loading) as expanded to prevent expansion animation on desktop
@@ -63,7 +64,7 @@ export function AppTemplate({
 
   // Calculate actual content width available
   const sidebarWidth = hasSidebar && sidebar
-    ? (isCompact ? 64 : 256)
+    ? (isCompact ? LAYOUT_CONFIG.SIDEBAR.WIDTH_COMPACT : LAYOUT_CONFIG.SIDEBAR.WIDTH_EXPANDED)
     : 0;
   const contentWidth = width - sidebarWidth;
 

@@ -1,9 +1,27 @@
 import { useState, useEffect, memo, useRef } from 'react';
-import type { DesktopIcon } from '../App';
 import { useAppContext } from './AppContext';
+
+export interface DesktopIcon {
+  id: string;
+  name: string;
+  type: 'folder' | 'file';
+  position: { x: number; y: number };
+  isEmpty?: boolean;
+}
 // import { lightenColor } from '../utils/colors';
 import { FileIcon } from './ui/FileIcon';
 import { useFileSystem } from './FileSystemContext';
+import defaultWallpaper from '../assets/images/background.png';
+import orbitWallpaper from '../assets/images/wallpaper-orbit.png';
+import meshWallpaper from '../assets/images/wallpaper-mesh.png';
+import dunesWallpaper from '../assets/images/wallpaper-dunes.png';
+
+const WALLPAPERS: Record<string, string> = {
+  default: defaultWallpaper,
+  orbit: orbitWallpaper,
+  mesh: meshWallpaper,
+  dunes: dunesWallpaper,
+};
 
 interface DesktopProps {
   onDoubleClick: () => void;
@@ -17,7 +35,7 @@ const emptyImage = new Image();
 emptyImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 function DesktopComponent({ onDoubleClick, icons, onUpdateIconPosition, onIconDoubleClick }: DesktopProps) {
-  const { accentColor, reduceMotion, disableShadows } = useAppContext();
+  const { accentColor, reduceMotion, disableShadows, wallpaper } = useAppContext();
   const { moveNodeById } = useFileSystem();
 
   // Selection State
@@ -206,13 +224,13 @@ function DesktopComponent({ onDoubleClick, icons, onUpdateIconPosition, onIconDo
 
   return (
     <div
-      className="absolute inset-0 w-full h-full"
+      className="absolute inset-0 w-full h-full bg-cover bg-center transition-[background-image] duration-500"
       onMouseDown={handleDesktopMouseDown}
       onDoubleClick={onDoubleClick}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       style={{
-        background: 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%)',
+        backgroundImage: `url(${WALLPAPERS[wallpaper] || WALLPAPERS.default})`,
       }}
     >
       {/* Subtle background pattern */}
