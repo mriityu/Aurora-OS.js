@@ -1,6 +1,7 @@
 # Table of contents
 
 * [Welcome](README.md)
+* [Roadmap](roadmap.md)
 * [Changelog](changelog.md)
 
 ## Getting Started
