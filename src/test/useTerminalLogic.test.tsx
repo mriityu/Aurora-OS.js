@@ -42,14 +42,31 @@ describe('useTerminalLogic', () => {
         }, { wrapper });
 
         // 1. Setup Filesystem state
+        await waitFor(() => {
+            expect(result.current.fs.users.length).toBeGreaterThan(0);
+        });
+        
         await act(async () => {
+             // Login as root to create user home
+            result.current.fs.login('root', 'admin');
+        });
+
+        await act(async () => {
+            result.current.fs.addUser('user', 'User', '1234');
+        });
+        
+        // addUser creates home directory.
+
+        await act(async () => {
+            // Switch to user
             result.current.fs.login('user', '1234');
         });
 
         await act(async () => {
             // Explicitly pass 'user' to ensure proper ownership immediately
-            result.current.fs.createFile('/home/user', 'note.txt', 'content', 'user');
-            result.current.fs.createFile('/home/user', 'log.txt', 'log', 'user');
+            // Note: owner defaults to currentUser if not provided, but we are logged in as user now.
+            result.current.fs.createFile('/home/user', 'note.txt', 'content');
+            result.current.fs.createFile('/home/user', 'log.txt', 'log');
         });
 
         // 1a. Check Echo (Baseline functionality)
@@ -97,7 +114,19 @@ describe('useTerminalLogic', () => {
             return { fs, terminal };
         }, { wrapper });
 
+        await waitFor(() => {
+             expect(result.current.fs.users.length).toBeGreaterThan(0);
+        });
+
         await act(async () => {
+            result.current.fs.login('root', 'admin');
+        });
+        
+        await act(async () => {
+             result.current.fs.addUser('user', 'User', '1234');
+        }); 
+
+         await act(async () => {
             result.current.fs.login('user', '1234');
         });
 

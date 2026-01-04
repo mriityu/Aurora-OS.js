@@ -136,3 +136,6 @@ win-unpacked
 *.sln
 *.sw?
 .DS_Store
+
+# Agent Rules
+!/.agent/rules/codeQuality.md

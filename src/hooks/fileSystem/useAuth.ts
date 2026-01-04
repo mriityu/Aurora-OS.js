@@ -30,16 +30,6 @@ const DEFAULT_USERS: User[] = [
     groups: ["root"],
   },
   {
-    username: "user",
-    password: "1234",
-    uid: 1000,
-    gid: 1000,
-    fullName: "User",
-    homeDir: "/home/user",
-    shell: "/bin/bash",
-    groups: ["users", "admin"],
-  },
-  {
     username: "guest",
     password: "guest",
     uid: 1001,
@@ -53,8 +43,8 @@ const DEFAULT_USERS: User[] = [
 
 const DEFAULT_GROUPS: Group[] = [
   { groupName: "root", gid: 0, members: ["root"], password: "x" },
-  { groupName: "users", gid: 100, members: ["user", "guest"], password: "x" },
-  { groupName: "admin", gid: 10, members: ["user"], password: "x" },
+  { groupName: "users", gid: 100, members: ["guest"], password: "x" },
+  { groupName: "admin", gid: 10, members: [], password: "x" },
 ];
 
 function loadUsers(): User[] {
@@ -171,7 +161,8 @@ export function useAuth(
       fullName: string,
       password?: string,
       passwordHint?: string,
-      asUser?: string
+      asUser?: string,
+      populateHome: boolean = false
     ): boolean => {
       const actingUser = getCurrentUser(asUser || currentUser);
       const isAdmin =
@@ -203,7 +194,7 @@ export function useAuth(
       setUsers((prev) => [...prev, newUser]);
 
       // Ensure home directory exists
-      const homeNode = ensureIds(createUserHome(username));
+      const homeNode = ensureIds(createUserHome(username, undefined, populateHome));
       setFileSystem((prevFS) => {
         const newFS = deepCloneFileSystem(prevFS);
         let homeDir = newFS.children?.find((c) => c.name === "home");
@@ -262,6 +253,77 @@ export function useAuth(
     [users, getCurrentUser, currentUser]
   );
 
+  const updateUser = useCallback(
+    (
+      username: string, 
+      updates: { fullName?: string; password?: string; passwordHint?: string; isAdmin?: boolean }, 
+      asUser?: string
+    ): boolean => {
+      const actingUser = getCurrentUser(asUser || currentUser);
+      const isPrivileged =
+        actingUser.username === "root" ||
+        actingUser.groups?.some((g) => ["admin", "root", "wheel"].includes(g));
+
+      if (!isPrivileged) {
+        notify.system("error", "Permission Denied", "Only administrators can update users");
+        return false;
+      }
+
+      // Find user
+      const userIndex = users.findIndex((u) => u.username === username);
+      if (userIndex === -1) return false;
+
+      // Prevent demoting last admin (safety check, optional but good)
+      // Skipping for now to keep it simple as per request
+
+      setUsers((prev) => {
+        const newUsers = [...prev];
+        const user = { ...newUsers[userIndex] };
+        
+        if (updates.fullName !== undefined) user.fullName = updates.fullName;
+        if (updates.password !== undefined) user.password = updates.password;
+        if (updates.passwordHint !== undefined) user.passwordHint = updates.passwordHint;
+        
+        // Handle Admin Role (Group Membership)
+        if (updates.isAdmin !== undefined) {
+          const groups = user.groups || [];
+          const hasAdmin = groups.includes('admin');
+          
+          if (updates.isAdmin && !hasAdmin) {
+            user.groups = [...groups, 'admin'];
+            // Also ensure corresponding Group object is updated (handled in separate effect or here?)
+            // We should use addUserToGroup logic, but we can't call it inside setState.
+            // We'll update the Group state separately below.
+          } else if (!updates.isAdmin && hasAdmin) {
+            user.groups = groups.filter(g => g !== 'admin');
+          }
+        }
+
+        newUsers[userIndex] = user;
+        return newUsers;
+      });
+
+      // Sync Group Membership if isAdmin changed
+      if (updates.isAdmin !== undefined) {
+         setGroups((prevGroups) => prevGroups.map(g => {
+           if (g.groupName === 'admin') {
+             const isMember = g.members.includes(username);
+             if (updates.isAdmin && !isMember) {
+               return { ...g, members: [...g.members, username] };
+             } else if (!updates.isAdmin && isMember) {
+               return { ...g, members: g.members.filter(m => m !== username) };
+             }
+           }
+           return g;
+         }));
+      }
+
+      return true;
+    },
+    [users, getCurrentUser, currentUser]
+  );
+
+
   const addGroup = useCallback(
     (groupName: string, members: string[] = []): boolean => {
       if (groups.some((g) => g.groupName === groupName)) return false;
@@ -296,6 +358,66 @@ export function useAuth(
     [groups]
   );
 
+  const addUserToGroup = useCallback(
+    (username: string, groupName: string): boolean => {
+      // Allow if group exists
+      if (!groups.some((g) => g.groupName === groupName)) return false; 
+      
+      // Update User object's groups array
+      setUsers((prev) =>
+        prev.map((u) => {
+          if (u.username === username) {
+            const currentGroups = u.groups || [];
+            if (!currentGroups.includes(groupName)) {
+              return { ...u, groups: [...currentGroups, groupName] };
+            }
+          }
+          return u;
+        })
+      );
+
+      // Update Group object's members array
+      setGroups((prev) =>
+        prev.map((g) => {
+          if (g.groupName === groupName) {
+            if (!g.members.includes(username)) {
+              return { ...g, members: [...g.members, username] };
+            }
+          }
+          return g;
+        })
+      );
+      
+      return true;
+    },
+    [groups]
+  );
+
+  const removeUserFromGroup = useCallback(
+    (username: string, groupName: string): boolean => {
+      setUsers((prev) =>
+        prev.map((u) => {
+          if (u.username === username && u.groups?.includes(groupName)) {
+            return { ...u, groups: u.groups.filter((g) => g !== groupName) };
+          }
+          return u;
+        })
+      );
+
+      setGroups((prev) =>
+        prev.map((g) => {
+          if (g.groupName === groupName && g.members.includes(username)) {
+            return { ...g, members: g.members.filter((m) => m !== username) };
+          }
+          return g;
+        })
+      );
+
+      return true;
+    },
+    []
+  );
+
   const resetAuthState = useCallback(() => {
     setUsers(DEFAULT_USERS);
     setGroups(DEFAULT_GROUPS);
@@ -318,11 +440,15 @@ export function useAuth(
     logout,
     addUnits: addUser, // Alias or keep as is? Let's fix the typo in return if any
     addUser,
+    updateUser,
     deleteUser,
     addGroup,
+    addUserToGroup,
+    removeUserFromGroup,
     deleteGroup,
     resetAuthState,
     verifyUserPassword: (u: string, p: string) =>
       verifyUserPassword(u, p, fileSystem, users),
   };
 }
+

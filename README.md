@@ -1,6 +1,6 @@
 # Aurora OS.js
 
-[![Version](https://img.shields.io/badge/Version-v0.7.9-blue)](https://github.com/mental-os/Aurora-OS.js) ![Roadmap Status](<https://img.shields.io/badge/Roadmap-Stage%200%20(OS%20Foundation)-blue>) [![Build (Main)](<https://img.shields.io/github/actions/workflow/status/mental-os/Aurora-OS.js/ci.yml?branch=main&label=Build%20(Main)&logo=github>)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml) [![Build (Nightly)](<https://img.shields.io/github/actions/workflow/status/mental-os/Aurora-OS.js/ci.yml?branch=nightly&label=Build%20(Nightly)&logo=github>)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml) [![GitHub Pages](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml)
+[![Version](https://img.shields.io/badge/Version-v0.8.0-blue)](https://github.com/mental-os/Aurora-OS.js) ![Roadmap Status](<https://img.shields.io/badge/Roadmap-Stage%200%20(OS%20Foundation)-blue>) [![Build (Main)](<https://img.shields.io/github/actions/workflow/status/mental-os/Aurora-OS.js/ci.yml?branch=main&label=Build%20(Main)&logo=github>)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml) [![Build (Nightly)](<https://img.shields.io/github/actions/workflow/status/mental-os/Aurora-OS.js/ci.yml?branch=nightly&label=Build%20(Nightly)&logo=github>)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml) [![GitHub Pages](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml)
 
 ![Social media image for Aurora OS.js hacking simulator game project](.github/openGraph.jpg)
 
@@ -85,29 +85,22 @@ npm run dev
 
 Or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
 
-## Release Notes (v0.7.9)
+## Release Notes (v0.8.0)
 
 ### Added
 
-- **Calendar App**: Core functionality (add, remove, modify events). File-dependent (`~/.config/calendar.json`) to enhance gameplay and hackability.
-- **Documentation**: Added `CONTRIBUTORS.md` and `CONTRIBUTORS.md` references.
+- **Onboarding Wizard**: A new "First Run Experience" (OOBE) that guides users through Language selection, Admin Account creation, and personalization.
+- **User Management**: "Users & Groups" settings now support creating, deleting, and editing users (including Admin role toggle).
+- **Admin Privileges**: Strict permission model where only `root` or `admin` group members can manage users.
+- **Localization (i18n)**: Added foundational support for multi-language interfaces (i18next), starting with English.
 
 ### Improved
 
-- **UI Immersion**: Text is now not selectable by default, except in input areas (text areas, fields).
-- **App Responsive Design**: Sidebar now intelligently switches between condensed and relaxed modes based on window width.
-- **Notifications**: Replaced debugging "toasts" with stylized notifications (success, warning, error).
-- **Text Highlight**: Global text selection now follows the system accent color (including input fields).
-- **Agentic IDE**: Updated `.gitignore` to include `.agent/rules/codeQuality.md` for better context awareness.
-
-### Removed
-
-- **Videos App (placeholder)**: Removed to avoid false impressions; video files are not currently a game world element.
-- **Videos Home Directory**: Cleaned up `~/Videos`.
-
-### Known Issues
-
-- **react-day-picker**: Regressed to 8.10.1 as 9.13.0 caused conflicts with `shadcn` dependencies.
+- **Storage Architecture**: Standardized system language persistence using `STORAGE_KEYS.LANGUAGE` (survives soft resets).
+- **Build Optimization**: Configured Electron to only bundle necessary locales (`en`) to reduce package size.
+- **Boot Sequence**: Fixed duplicate boot glitch and cleaned up the initial boot flow.
+- **Ghost Directories**: Resolved the issue where `/home/user` was incorrectly created even when that user didn't exist.
+- **Security**: `addUserToGroup` now correctly syncs between user objects and group lists.
 
 ### [View full version history](HISTORY.md)
 

@@ -52,6 +52,12 @@ export interface FileSystemContextType {
     fullName: string,
     password?: string,
     passwordHint?: string,
+    asUser?: string,
+    populateHome?: boolean
+  ) => boolean;
+  updateUser: (
+    username: string,
+    updates: { fullName?: string; password?: string; passwordHint?: string; isAdmin?: boolean },
     asUser?: string
   ) => boolean;
   deleteUser: (username: string, asUser?: string) => boolean;
@@ -80,6 +86,8 @@ export interface FileSystemContextType {
   verifyPassword: (username: string, passwordToTry: string) => boolean;
   groups: Group[];
   addGroup: (groupName: string, members?: string[]) => boolean;
+  addUserToGroup: (username: string, groupName: string) => boolean;
+  removeUserFromGroup: (username: string, groupName: string) => boolean;
   deleteGroup: (groupName: string) => boolean;
   installedApps: Set<string>;
   installApp: (appId: string, asUser?: string) => boolean;
@@ -107,8 +115,11 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     addUser,
+    updateUser,
     deleteUser,
     addGroup,
+    addUserToGroup,
+    removeUserFromGroup,
     deleteGroup,
     resetAuthState,
     verifyUserPassword,
@@ -390,6 +401,7 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     createDirectory,
     deleteNode,
     addUser,
+    updateUser,
     deleteUser,
     writeFile,
     readFile,
@@ -407,6 +419,8 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     verifyPassword: verifyUserPassword,
     groups,
     addGroup,
+    addUserToGroup,
+    removeUserFromGroup,
     deleteGroup,
     installedApps,
     installApp,
@@ -425,6 +439,7 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     createDirectory,
     deleteNode,
     addUser,
+    updateUser,
     deleteUser,
     writeFile,
     readFile,
@@ -442,6 +457,8 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     verifyUserPassword,
     groups,
     addGroup,
+    addUserToGroup,
+    removeUserFromGroup,
     deleteGroup,
     installedApps,
     installApp,

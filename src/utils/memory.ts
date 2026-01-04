@@ -16,6 +16,7 @@ export const STORAGE_KEYS = {
     WINDOWS_PREFIX: 'aurora-os-windows-', // Window sessions
     SESSION_PREFIX: 'aurora-session-', // Ephemeral session state (last paths, etc)
     SYSTEM_CONFIG: 'aurora-system-config', // Global system settings (Dev Mode, etc)
+    LANGUAGE: 'aurora-system-language', // System Language
 
     // Hard memory keys (core data, dangerous to forget)
     FILESYSTEM: 'aurora-filesystem',
@@ -29,7 +30,8 @@ const MEMORY_CONFIG = {
         exact: [
             STORAGE_KEYS.DESKTOP_ICONS,
             STORAGE_KEYS.SOUND,
-            STORAGE_KEYS.SYSTEM_CONFIG
+            STORAGE_KEYS.SYSTEM_CONFIG,
+            STORAGE_KEYS.LANGUAGE
         ] as string[],
         prefixes: [
             STORAGE_KEYS.SETTINGS,

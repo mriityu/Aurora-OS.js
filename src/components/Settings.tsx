@@ -131,15 +131,28 @@ export function Settings({ owner }: { owner?: string }) {
     wallpaper,
     setWallpaper
   } = useAppContext();
-  const { users, addUser, deleteUser, currentUser } = useFileSystem();
+  const { users, addUser, updateUser, deleteUser, currentUser } = useFileSystem();
   const { activeUser: desktopUser } = useAppContext();
   const activeUser = owner || desktopUser;
+  
+  // Permission Check
+  const currentUserObj = users.find(u => u.username === activeUser);
+  const currentUserGroups = currentUserObj?.groups || [];
+  const canManageUsers = activeUser === 'root' || currentUserGroups.some(g => ['admin', 'root', 'wheel'].includes(g));
+
   const [customColor, setCustomColor] = useState(accentColor);
   const [newUsername, setNewUsername] = useState('');
   const [newFullName, setNewFullName] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordHint, setNewPasswordHint] = useState('');
   const [isAddingUser, setIsAddingUser] = useState(false);
+  
+  // Edit User State
+  const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [editHint, setEditHint] = useState('');
+  const [editIsAdmin, setEditIsAdmin] = useState(false);
 
   // About section state
   const storageStats = useMemo(() => {
@@ -538,14 +551,16 @@ export function Settings({ owner }: { owner?: string }) {
             {/* User List */}
             <div className="bg-black/20 rounded-xl p-6 mb-6 border border-white/5">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg text-white">Current Users</h3>
-                <GlassButton
-                  onClick={() => setIsAddingUser(!isAddingUser)}
-                  style={{ backgroundColor: isAddingUser ? undefined : accentColor }}
-                  className={isAddingUser ? "bg-white/10" : ""}
-                >
-                  {isAddingUser ? t('settings.users.cancel') : t('settings.users.addUser')}
-                </GlassButton>
+                <h3 className="text-lg text-white">{t('settings.users.currentUsersTitle')}</h3>
+                {canManageUsers && (
+                  <GlassButton
+                    onClick={() => setIsAddingUser(!isAddingUser)}
+                    style={{ backgroundColor: isAddingUser ? undefined : accentColor }}
+                    className={isAddingUser ? "bg-white/10" : ""}
+                  >
+                    {isAddingUser ? t('settings.users.cancel') : t('settings.users.addUser')}
+                  </GlassButton>
+                )}
               </div>
 
               {isAddingUser && (
@@ -598,39 +613,148 @@ export function Settings({ owner }: { owner?: string }) {
                 </div>
               )}
 
-              <div className="space-y-3">
-                {users.map((user) => (
-                  <div key={user.username} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5 group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-linear-to-br from-gray-700 to-gray-600 flex items-center justify-center text-white font-bold text-lg">
-                        {user.fullName.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="text-white font-medium flex items-center gap-2">
-                          {user.fullName}
-                          {user.username === currentUser && <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded text-white/80">{t('settings.users.currentBadge')}</span>}
-                          {user.uid === 0 && <span className="text-xs bg-red-500/50 px-1.5 py-0.5 rounded text-white">{t('settings.users.rootBadge')}</span>}
-                        </div>
-                        <div className="text-white/40 text-sm">
-                          {user.username} • UID: {user.uid} • {user.homeDir}
-                        </div>
-                      </div>
-                    </div>
 
-                    {user.uid >= 1000 && user.username !== 'user' && ( // Prevent deleting default 'user' or root for safety
-                      <button
-                        onClick={() => {
-                          if (confirm(t('settings.users.confirmDeleteUser', { username: user.username }))) {
-                            deleteUser(user.username, activeUser);
-                          }
-                        }}
-                        className="p-2 text-white/40 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
+              <div className="space-y-3">
+                {users.map((user) => {
+                  const isAdmin =
+                    user.uid === 0 ||
+                    (user.groups?.some((g) => ['admin', 'root', 'wheel'].includes(g)) ?? false);
+                  const isEditing = editingUser === user.username;
+                  const canModify = canManageUsers;
+
+                  return (
+                    <div key={user.username} className="bg-white/5 rounded-lg border border-white/5 overflow-hidden">
+                      <div className="flex items-center justify-between p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-linear-to-br from-gray-700 to-gray-600 flex items-center justify-center text-white font-bold text-lg">
+                            {user.fullName.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="text-white font-medium flex items-center gap-2">
+                              {user.fullName}
+                              {user.username === currentUser && (
+                                <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded text-white/80">
+                                  {t('settings.users.currentBadge')}
+                                </span>
+                              )}
+                              {user.uid === 0 && (
+                                <span className="text-xs bg-red-500/50 px-1.5 py-0.5 rounded text-white">
+                                  {t('settings.users.rootBadge')}
+                                </span>
+                              )}
+                              {user.uid !== 0 && isAdmin && (
+                                <span className="text-xs bg-red-500/50 px-1.5 py-0.5 rounded text-white">
+                                  {t('settings.users.adminBadge')}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-white/40 text-sm">
+                              {user.username} • {user.homeDir}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {canModify && (
+                            <GlassButton
+                              onClick={() => {
+                                if (isEditing) {
+                                  setEditingUser(null);
+                                } else {
+                                  setEditingUser(user.username);
+                                  setEditName(user.fullName);
+                                  setEditPassword('');
+                                  setEditHint(user.passwordHint || '');
+                                  setEditIsAdmin(isAdmin);
+                                }
+                              }}
+                              className="text-xs px-2 py-1 h-auto"
+                            >
+                              {isEditing ? t('settings.users.cancel') : t('settings.users.editAction')}
+                            </GlassButton>
+                          )}
+
+                          {canModify && user.uid >= 1000 && user.username !== 'user' && (
+                            <button
+                              onClick={() => {
+                                if (confirm(t('settings.users.confirmDeleteUser', { username: user.username }))) {
+                                  deleteUser(user.username, activeUser);
+                                }
+                              }}
+                              className="p-2 text-white/40 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Edit Form */}
+                      {isEditing && (
+                        <div className="p-4 bg-black/20 border-t border-white/5 space-y-3">
+                          <div className="grid gap-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-xs text-white/40 mb-1 block">{t('settings.users.editForm.fullNameLabel')}</label>
+                                <GlassInput value={editName} onChange={(e) => setEditName(e.target.value)} />
+                              </div>
+                              <div>
+                                <label className="text-xs text-white/40 mb-1 block">{t('settings.users.editForm.roleLabel')}</label>
+                                <div className="flex items-center gap-2 h-10 px-3 rounded-lg border border-white/10 bg-white/5">
+                                  <Checkbox
+                                    id={`admin-check-${user.username}`}
+                                    checked={editIsAdmin}
+                                    onCheckedChange={(c) => setEditIsAdmin(!!c)}
+                                    disabled={user.uid === 0}
+                                  />
+                                  <label
+                                    htmlFor={`admin-check-${user.username}`}
+                                    className="text-sm text-white cursor-pointer select-none"
+                                  >
+                                    {t('settings.users.editForm.administrator')}
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/40 mb-1 block">{t('settings.users.editForm.newPasswordLabel')}</label>
+                              <GlassInput
+                                type="password"
+                                value={editPassword}
+                                onChange={(e) => setEditPassword(e.target.value)}
+                                placeholder="••••••••"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/40 mb-1 block">{t('settings.users.editForm.passwordHintLabel')}</label>
+                              <GlassInput value={editHint} onChange={(e) => setEditHint(e.target.value)} />
+                            </div>
+                          </div>
+                          <div className="flex justify-end pt-2">
+                            <GlassButton
+                              onClick={() => {
+                                updateUser(
+                                  user.username,
+                                  {
+                                    fullName: editName,
+                                    password: editPassword || undefined,
+                                    passwordHint: editHint,
+                                    isAdmin: editIsAdmin,
+                                  },
+                                  activeUser
+                                );
+                                setEditingUser(null);
+                              }}
+                              style={{ backgroundColor: accentColor }}
+                            >
+                              {t('settings.users.editForm.saveChanges')}
+                            </GlassButton>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

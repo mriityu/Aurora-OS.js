@@ -147,21 +147,41 @@ export function findNodeAndParent(root: FileNode, targetId: string): { node: Fil
 }
 
 // Helper to create a user home directory structure (macOS-inspired)
-export function createUserHome(username: string, permissions: string = 'drwxr-x---'): any {
-    return {
+export function createUserHome(username: string, permissions: string = 'drwxr-x---', withMockFiles: boolean = false): any {
+    const home = {
         name: username,
         type: 'directory',
         owner: username,
         permissions: permissions,
         children: [
-            { name: 'Desktop', type: 'directory', children: [], owner: username, permissions: 'drwxr-xr-x' },
-            { name: 'Documents', type: 'directory', children: [], owner: username, permissions: 'drwxr-xr-x' },
+            {
+                name: 'Desktop',
+                type: 'directory',
+                children: [] as any[],
+                owner: username,
+                permissions: 'drwxr-xr-x'
+            },
+            {
+                name: 'Documents',
+                type: 'directory',
+                children: [] as any[],
+                owner: username,
+                permissions: 'drwxr-xr-x'
+            },
             { name: 'Downloads', type: 'directory', children: [], owner: username, permissions: 'drwxr-xr-x' },
-            { name: 'Pictures', type: 'directory', children: [], owner: username, permissions: 'drwxr-xr-x' },
+            {
+                name: 'Pictures',
+                type: 'directory',
+                children: [
+                     { name: 'Screenshots', type: 'directory', children: [], owner: username, permissions: 'drwxr-xr-x' }
+                ],
+                owner: username,
+                permissions: 'drwxr-xr-x'
+            },
             {
                 name: 'Music',
                 type: 'directory',
-                children: [],
+                children: [] as any[],
                 owner: username,
                 permissions: 'drwxr-xr-x'
             },
@@ -169,6 +189,35 @@ export function createUserHome(username: string, permissions: string = 'drwxr-x-
             { name: '.Trash', type: 'directory', children: [], owner: username, permissions: 'drwx------' },
         ],
     };
+
+    if (withMockFiles) {
+        // Populate Desktop
+        const desktop = home.children.find((c: any) => c.name === 'Desktop');
+        if (desktop) {
+            desktop.children.push({ name: 'TEST.txt', type: 'file', content: `NAME="${pkg.build.productName}"\nVERSION="${pkg.version}"\nID=${pkg.name}\nPRETTY_NAME="${pkg.build.productName}"`, size: 60, owner: username, permissions: '-rw-r--r--' });
+        }
+
+        // Populate Documents
+        const documents = home.children.find((c: any) => c.name === 'Documents');
+        if (documents) {
+            documents.children.push(
+                { name: 'WELCOME.md', type: 'file', content: '# Welcome to Aurora OS\n\nYou are now using the most advanced web-based operating system simulation.\n\n## Getting Started\n1. Use the **Terminal** to explore the system at a deeper level.\n2. Check **Settings** to customize your experience.\n3. Explore `/var/log` if you are curious about system events.\n\n## Tips\n- Use `Ctrl+C` to interrupt running commands.\n- Use `sudo` for administrative tasks (root password: admin).\n', size: 300, owner: username, permissions: '-rw-r--r--' },
+                { name: 'PROJECT_NOTES.txt', type: 'file', content: 'TODO:\n- Fix the reality anchor stability glitch.\n- Investigate why /tmp is accumulating strange temp files.\n- Update the firewall rules.\n', size: 120, owner: username, permissions: '-rw-r--r--' },
+                { name: 'Notes', type: 'directory', children: [], owner: username, permissions: 'drwxr-xr-x' }
+            );
+        }
+
+        // Populate Music
+        const music = home.children.find((c: any) => c.name === 'Music');
+        if (music) {
+            music.children.push(
+                { name: 'Runway Electric.mp3', type: 'file', content: startupSound, size: 2048, owner: username, permissions: '-rw-r--r--' },
+                { name: 'Lo-Fi Girl.mp3', type: 'file', content: startupSound2, size: 2048, owner: username, permissions: '-rw-r--r--' }
+            );
+        }
+    }
+
+    return home;
 }
 
 export function checkPermissions(
@@ -409,53 +458,6 @@ export const initialFileSystem: any = {
             permissions: 'drwxr-xr-x', // 755 (allows access to /home, but subdirs are restricted)
             owner: 'root',
             children: [
-                {
-                    ...createUserHome('user'),
-                    children: [
-                        {
-                            name: 'Desktop',
-                            type: 'directory',
-                            owner: 'user',
-                            permissions: 'drwxr-xr-x',
-                            children: [
-                                { name: 'TEST.txt', type: 'file', content: `NAME="${pkg.build.productName}"\nVERSION="${pkg.version}"\nID=${pkg.name}\nPRETTY_NAME="${pkg.build.productName}"`, size: 60, owner: 'user', permissions: '-rw-r--r--' }
-                            ]
-                        },
-                        {
-                            name: 'Documents',
-                            type: 'directory',
-                            owner: 'user',
-                            permissions: 'drwxr-xr-x',
-                            children: [
-                                { name: 'WELCOME.md', type: 'file', content: '# Welcome to Aurora OS\n\nYou are now using the most advanced web-based operating system simulation.\n\n## Getting Started\n1. Use the **Terminal** to explore the system at a deeper level.\n2. Check **Settings** to customize your experience.\n3. Explore `/var/log` if you are curious about system events.\n\n## Tips\n- Use `Ctrl+C` to interrupt running commands.\n- Use `sudo` for administrative tasks (root password: admin).\n', size: 300, owner: 'user', permissions: '-rw-r--r--' },
-                                { name: 'PROJECT_NOTES.txt', type: 'file', content: 'TODO:\n- Fix the reality anchor stability glitch.\n- Investigate why /tmp is accumulating strange temp files.\n- Update the firewall rules.\n', size: 120, owner: 'user', permissions: '-rw-r--r--' },
-                                { name: 'Notes', type: 'directory', children: [], owner: 'user', permissions: 'drwxr-xr-x' },
-                            ],
-                        },
-                        {
-                            name: 'Downloads',
-                            type: 'directory',
-                            owner: 'user',
-                            permissions: 'drwxr-xr-x',
-                            children: [
-                                { name: 'sample.pdf', type: 'file', content: '[PDF content placeholder]', size: 1024, owner: 'user', permissions: '-rw-r--r--' },
-                            ],
-                        },
-                        { name: 'Pictures', type: 'directory', children: [{ name: 'Screenshots', type: 'directory', children: [], owner: 'user' }], owner: 'user', permissions: 'drwxr-xr-x' },
-                        {
-                            name: 'Music',
-                            type: 'directory',
-                            children: [
-                                { name: 'Runway Electric.mp3', type: 'file', content: startupSound, size: 2048, owner: 'user', permissions: '-rw-r--r--' },
-                                { name: 'Lo-Fi Girl.mp3', type: 'file', content: startupSound2, size: 2048, owner: 'user', permissions: '-rw-r--r--' }
-                            ],
-                            owner: 'user',
-                            permissions: 'drwxr-xr-x'
-                        },
-                        { name: '.Config', type: 'directory', children: [], owner: 'user', permissions: 'drwx------' },
-                        { name: '.Trash', type: 'directory', children: [], owner: 'user', permissions: 'drwx------' },
-                    ],
-                },
                 createUserHome('guest', 'drwxr-xr-x'),
             ],
         },

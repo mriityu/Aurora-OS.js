@@ -2,49 +2,67 @@
 trigger: always_on
 ---
 
-# Aurora OS.js Context
+# Aurora OS.js Context 🌌
 
-At the beginning of a new conversation, you should be aware that this is a **virtual OS simulation** designed to become a hacking game (inspired by Grey Hack & Bitburner).
+**Role**: You are a Senior Frontend Engineer & Game Developer working on **Aurora OS.js**, a browser-based OS simulation / hacking game.
 
-## 🧠 Context Maintenance
+## 🧠 Context Maintenance protocols
 
-**CRITICAL**: If you discover new core architectural patterns, significant refactors, or changes to the tech stack (e.g., new libraries, changed patterns) during a conversation, **you must update this file** (`.agent/rules/codeQuality.md`) to reflect the new state.
+1.  **Read First**: Always check this file before answering architecture questions.
+2.  **Update Rule**: If you discover new architectural patterns, significant refactors, or tech stack changes, **you must update this file** to preserve context for future instances.
 
-- **Format**: Keep it concise, high-signal, and structured (Markdown bullets/tables).
-- **Goal**: Ensure future instances of the agent have immediate, accurate context without needing to rescan the repo.
+## 🛠 Tech Stack & Constraints
 
-## 🚫 Workflow Preferences
+-   **Core**: React 19 + Vite 7 + TypeScript 5
+    -   *Note*: `react-day-picker` requires `overrides` in `package.json` to support React 19.
+-   **Styling**: Tailwind CSS v4 + shadcn/ui
+    -   Uses `@theme` and `oklch` colors in `src/index.css`.
+    -   **Glassmorphism** (`backdrop-blur-2xl` + `bg-black/40`) is the primary aesthetic.
+-   **Runtime**: Browser (primary target) & Electron (native wrapper).
 
-- **No Browser Automation**: Do NOT use browser agents (Puppeteer, etc.) for testing. All verification is done manually by the USER.
-- **Git Sync**: At the start of a conversation, ALWAYS run `git pull` to ensure the local branch is synchronized with the remote.
+## �� Design System & UI Rules
 
-## Core Architecture
+### 1. Global Accent Selection (CRITICAL)
+-   **Rule**: Text selection MUST use the user's dynamic accent color (`var(--accent-user)`).
+-   **Implementation**: This is enforced globally in `src/index.css` with aggressive overrides (`!important`) for `::selection`, `*::selection`, `input::selection`, and `.prism-editor`.
+-   **Debugging**: If selection looks blue/default, check likely interference from `select-none` containers or specific library styles (e.g., PrismJS).
 
-- **Entry Points**: `src/main.tsx` -> `src/App.tsx` -> `GameRoot` (manages Intro/Login/Boot/Gameplay states).
-- **Filesystem**: Virtual FS persisted in localStorage, managed by `FileSystemContext`. Supports POSIX-like permissions (`user`/`group`).
-  - Initial structure and dynamic `/usr/bin` binaries defined in `src/utils/fileSystemUtils.ts`.
-- **OS Orchestration**: `src/components/OS.tsx` renders the Desktop, interacts with `useWindowManager`.
-- **Applications**:
-  - **Source**: `src/components/apps/`.
-  - **Registry**: `src/config/appRegistry.ts` (Central Config).
-  - **Menus**: `src/config/appMenuConfigs.ts`.
-  - **Execution**: Launched via virtual binaries in `/usr/bin` (e.g., `#!app music`), generated from the registry in `fileSystemUtils.ts`.
-- **State Management**:
-  - `FileSystemContext`: Virtual FS & Auth.
-  - `AppContext`: User session & UI preferences.
-  - `MusicContext`: Global audio state.
+### 2. Interaction Model
+-   **Default State**: Apps are **`select-none`** by default (via `AppTemplate`).
+-   **Input Areas**: Explicitly enable `select-text` or use standard `<input>`/`<textarea>` elements for interactive text.
+-   **Draggables**: Window headers and "whitespace" areas must handle dragging; click-to-focus logic is implemented in `useWindowManager`.
 
-## Tech Stack
+### 3. The "Aurora" Aesthetic
+-   **Theme**: Dark mode default. UI elements should feel "premium" and "hacker-chic".
+-   **Colors**: Use `var(--accent-user)` for active states/borders.
+-   **Motion**: Smooth, heavily damped spring animations (`framer-motion`).
 
-- **Framework**: React 19 + Vite 7
-- **Styling**: Tailwind CSS v4 + shadcn/ui
-- **Runtime**: Browser (primary) or Electron.
+## 🏗 Architecture
 
-## Conventions
+### 1. App Development Pattern
+New apps must follow this strict lifecycle:
+1.  **Component**: Create in `src/components/apps/<AppName>.tsx`.
+    -   Must wrap content in **`<AppTemplate>`**.
+2.  **Registry**: Register metadata in `src/config/appRegistry.ts`.
+3.  **Menus**: Define menu bar actions in `src/config/appMenuConfigs.ts`.
+4.  **Persistence (Gameplay)**:
+    -   **Do not** use `localStorage` directly for game data.
+    -   **Use Virtual FS**: Persist app state (settings, notes, events) to JSON files in `~/.config/<app>.json` or `~/Documents`.
+    -   *Why?* This allows players to "hack" the OS by modifying these files via Terminal or scripts.
 
-- **Filesystem First**: Use `FileSystemContext` for persistence.
-- **Visuals**: Premium, glassmorphic UI.
-- **App Creation**: New apps require:
-  1. Component in `src/components/apps/`
-  2. Registration in `src/config/appRegistry.ts`
-  3. Menu config in `src/config/appMenuConfigs.ts`
+### 2. Virtual Filesystem
+-   **Engine**: `FileSystemContext` + `src/utils/fileSystemUtils.ts`.
+-   **Structure**: POSIX-like (`/home`, `/etc`, `/usr/bin`, `/var`).
+-   **Permissions**: Linux-style octal permissions (`755`), ownership (`user:group`), and `sticky bit` support.
+-   **Binaries**: Apps are "installed" as virtual binaries in `/usr/bin` (e.g., `executable: true`).
+
+## ⚠️ Known Quirks & Pitfalls
+
+-   **React 19**: Some libraries (like `react-day-picker`) may have strict peer dependencies on React 18. Check `package.json` `overrides`.
+-   **Date Handling**: Use `date-fns` v3 (v4 has conflicts).
+-   **Terminal**: It's a custom implementation (`src/components/apps/Terminal.tsx`), not xterm.js. Input is a transparent overlay on top of rendered history.
+
+## 🚫 Workflow strictness
+
+-   **Git**: ALWAYS `git pull` at start of session.
+-   **Testing**: No browser automation. Rely on Manual User Verification.

@@ -1,6 +1,6 @@
 {
       "name": "aurora-os-js",
-      "version": "0.7.9",
+      "version": "0.8.0",
       "private": true,
       "type": "module",
       "author": "Cătălin-Robert Drăgoiu",
@@ -75,6 +75,7 @@
             "electron-squirrel-startup": "^1.0.1",
             "embla-carousel-react": "^8.6.0",
             "howler": "^2.2.4",
+            "i18next": "^25.7.3",
             "input-otp": "^1.4.2",
             "lucide-react": "^0.562.0",
             "motion": "*",
@@ -84,6 +85,7 @@
             "react-day-picker": "^8.10.1",
             "react-dom": "^19.2.1",
             "react-hook-form": "^7.69.0",
+            "react-i18next": "^16.5.1",
             "react-markdown": "^10.1.0",
             "react-resizable-panels": "^4.0.16",
             "react-rnd": "^10.5.2",
@@ -158,7 +160,10 @@
                   "icon": "public/vite.svg",
                   "hardenedRuntime": true,
                   "gatekeeperAssess": false
-            }
+            },
+            "electronLanguages": [
+                  "en"
+            ]
       },
       "overrides": {
             "react-day-picker": {

@@ -1,3 +1,20 @@
+## v0.8.0
+
+### Added
+
+- **Onboarding Wizard**: A new "First Run Experience" (OOBE) that guides users through Language selection, Admin Account creation, and personalization.
+- **User Management**: "Users & Groups" settings now support creating, deleting, and editing users (including Admin role toggle).
+- **Admin Privileges**: Strict permission model where only `root` or `admin` group members can manage users.
+- **Localization (i18n)**: Added foundational support for multi-language interfaces (i18next), starting with English.
+
+### Improved
+
+- **Storage Architecture**: Standardized system language persistence using `STORAGE_KEYS.LANGUAGE` (survives soft resets).
+- **Build Optimization**: Configured Electron to only bundle necessary locales (`en`) to reduce package size.
+- **Boot Sequence**: Fixed duplicate boot glitch and cleaned up the initial boot flow.
+- **Ghost Directories**: Resolved the issue where `/home/user` was incorrectly created even when that user didn't exist.
+- **Security**: `addUserToGroup` now correctly syncs between user objects and group lists.
+
 ## v0.7.9
 
 ### Added

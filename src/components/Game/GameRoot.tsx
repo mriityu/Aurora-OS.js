@@ -6,14 +6,14 @@ import { useFileSystem } from '../../components/FileSystemContext';
 import { useAppContext } from '../../components/AppContext';
 
 import { STORAGE_KEYS, hardReset } from '../../utils/memory';
-import { updateStoredVersion } from '../../utils/migrations';
+import {Onboarding} from "@/components/Game/Onboarding.tsx";
 
 // The "Actual Game" being played is passed as children (The OS Desktop)
 interface GameRootProps {
     children: React.ReactNode;
 }
 
-type GameState = 'INTRO' | 'MENU' | 'BOOT' | 'GAMEPLAY';
+type GameState = 'INTRO' | 'MENU' | 'FIRST_BOOT' | 'BOOT' | 'ONBOARDING' | 'GAMEPLAY';
 
 export function GameRoot({ children }: GameRootProps) {
     const [gameState, setGameState] = useState<GameState>('INTRO'); // Default to INTRO
@@ -39,15 +39,19 @@ export function GameRoot({ children }: GameRootProps) {
         // However, we must ensure memory state (like useFileSystem in-memory cache) is also cleared.
         resetFileSystem(); // Keep this for in-game memory sync if needed
 
-        updateStoredVersion(); // Mark session as valid
         setIsLocked(false);
-        setGameState('BOOT');
+        setGameState('FIRST_BOOT');
     };
 
     const handleContinue = () => {
         // Force lock so that even if a user is remembered, we show the Login Screen
         setIsLocked(true);
         setGameState('BOOT');
+    };
+
+    const handleOnboardingComplete = () => {
+        setIsLocked(true);
+        setGameState('GAMEPLAY');
     };
 
     // Override: If user refreshes page during gameplay, should we go back to menu?
@@ -69,6 +73,14 @@ export function GameRoot({ children }: GameRootProps) {
 
         case 'BOOT':
             return <BootSequence onComplete={() => setGameState('GAMEPLAY')} />;
+
+        case 'FIRST_BOOT':
+            return <BootSequence onComplete={() => setGameState('ONBOARDING')} />;
+
+        case 'ONBOARDING':
+            return <Onboarding
+                onContinue={handleOnboardingComplete}
+            />
 
         case 'GAMEPLAY':
             return (
