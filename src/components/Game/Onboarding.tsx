@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, Check, User, Globe, Palette, Loader2 } from "lucide-react";
 import { GameScreenLayout } from "./GameScreenLayout";
@@ -9,6 +9,7 @@ import { GlassInput } from "../ui/GlassInput";
 import { GlassButton } from "../ui/GlassButton";
 import { cn } from "../ui/utils";
 import { SUPPORTED_LOCALES } from "../../i18n/translations";
+import { STORAGE_KEYS } from "../../utils/memory";
 
 import { updateStoredVersion } from "../../utils/migrations";
 
@@ -100,6 +101,12 @@ export function Onboarding({ onContinue }: OnboardingProps) {
         
         // Delay slightly to show "Finishing up..."
         setTimeout(() => {
+            // Persist language preference in soft memory for reload/continue flows
+            try {
+                localStorage.setItem(STORAGE_KEYS.LANGUAGE, locale);
+            } catch {
+                // Ignore storage failures (private mode, quota, etc.)
+            }
             updateStoredVersion(); // Commit the session as valid
             onContinue();
         }, 1500);
