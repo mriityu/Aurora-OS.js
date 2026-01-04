@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { GlassInput } from "../ui/GlassInput";
 import { GlassButton } from "../ui/GlassButton";
 import { cn } from "../ui/utils";
-import { STORAGE_KEYS } from "../../utils/memory";
+import { SUPPORTED_LOCALES } from "../../i18n/translations";
 
 import { updateStoredVersion } from "../../utils/migrations";
 
@@ -26,22 +26,10 @@ export function Onboarding({ onContinue }: OnboardingProps) {
         setThemeMode, 
         accentColor, 
         themeMode,
+        locale,
+        setLocale,
         switchUser
     } = useAppContext();
-
-    // Step 1: Language
-    const [language, setLanguage] = useState(() => {
-        try {
-            return localStorage.getItem(STORAGE_KEYS.LANGUAGE) || "en";
-        } catch {
-            return "en";
-        }
-    });
-
-    // Auto-save language
-    useEffect(() => {
-        localStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
-    }, [language]);
 
     // Step 2: Account
     const [fullName, setFullName] = useState("");
@@ -183,25 +171,19 @@ export function Onboarding({ onContinue }: OnboardingProps) {
                                     exit={{ opacity: 0, x: -10 }}
                                     className="space-y-3"
                                 >
-                                    {[
-                                        { id: "en", label: "English" },
-                                        { id: "es", label: "Español (Unavailable)", disabled: true },
-                                        { id: "fr", label: "Français (Unavailable)", disabled: true }
-                                    ].map((lang) => (
+                                    {SUPPORTED_LOCALES.map((lang) => (
                                         <button
-                                            key={lang.id}
-                                            disabled={lang.disabled}
-                                            onClick={() => setLanguage(lang.id)}
+                                            key={lang.locale}
+                                            onClick={() => setLocale(lang.locale)}
                                             className={cn(
                                                 "w-full p-4 rounded-xl border text-left flex justify-between items-center transition-all group",
-                                                language === lang.id 
+                                                locale === lang.locale 
                                                     ? "bg-white/10 border-white/40 ring-1 ring-white/20" 
-                                                    : "bg-transparent border-white/5 hover:bg-white/5 hover:border-white/10",
-                                                lang.disabled && "opacity-50 cursor-not-allowed"
+                                                    : "bg-transparent border-white/5 hover:bg-white/5 hover:border-white/10"
                                             )}
                                         >
-                                            <span className={cn("font-medium transition-colors", language === lang.id ? "text-white" : "text-white/70 group-hover:text-white")}>{lang.label}</span>
-                                            {language === lang.id && <Check className="w-5 h-5 text-white" />}
+                                            <span className={cn("font-medium transition-colors", locale === lang.locale ? "text-white" : "text-white/70 group-hover:text-white")}>{lang.label}</span>
+                                            {locale === lang.locale && <Check className="w-5 h-5 text-white" />}
                                         </button>
                                     ))}
                                 </motion.div>
