@@ -6,8 +6,8 @@
 
 ## Getting Started
 
-* [Quickstart](getting-started/quickstart.md)
-* [Publish your docs](getting-started/publish-your-docs.md)
+* [As player](getting-started/quickstart.md)
+* [As contributor](getting-started/publish-your-docs.md)
 
 ## Basics
 
@@ -20,3 +20,4 @@
 ***
 
 * [mental.os() Universe](https://instagram.com/mental.os)
+* [GitHub Community](https://github.com/mental-os/Aurora-OS.js/discussions)
