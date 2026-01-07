@@ -63,7 +63,7 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
     return (
         <GameScreenLayout zIndex={40000}>
             {/* Menu Options */}
-            <div className="flex flex-col gap-4 w-full max-w-md">
+            <div className="flex flex-col gap-4 w-[90%] md:w-full max-w-md">
                 {menuItems.map((item, index) => (
                     <motion.button
                         key={item.id}

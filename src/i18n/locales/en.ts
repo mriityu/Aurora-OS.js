@@ -1012,6 +1012,21 @@ export const en: TranslationDict = {
       title: "You're all set!",
       subtitle: 'Aurora OS is ready. Redirecting you to the login screen...',
     },
+    search: {
+      placeholder: 'Search language...',
+      noResults: 'No languages found',
+    },
+    validation: {
+      required: 'Please fill in all required fields',
+      passwordLength: 'Password must be at least 6 characters',
+      userExists: 'User already exists. Please choose another username.',
+      fullNameFormat: 'Full Name should only contain letters, spaces, and hyphens',
+      usernameFormat: 'Username should only contain lowercase letters and numbers',
+      hintLength: 'Password hint is too long (max 50 characters)',
+      hintSecurity: 'Password hint cannot contain the password itself',
+      hintFormat: 'Password hint contains invalid characters',
+      creationFailed: 'Failed to create account. Please try again.',
+    },
     buttons: {
       next: 'Next',
       back: 'Back',

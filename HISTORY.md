@@ -13,10 +13,15 @@
 - **Apps**: Added user context to apps, so they can access user-specific data (eg. user specific home directory, user specific downloads directory, etc.)
 - **Main Menu**: Added confirmation exit at "shutdown" and a force-save function, but also translation supporrt (because Main Menu will be visible after language selection, too).
 - **Environment**: Improved the synconization between dev. and build modules (TS > Vite > Electron) and added environment variables for development and production (language sync, etc.).
+- **Main Menu**: Responsiveness on really small screens.
+- **Onboarding**: Improved the flow of the memory saving, waiting until the last step to write choices to the memory. This prevents incomplete unboarding by pressing "back" button.
+- **Onboarding**: Added input sanitization and validation.
 
 ### Fixed
 
 - **Terminal App**: Fixed issue with terminal app retaining history even after a hard wipe - it should persist only in case of a crash.
+- **Onboarding**: Long language selection list was not scrollable - fixed by adding search too.
+- **Onboarding**: Weird behaviour when typing the name of the user. Now the account name is not autocompleted by default.
 
 ## v0.8.0
 

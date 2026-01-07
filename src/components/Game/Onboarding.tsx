@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, Check, User, Globe, Palette, Loader2 } from "lucide-react";
+import { ChevronRight, Check, User, Globe, Palette, Loader2, Search } from "lucide-react";
 import { GameScreenLayout } from "./GameScreenLayout";
 import { useFileSystem } from "../FileSystemContext";
 import { useAppContext } from "../AppContext";
@@ -22,7 +22,7 @@ type Step = "language" | "account" | "theme" | "finishing";
 
 export function Onboarding({ onContinue }: OnboardingProps) {
     const [step, setStep] = useState<Step>("language");
-    const { addUser, addUserToGroup } = useFileSystem();
+    const { addUser, addUserToGroup, users, saveFileSystem } = useFileSystem();
     const { 
         setAccentColor, 
         setThemeMode, 
@@ -42,9 +42,18 @@ export function Onboarding({ onContinue }: OnboardingProps) {
     const [hint, setHint] = useState("");
     const [isCreatingUser, setIsCreatingUser] = useState(false);
     const [error, setError] = useState("");
+    const [isUsernameModified, setIsUsernameModified] = useState(false);
 
     // Step 3: Theme (Local state for preview, applied on finish)
     const [previewAccent, setPreviewAccent] = useState(accentColor || "#3b82f6");
+
+    // Language Search
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const filteredLocales = SUPPORTED_LOCALES.filter(lang => 
+        lang.label.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        lang.locale.toLowerCase().includes(searchQuery.toLowerCase())
+    );
     
     // Handlers
     const handleLanguageNext = () => {
@@ -53,75 +62,112 @@ export function Onboarding({ onContinue }: OnboardingProps) {
 
     const handleAccountNext = async () => {
         if (!fullName || !username || !password) {
-            setError("Please fill in all required fields");
+            setError(t('onboarding.validation.requiredFields'));
             return;
         }
         
-        // Basic validation
-        if (password.length < 4) {
-            setError("Password must be at least 4 characters");
+        // Password Validation
+        if (password.length < 6) {
+            setError(t('onboarding.validation.passwordLength'));
+            return;
+        }
+
+        // Password Hint Validation
+        if (hint) {
+            if (hint.length > 50) {
+                setError(t('onboarding.validation.hintLength'));
+                return;
+            }
+            if (password.includes(hint) || hint.includes(password)) {
+                 setError(t('onboarding.validation.hintSecurity'));
+                 return;
+            }
+            // Sanitize Hint (prevent scripts/html just in case, though React escapes it)
+            // Allow standard text punctuation
+            const hintRegex = /^[a-zA-Z0-9\s.,?!()'-]+$/;
+            if (!hintRegex.test(hint)) {
+                setError(t('onboarding.validation.hintFormat'));
+                return;
+            }
+        }
+
+        // Full Name Validation (Letters, spaces, hyphens, apostrophes)
+        // Using unicode range for international support (e.g. Romanian characters)
+        const nameRegex = /^[a-zA-Z\u00C0-\u024F\u1E00-\u1EFF\s'-]+$/;
+        if (!nameRegex.test(fullName)) {
+            setError(t('onboarding.validation.fullNameFormat'));
+            return;
+        }
+
+        // Username Validation (Alphanumeric only)
+        const usernameRegex = /^[a-z0-9]+$/;
+        if (!usernameRegex.test(username)) {
+            setError(t('onboarding.validation.usernameFormat'));
             return;
         }
 
         setIsCreatingUser(true);
         setError("");
 
-        // Simulate network/disk delay for realism
+        // Check if user already exists (Simulated check)
+        // We defer actual creation to the end to prevent partial saves
         setTimeout(() => {
-            // Attempt to create user as 'root' (system)
-            // Note: We use 'root' as the acting user to bypass permission checks since we are in setup mode.
-            // Populating home with mock files for the main admin user
-            const success = addUser(username, fullName, password, hint, "root", true);
+            const userExists = users.some(u => u.username === username);
             
-            if (success) {
-                // Add to admin group
-                // We use addUserToGroup because 'admin' and 'users' groups already exist
-                addUserToGroup(username, "admin");
-                addUserToGroup(username, "users"); 
-                
+            if (!userExists) {
                 setStep("theme");
             } else {
-                setError("User already exists. Please choose another username.");
+                setError(t('onboarding.validation.userExists'));
             }
             setIsCreatingUser(false);
-        }, 800);
+        }, 500);
     };
 
-    const handleThemeNext = () => {
+    const handleFinishOnboarding = () => {
         setStep("finishing");
         
-        // Apply steps
-        // 1. Switch context to new user so settings save to their profile
-        switchUser(username);
-        
-        // 2. Apply theme settings
-        setAccentColor(previewAccent);
-        // themeMode is already set via UI binding if we bind it directly, 
-        // but let's make sure we are setting it for the *new* user context.
-        // Actually switchUser updates the context state to load that user's prefs.
-        // We need to wait for switch to happen? 
-        // switchUser updates state immediately but saves to LS on effect.
-        
-        // Delay slightly to show "Finishing up..."
+        // Finalize: Create User and Save System State
         setTimeout(() => {
-            // Persist language preference in soft memory for reload/continue flows
-            try {
-                localStorage.setItem(STORAGE_KEYS.LANGUAGE, locale);
-            } catch {
-                // Ignore storage failures (private mode, quota, etc.)
-            }
-            // Mark onboarding as complete in System Config
-            setOnboardingComplete(true);
-            
-            updateStoredVersion(); // Commit the session as valid
-            onContinue();
-        }, 1500);
+             // 1. Create User (as root)
+             const success = addUser(username, fullName, password, hint, "root", true);
+             
+             if (success) {
+                 // 2. Add to groups
+                 addUserToGroup(username, "admin");
+                 addUserToGroup(username, "users");
+
+                 // 3. Switch Context
+                 switchUser(username);
+
+                 // 4. Apply Preferences
+                 setAccentColor(previewAccent);
+
+                 // 5. Mark Complete & Save
+                 try {
+                     localStorage.setItem(STORAGE_KEYS.LANGUAGE, locale);
+                 } catch (e) { console.warn(e) }
+                 
+                 setOnboardingComplete(true);
+                 updateStoredVersion(); // Commit session
+                 saveFileSystem(); // Force write to disk
+
+                 // 6. Continue to Game
+                 setTimeout(() => {
+                     onContinue();
+                 }, 1500);
+             } else {
+                 // Fallback error handling if creation fails at the last second
+                 // (Shouldn't happen given the check in previous step, unless race condition)
+                 setStep("account");
+                 setError(t('onboarding.validation.creationFailed'));
+             }
+        }, 500);
     };
 
     // Auto-generate username from full name
     const handleNameChange = (val: string) => {
         setFullName(val);
-        if (!username) {
+        if (!isUsernameModified) {
             const slug = val.toLowerCase().replace(/[^a-z0-9]/g, "");
             setUsername(slug);
         }
@@ -138,9 +184,9 @@ export function Onboarding({ onContinue }: OnboardingProps) {
     return (
         <GameScreenLayout zIndex={40000}>
             {/* Modal Overlay matching SettingsModal */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-                <Card className="w-full max-w-lg bg-zinc-900/90 backdrop-blur-xl border-white/10 shadow-2xl p-2">
-                    <CardHeader>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-in fade-in duration-200 p-4 md:p-0">
+                <Card className="w-full max-w-lg bg-zinc-900/90 backdrop-blur-xl border-white/10 shadow-2xl p-2 my-auto max-h-[90vh] flex flex-col">
+                    <CardHeader className="shrink-0">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/10">
                                 {step === "language" && <Globe className="w-5 h-5 text-white" />}
@@ -174,7 +220,7 @@ export function Onboarding({ onContinue }: OnboardingProps) {
                         )}
                     </CardHeader>
 
-                    <CardContent className="py-6 min-h-[320px]">
+                    <CardContent className="py-6 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
                         <AnimatePresence mode="wait">
                             {step === "language" && (
                                 <motion.div
@@ -182,23 +228,40 @@ export function Onboarding({ onContinue }: OnboardingProps) {
                                     initial={{ opacity: 0, x: 10 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -10 }}
-                                    className="space-y-3"
+                                    className="space-y-4"
                                 >
-                                    {SUPPORTED_LOCALES.map((lang) => (
-                                        <button
-                                            key={lang.locale}
-                                            onClick={() => setLocale(lang.locale)}
-                                            className={cn(
-                                                "w-full p-4 rounded-xl border text-left flex justify-between items-center transition-all group",
-                                                locale === lang.locale 
-                                                    ? "bg-white/10 border-white/40 ring-1 ring-white/20" 
-                                                    : "bg-transparent border-white/5 hover:bg-white/5 hover:border-white/10"
-                                            )}
-                                        >
-                                            <span className={cn("font-medium transition-colors", locale === lang.locale ? "text-white" : "text-white/70 group-hover:text-white")}>{lang.label}</span>
-                                            {locale === lang.locale && <Check className="w-5 h-5 text-white" />}
-                                        </button>
-                                    ))}
+                                    <GlassInput 
+                                        icon={<Search className="w-4 h-4" />}
+                                        placeholder={t('onboarding.search.placeholder')}
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="bg-black/20 focus:bg-black/40"
+                                        autoFocus
+                                    />
+
+                                    <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 custom-scrollbar">
+                                        {filteredLocales.length > 0 ? (
+                                            filteredLocales.map((lang) => (
+                                                <button
+                                                    key={lang.locale}
+                                                    onClick={() => setLocale(lang.locale)}
+                                                    className={cn(
+                                                        "w-full p-3 rounded-lg border text-left flex justify-between items-center transition-all group",
+                                                        locale === lang.locale 
+                                                            ? "bg-white/10 border-white/40 ring-1 ring-white/20" 
+                                                            : "bg-transparent border-white/5 hover:bg-white/5 hover:border-white/10"
+                                                    )}
+                                                >
+                                                    <span className={cn("font-medium transition-colors text-sm", locale === lang.locale ? "text-white" : "text-white/70 group-hover:text-white")}>{lang.label}</span>
+                                                    {locale === lang.locale && <Check className="w-4 h-4 text-white" />}
+                                                </button>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8 text-white/30 text-sm">
+                                                {t('onboarding.search.noResults')}
+                                            </div>
+                                        )}
+                                    </div>
                                 </motion.div>
                             )}
 
@@ -226,7 +289,10 @@ export function Onboarding({ onContinue }: OnboardingProps) {
                                             <GlassInput 
                                                 placeholder="johndoe" 
                                                 value={username}
-                                                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
+                                                onChange={(e) => {
+                                                    setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""));
+                                                    setIsUsernameModified(true);
+                                                }}
                                                 className="bg-black/20 focus:bg-black/40"
                                             />
                                             {username && <p className="text-xs text-white/40 font-mono">/home/{username}</p>}
@@ -368,7 +434,7 @@ export function Onboarding({ onContinue }: OnboardingProps) {
                     </CardContent>
 
                     {step !== 'finishing' && (
-                        <CardFooter className="flex justify-between border-t border-white/5 pt-6 p-6">
+                        <CardFooter className="flex justify-between border-t border-white/5 pt-6 p-6 relative z-50">
                             {step === "language" ? (
                                 <div /> // Spacer
                             ) : (
@@ -382,13 +448,19 @@ export function Onboarding({ onContinue }: OnboardingProps) {
                             )}
 
                             {step === "language" && (
-                                <GlassButton onClick={handleLanguageNext} className="group">
+                                <GlassButton 
+                                    type="button"
+                                    onClick={handleLanguageNext} 
+                                    className="group relative z-50 pointer-events-auto"
+                                    data-testid="onboarding-next-language"
+                                >
                                     {t('onboarding.buttons.next')} <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
                                 </GlassButton>
                             )}
                             
                             {step === "account" && (
                                 <GlassButton 
+                                    type="button"
                                     onClick={handleAccountNext} 
                                     disabled={isCreatingUser}
                                     className="min-w-[100px]"
@@ -398,7 +470,12 @@ export function Onboarding({ onContinue }: OnboardingProps) {
                             )}
 
                             {step === "theme" && (
-                                <GlassButton onClick={handleThemeNext} style={{ backgroundColor: previewAccent }} className="px-6 shadow-lg shadow-black/20 hover:shadow-black/40">
+                                <GlassButton 
+                                    type="button" 
+                                    onClick={handleFinishOnboarding} 
+                                    style={{ backgroundColor: previewAccent }} 
+                                    className="px-6 shadow-lg shadow-black/20 hover:shadow-black/40"
+                                >
                                     {t('onboarding.buttons.startUsing')}
                                 </GlassButton>
                             )}

@@ -17,18 +17,18 @@ GitHub: https://github.com/mental-os
 
 _Your name could be here._
 
-**@Oklyne**  
-Contribution: Code, Translation, Testing  
-Link: https://github.com/oklyne  
+**[@Oklyne](https://github.com/oklyne)**  
+Contribution: Code, Translation, Testing
 
-**Nguyễn Trần Duy Hưng // @dannie203**  
-Contribution: Code, Translation, Testing  
-Link: https://github.com/dannie203  
+**Nguyễn Trần Duy Hưng // [@dannie203](https://github.com/dannie203)**  
+Contribution: Code, Translation, Testing
 
-**@nirgranthi**  
+**[@nirgranthi](https://github.com/nirgranthi)**  
 Contribution: Code  
-Link: https://github.com/nirgranthi  
-Social: [IG/s.a.u.r.a.b_](https://www.instagram.com/s.a.u.r.a.b_)  
+Social: [IG/s.a.u.r.a.b\_](https://www.instagram.com/s.a.u.r.a.b_)
+
+**Sanihith Kamenani // [@masterofmagic999](https://github.com/masterofmagic999)**  
+Contribution: Code, Testing
 
 ## 🎨 Design & UX
 

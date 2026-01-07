@@ -131,7 +131,22 @@ export const ro: TranslationDict = {
         },
         finishing: {
             title: 'Ești gata!',
-            subtitle: 'Aurora OS este gata. Te redirecționăm către ecranul de autentificare...',
+            subtitle: 'Aurora OS este pregătit. Te redirecționăm către ecranul de autentificare...',
+        },
+        search: {
+            placeholder: 'Caută limbă...',
+            noResults: 'Nicio limbă găsită',
+        },
+        validation: {
+            required: 'Te rugăm să completezi toate câmpurile obligatorii',
+            passwordLength: 'Parola trebuie să aibă cel puțin 6 caractere',
+            userExists: 'Utilizatorul există deja. Te rugăm să alegi un alt nume de utilizator.',
+            fullNameFormat: 'Numele complet trebuie să conțină doar litere, spații și cratime',
+            usernameFormat: 'Numele de utilizator trebuie să conțină doar litere mici și cifre',
+            hintLength: 'Indiciul parolei este prea lung (maxim 50 de caractere)',
+            hintSecurity: 'Indiciul parolei nu poate conține parola însăși',
+            hintFormat: 'Indiciul parolei conține caractere invalide',
+            creationFailed: 'Crearea contului a eșuat. Te rugăm să încerci din nou.',
         },
         buttons: {
             next: 'Următorul',
