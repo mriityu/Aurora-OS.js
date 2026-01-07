@@ -27,7 +27,7 @@ Contribution: Code, Translation, Testing
 Contribution: Code  
 Social: [IG/s.a.u.r.a.b\_](https://www.instagram.com/s.a.u.r.a.b_)
 
-**Sanihith Kamenani // [@masterofmagic999](https://github.com/masterofmagic999)**  
+**[@masterofmagic999](https://github.com/masterofmagic999)**  
 Contribution: Code, Testing
 
 ## 🎨 Design & UX
