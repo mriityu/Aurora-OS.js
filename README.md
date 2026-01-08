@@ -112,12 +112,17 @@ Or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
 - **Debugging Tools**: Exposed `window.aurora.checkRamUsage()` for real-time resource analysis in the console.
 - **Internationalization (i18n)**: Complete translation support for **Battery Applet** and **Audio Applet** across 6 languages (en, es, fr, de, pt, ro).
 - **Battery Metrics**: Added detailed battery health, cycle count, temperature, and voltage metrics (visible on supported hardware).
+- **Browser**: Added support for multiple tabs (add, close, switch), and implemented bookmark storage, a toggleable star icon, and a bookmark bar that appears when items are saved.
 
 ### Improved
 
 - **Realistic App Resources**: Recalibrated all applications with "heavy" modern resource footprints (e.g., Browser ~450MB, DevCenter ~800MB) for better simulation accuracy.
 - **Desktop Detection**: Battery applet now intelligently hides sensor data on desktop environments while preserving basic status.
 - **Audio Applet**: Refactored to support dynamic localization keys.
+- **Browser**: Added a simulated progress bar (loads to 80% -> pauses -> finishes) for better UX.
+- **Menu Bar time**: Clicking the time switches from server time to local time.
+- **Support for small screens**: Improved support for 1366x768 resolution, adapting the apps spawning position and size relative to the screen size.
+- **Music App and applet**: Added seek bar control.
 - **Code Quality**: Enhanced linting rules, resolved React hook dependency warnings, and standardized storage key management in `memory.ts`.
 
 ### [View full version history](HISTORY.md)

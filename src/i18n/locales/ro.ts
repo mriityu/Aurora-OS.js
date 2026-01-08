@@ -248,6 +248,8 @@ export const ro: TranslationDict = {
             warning: 'Avertisment',
             panicWarningBody:
                 'Aceasta va reseta {{productName}} la setările din fabrică. Bun ca buton de panică dacă ceva merge prost.',
+            serverTime: 'Ora Serverului (UTC)',
+            localTime: 'Ora Locală',
         },
         app: {
             aboutApp: 'Despre {{appName}}',

@@ -249,6 +249,8 @@ export const es: TranslationDict = {
       warning: 'Advertencia',
       panicWarningBody:
         'Esto restablecerá {{productName}} a valores de fábrica. Útil como botón de pánico si algo falla.',
+      serverTime: 'Hora del Servidor (UTC)',
+      localTime: 'Hora Local',
     },
     app: {
       aboutApp: 'Acerca de {{appName}}',

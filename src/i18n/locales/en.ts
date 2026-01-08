@@ -197,6 +197,8 @@ export const en: TranslationDict = {
       warning: 'Warning',
       panicWarningBody:
         'This will reset {{productName}} to factory defaults. Good as a panic button if something goes wrong, too.',
+      serverTime: 'Server Time (UTC)',
+      localTime: 'Local Time',
     },
     app: {
       aboutApp: 'About {{appName}}',

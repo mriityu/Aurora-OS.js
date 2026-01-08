@@ -184,6 +184,8 @@ export const de: TranslationDict = {
       warning: 'Warnung',
       panicWarningBody:
         'Dadurch wird {{productName}} auf Werkseinstellungen zurückgesetzt. Auch gut als Panikknopf, wenn etwas schiefgeht.',
+      serverTime: 'Serverzeit (UTC)',
+      localTime: 'Ortszeit',
     },
     app: {
       aboutApp: 'Über {{appName}}',

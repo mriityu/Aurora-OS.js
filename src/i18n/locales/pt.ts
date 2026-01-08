@@ -190,6 +190,8 @@ export const pt: TranslationDict = {
       warning: 'Aviso',
       panicWarningBody:
         'Isso redefinirá o {{productName}} para os padrões de fábrica. Útil se algo der muito errado.',
+      serverTime: 'Horário do Servidor (UTC)',
+      localTime: 'Horário Local',
     },
     app: {
       aboutApp: 'Sobre {{appName}}',

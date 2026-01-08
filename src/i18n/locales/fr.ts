@@ -250,6 +250,8 @@ export const fr: TranslationDict = {
       warning: 'Avertissement',
       panicWarningBody:
         'Ceci réinitialisera {{productName}} aux paramètres d’usine. Pratique comme bouton panique en cas de problème.',
+      serverTime: 'Heure du serveur (UTC)',
+      localTime: 'Heure locale',
     },
     app: {
       aboutApp: 'À propos de {{appName}}',
