@@ -132,7 +132,7 @@ export function useWindowManager(
                 const screenW = typeof window !== 'undefined' ? window.innerWidth : 1024;
                 const screenH = typeof window !== 'undefined' ? window.innerHeight : 768;
 
-                const defaultWidth = 800;
+                const defaultWidth = 900;
                 const defaultHeight = 600;
 
                 // Ensure window fits on screen with some padding
