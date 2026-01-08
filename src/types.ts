@@ -21,6 +21,11 @@ export interface BatteryInfo {
     charging: boolean;
     chargingTime: number | null;
     dischargingTime: number | null;
+    // Extended info (Electron / Advanced)
+    health?: number;
+    cycleCount?: number;
+    temperature?: number;
+    voltage?: number;
 }
 
 export interface BatteryManager extends EventTarget {

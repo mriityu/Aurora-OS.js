@@ -1029,4 +1029,37 @@ export const fr: TranslationDict = {
       deleteEverything: 'Oui, tout supprimer',
     },
   },
+  battery: {
+    title: 'Batterie',
+    charging: 'En charge',
+    fullyCharged: 'Complètement chargée',
+    remaining: '{{percentage}}% restant',
+    powerSource: "Source d'alimentation :",
+    powerSources: {
+      adapter: 'Adaptateur secteur',
+      battery: 'Batterie',
+    },
+    condition: 'État (Est.)',
+    metrics: {
+      health: 'Santé',
+      cycles: 'Cycles',
+      temp: 'Temp',
+      voltage: 'Tension',
+    },
+    disclaimer: 'Les métriques de santé et d\'état de la batterie sont des estimations basées sur les capteurs système disponibles. Les valeurs réelles peuvent varier.',
+    showPercentage: 'Afficher le pourcentage dans la barre des menus',
+  },
+  audio: {
+    title: 'Son',
+    muteAll: 'Tout couper',
+    unmute: 'Rétablir le son',
+    masterVolume: 'Volume principal',
+    mixer: 'Mélangeur',
+    categories: {
+      music: 'Musique',
+      system: 'Alertes système',
+      interface: 'Interface',
+      feedback: 'Retour de saisie',
+    },
+  },
 };

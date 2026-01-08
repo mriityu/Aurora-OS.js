@@ -1033,4 +1033,37 @@ export const en: TranslationDict = {
       startUsing: 'Start Using Aurora',
     },
   },
+  battery: {
+    title: 'Battery',
+    charging: 'Charging',
+    fullyCharged: 'Fully Charged',
+    remaining: '{{percentage}}% Remaining',
+    powerSource: 'Power Source:',
+    powerSources: {
+      adapter: 'Power Adapter',
+      battery: 'Battery',
+    },
+    condition: 'Condition (Est.)',
+    metrics: {
+      health: 'Health',
+      cycles: 'Cycles',
+      temp: 'Temp',
+      voltage: 'Voltage',
+    },
+    disclaimer: 'Battery health and condition metrics are estimates based on available system sensors. Actual values may vary.',
+    showPercentage: 'Show percentage in menu bar',
+  },
+  audio: {
+    title: 'Sound',
+    muteAll: 'Mute All',
+    unmute: 'Unmute',
+    masterVolume: 'Master Volume',
+    mixer: 'Mixer',
+    categories: {
+      music: 'Music',
+      system: 'System Alerts',
+      interface: 'Interface',
+      feedback: 'Input Feedback',
+    },
+  },
 };

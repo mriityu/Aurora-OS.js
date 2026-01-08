@@ -1026,4 +1026,37 @@ export const pt: TranslationDict = {
       startUsing: 'Começar a Usar o Aurora',
     },
   },
+  battery: {
+    title: 'Bateria',
+    charging: 'Carregando',
+    fullyCharged: 'Totalmente Carregada',
+    remaining: '{{percentage}}% Restante',
+    powerSource: 'Fonte de Energia:',
+    powerSources: {
+      adapter: 'Adaptador de Energia',
+      battery: 'Bateria',
+    },
+    condition: 'Condição (Est.)',
+    metrics: {
+      health: 'Saúde',
+      cycles: 'Ciclos',
+      temp: 'Temp',
+      voltage: 'Voltagem',
+    },
+    disclaimer: 'As métricas de saúde e condição da bateria são estimativas baseadas nos sensores do sistema disponíveis. Os valores reais podem variar.',
+    showPercentage: 'Mostrar porcentagem na barra de menus',
+  },
+  audio: {
+    title: 'Som',
+    muteAll: 'Silenciar Tudo',
+    unmute: 'Reativar Som',
+    masterVolume: 'Volume Principal',
+    mixer: 'Mixer',
+    categories: {
+      music: 'Música',
+      system: 'Alertas do Sistema',
+      interface: 'Interface',
+      feedback: 'Feedback de Entrada',
+    },
+  },
 };

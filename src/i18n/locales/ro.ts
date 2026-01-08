@@ -1025,4 +1025,37 @@ export const ro: TranslationDict = {
             deleteEverything: 'Da, Șterge Tot',
         },
     },
+    battery: {
+        title: 'Baterie',
+        charging: 'Se încarcă',
+        fullyCharged: 'Complet Încărcată',
+        remaining: '{{percentage}}% Rămas',
+        powerSource: 'Sursă Alimentare:',
+        powerSources: {
+            adapter: 'Adaptor de Alimentare',
+            battery: 'Baterie',
+        },
+        condition: 'Stare (Est.)',
+        metrics: {
+            health: 'Sănătate',
+            cycles: 'Cicluri',
+            temp: 'Temp',
+            voltage: 'Voltaj',
+        },
+        disclaimer: 'Măsurătorile privind sănătatea și starea bateriei sunt estimări bazate pe senzorii disponibili ai sistemului. Valorile reale pot varia.',
+        showPercentage: 'Arată procentajul în bara de meniu',
+    },
+    audio: {
+        title: 'Sunet',
+        muteAll: 'Oprește Tot',
+        unmute: 'Pornește Sunet',
+        masterVolume: 'Volum Principal',
+        mixer: 'Mixer',
+        categories: {
+            music: 'Muzică',
+            system: 'Alerte Sistem',
+            interface: 'Interfață',
+            feedback: 'Feedback Intrare',
+        },
+    },
 };

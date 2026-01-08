@@ -1,91 +1,155 @@
-import { useState, useEffect } from 'react';
-import { BatteryInfo, BatteryManager } from '../types';
+import { useState, useEffect } from "react";
+import { BatteryInfo, BatteryManager } from "../types";
 
 /**
- * Hook personnalisé pour obtenir les informations de batterie
- * Retourne null si l'API n'est pas disponible (PC fixe)
+ * Custom hook to get battery information
+ * Returns null if the API is not available (Desktop PC)
  */
 export function useBattery(): BatteryInfo | null {
-    const [batteryInfo, setBatteryInfo] = useState<BatteryInfo | null>(null);
+  const [batteryInfo, setBatteryInfo] = useState<BatteryInfo | null>(null);
 
-    useEffect(() => {
-        // Vérifier si l'API est disponible
-        if (!('getBattery' in navigator)) {
-            return;
+  useEffect(() => {
+    let isMounted = true;
+    let battery: BatteryManager | null = null;
+    let pollInterval: NodeJS.Timeout | null = null;
+    let webBatteryListener: (() => void) | null = null;
+
+    // Helper to update state
+    const updateState = (
+      level: number,
+      charging: boolean,
+      chargingTime: number | null,
+      dischargingTime: number | null,
+      extra?: {
+        health?: number;
+        cycleCount?: number;
+        temperature?: number;
+        voltage?: number;
+      }
+    ) => {
+      if (!isMounted) return;
+      setBatteryInfo({
+        level,
+        charging,
+        chargingTime,
+        dischargingTime,
+        ...extra
+      });
+    };
+
+    const initBattery = async (): Promise<void> => {
+      try {
+        // 1. Electron Strategy (Main Process via systeminformation)
+        if (window.electron?.getBattery) {
+          const fetchElectronBattery = async () => {
+            try {
+              const data = await window.electron!.getBattery();
+              if (data && isMounted) {
+                if (!data.hasBattery) {
+                  setBatteryInfo(null);
+                  return;
+                }
+
+                // Calculate health if possible
+                let health = undefined;
+                if ((data.designedCapacity??0) > 0 && (data.maxCapacity??0) > 0) {
+                     health = Math.round((data.maxCapacity / data.designedCapacity) * 100);
+                }
+
+                updateState(
+                  data.percent / 100,
+                  data.isCharging,
+                  null,
+                  data.timeRemaining ? data.timeRemaining * 60 : null,
+                  {
+                      cycleCount: data.cycleCount,
+                      temperature: data.temperature,
+                      voltage: data.voltage,
+                      health: health
+                  }
+                );
+              }
+            } catch (e) {
+              console.error("Electron battery fetch failed", e);
+            }
+          };
+
+          await fetchElectronBattery();
+          pollInterval = setInterval(fetchElectronBattery, 10000);
+          return;
         }
 
-        let battery: BatteryManager | null = null;
-        let isMounted = true;
+        // 2. Web API Strategy (Browser / Fallback)
+        if ("getBattery" in navigator) {
+          const batteryPromise = (
+            navigator as { getBattery?: () => Promise<BatteryManager> }
+          ).getBattery?.();
+          if (!batteryPromise) return;
 
-        const updateBatteryInfo = (): void => {
-            if (!battery || !isMounted) return;
+          const batteryResult = await batteryPromise;
+          if (!isMounted) return;
 
-            setBatteryInfo({
-                level: battery.level,
-                charging: battery.charging,
-                chargingTime: battery.chargingTime === Infinity ? null : battery.chargingTime,
-                dischargingTime: battery.dischargingTime === Infinity ? null : battery.dischargingTime,
-            });
-        };
+          battery = batteryResult as BatteryManager;
 
-        const handleChargingChange = (): void => {
-            updateBatteryInfo();
-        };
-
-        const handleLevelChange = (): void => {
-            updateBatteryInfo();
-        };
-
-        const handleChargingTimeChange = (): void => {
-            updateBatteryInfo();
-        };
-
-        const handleDischargingTimeChange = (): void => {
-            updateBatteryInfo();
-        };
-
-        // Initialiser la batterie
-        const initBattery = async (): Promise<void> => {
-            try {
-                const batteryPromise = (navigator as { getBattery?: () => Promise<BatteryManager> }).getBattery?.();
-                if (!batteryPromise) {
-                    return;
-                }
-
-                const batteryResult = await batteryPromise;
-                if (!isMounted) return;
-
-                battery = batteryResult as BatteryManager;
-
-                // Mettre à jour l'état initial
-                updateBatteryInfo();
-
-                // Ajouter les event listeners
-                battery.addEventListener('chargingchange', handleChargingChange);
-                battery.addEventListener('levelchange', handleLevelChange);
-                battery.addEventListener('chargingtimechange', handleChargingTimeChange);
-                battery.addEventListener('dischargingtimechange', handleDischargingTimeChange);
-            } catch (error) {
-                console.warn('Failed to get battery information:', error);
-                if (isMounted) {
-                    setBatteryInfo(null);
-                }
-            }
-        };
-
-        initBattery();
-
-        // Cleanup: retirer les event listeners
-        return () => {
-            isMounted = false;
+          // Define listener
+          webBatteryListener = () => {
             if (battery) {
-                battery.removeEventListener('chargingchange', handleChargingChange);
-                battery.removeEventListener('levelchange', handleLevelChange);
-                battery.removeEventListener('chargingtimechange', handleChargingTimeChange);
-                battery.removeEventListener('dischargingtimechange', handleDischargingTimeChange);
+              updateState(
+                 battery.level,
+                 battery.charging,
+                 battery.chargingTime === Infinity ? null : battery.chargingTime,
+                 battery.dischargingTime === Infinity ? null : battery.dischargingTime,
+                 {
+                     // Web API doesn't provide detailed metrics
+                     health: undefined,
+                     cycleCount: undefined,
+                     temperature: undefined,
+                     voltage: undefined
+                 }
+              );
             }
-        };
-    }, []);
+          };
 
-    return batteryInfo;
+
+          // Initial update
+          webBatteryListener();
+
+          // Add event listeners
+          const events = [
+            "chargingchange",
+            "levelchange",
+            "chargingtimechange",
+            "dischargingtimechange",
+          ] as const;
+          events.forEach((evt) =>
+            battery!.addEventListener(evt, webBatteryListener!)
+          );
+          return;
+        }
+      } catch (error) {
+        console.warn("Failed to get battery information:", error);
+        if (isMounted) setBatteryInfo(null);
+      }
+    };
+
+    initBattery();
+
+    // Cleanup
+    return () => {
+      isMounted = false;
+      if (pollInterval) clearInterval(pollInterval);
+      if (battery && webBatteryListener) {
+        const events = [
+          "chargingchange",
+          "levelchange",
+          "chargingtimechange",
+          "dischargingtimechange",
+        ] as const;
+
+        events.forEach((evt) => battery!.removeEventListener(evt, webBatteryListener!));
+      }
+    };
+  }, []);
+
+  return batteryInfo;
 }

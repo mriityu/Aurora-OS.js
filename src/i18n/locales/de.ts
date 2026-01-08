@@ -1020,4 +1020,37 @@ export const de: TranslationDict = {
       startUsing: 'Aurora starten',
     },
   },
+  battery: {
+    title: 'Batterie',
+    charging: 'Lädt',
+    fullyCharged: 'Vollständig geladen',
+    remaining: '{{percentage}}% verbleibend',
+    powerSource: 'Stromquelle:',
+    powerSources: {
+      adapter: 'Netzteil',
+      battery: 'Batterie',
+    },
+    condition: 'Zustand (Geschätzt)',
+    metrics: {
+      health: 'Gesundheit',
+      cycles: 'Zyklen',
+      temp: 'Temp',
+      voltage: 'Spannung',
+    },
+    disclaimer: 'Batteriegesundheit und -zustand sind Schätzungen basierend auf verfügbaren Systemsensoren. Tatsächliche Werte können abweichen.',
+    showPercentage: 'Prozentsatz in der Menüleiste anzeigen',
+  },
+  audio: {
+    title: 'Ton',
+    muteAll: 'Alle stummschalten',
+    unmute: 'Stummschaltung aufheben',
+    masterVolume: 'Gesamtlautstärke',
+    mixer: 'Mixer',
+    categories: {
+      music: 'Musik',
+      system: 'Systemwarnungen',
+      interface: 'Oberfläche',
+      feedback: 'Eingabefeedback',
+    },
+  },
 };

@@ -19,6 +19,7 @@ export const STORAGE_KEYS = {
     LANGUAGE: 'aurora-system-language', // System Language
     TERMINAL_HISTORY: 'aurora-terminal-history-', // Command output history prefix
     TERMINAL_INPUT: 'aurora-terminal-input-', // Command input history prefix
+    BATTERY: 'aurora-os-battery-settings', // Battery preferences
 
     // Hard memory keys (core data, dangerous to forget)
     FILESYSTEM: 'aurora-filesystem',
@@ -39,6 +40,7 @@ const MEMORY_CONFIG = {
             STORAGE_KEYS.SOUND,
             STORAGE_KEYS.SYSTEM_CONFIG,
             STORAGE_KEYS.LANGUAGE,
+            STORAGE_KEYS.BATTERY, // Battery settings
             STORAGE_KEYS.TRUSTMAIL_CURRENT // Website login is "soft"
         ] as string[],
         prefixes: [
