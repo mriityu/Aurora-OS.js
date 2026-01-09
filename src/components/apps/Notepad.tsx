@@ -16,49 +16,15 @@ import 'prismjs/components/prism-markup'; // HTML
 import 'prismjs/components/prism-bash'; // Bash/Shell
 import 'prismjs/themes/prism-tomorrow.css'; // Dark theme
 
-import {
-    FileText,
-    Save,
-    FolderOpen,
-    Plus,
-    X,
-    Eye,
-    EyeOff,
-    Bold,
-    Italic,
-    List,
-    Type,
-    Check,
-    ChevronsUpDown
-} from 'lucide-react';
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from '../ui/command';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '../ui/popover';
-import { cn } from '../ui/utils';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '../ui/alert-dialog';
-import { AppTemplate } from './AppTemplate';
-import { useFileSystem } from '../FileSystemContext';
-import { FilePicker } from '../ui/FilePicker';
-import { toast } from 'sonner';
+import { FileText, Save, FolderOpen, Plus, X, Eye, EyeOff, Bold, Italic, List, Type, Check, ChevronsUpDown } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/components/ui/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AppTemplate } from '@/components/apps/AppTemplate';
+import { useFileSystem } from '@/components/FileSystemContext';
+import { FilePicker } from '@/components/ui/FilePicker';
+import { notify } from '@/services/notifications';
 
 interface Tab {
     id: string;
@@ -70,10 +36,10 @@ interface Tab {
 }
 
 // ... imports
-import { useAppContext } from '../AppContext';
-import { useWindow } from '../WindowContext';
-import { getAppStateKey } from '../../utils/memory';
-import { useI18n } from '../../i18n/index';
+import { useAppContext } from '@/components/AppContext';
+import { useWindow } from '@/components/WindowContext';
+import { getAppStateKey } from '@/utils/memory';
+import { useI18n } from '@/i18n/index';
 
 // ... interface
 
@@ -343,7 +309,7 @@ export function Notepad({ owner, initialPath }: NotepadProps) {
                     setActiveTabId(newId);
                 }
             } else {
-                toast.error(t('notepad.toasts.failedToReadFile'));
+                notify.system('error', 'Notepad', t('notepad.toasts.failedToReadFile'), t('notifications.subtitles.error'));
             }
         } else if (filePickerMode === 'save') {
             // Save logic
@@ -368,9 +334,9 @@ export function Notepad({ owner, initialPath }: NotepadProps) {
                         ? { ...t, name, path, isModified: false, context }
                         : t
                 ));
-                toast.success(t('notepad.toasts.fileSaved'));
+                notify.system('success', 'Notepad', t('notepad.toasts.fileSaved'), t('notifications.subtitles.saved'));
             } else {
-                toast.error(t('notepad.toasts.failedToSaveFilePermissions'));
+                notify.system('error', 'Notepad', t('notepad.toasts.failedToSaveFilePermissions'), t('notifications.subtitles.error'));
             }
         }
         setFilePickerMode(null);
@@ -386,10 +352,10 @@ export function Notepad({ owner, initialPath }: NotepadProps) {
                         ? { ...t, isModified: false }
                         : t
                 ));
-                toast.success(t('notepad.toasts.saved'));
+                notify.system('success', 'Notepad', t('notepad.toasts.saved'), t('notifications.subtitles.saved'));
                 return true; // Indicate success for quick save
             } else {
-                toast.error(t('notepad.toasts.failedToSave'));
+                notify.system('error', 'Notepad', t('notepad.toasts.failedToSave'), t('notifications.subtitles.error'));
                 return false;
             }
         } else {
@@ -718,7 +684,7 @@ export function Notepad({ owner, initialPath }: NotepadProps) {
                                                                     ? { ...t, context: currentValue }
                                                                     : t
                                                             ));
-                                                            toast.info(t('notepad.toasts.switchedTo', { language: lang.label }));
+                                                            notify.system('success', 'Notepad', t('notepad.toasts.switchedTo', { language: lang.label }), t('notifications.subtitles.ui'));
                                                         }}
                                                         className="text-[11px] cursor-pointer transition-all duration-150"
                                                         style={{
@@ -804,7 +770,7 @@ export function Notepad({ owner, initialPath }: NotepadProps) {
         </div>
     );
 }
-import { AppMenuConfig } from '../../types';
+import { AppMenuConfig } from '@/types';
 
 export const notepadMenuConfig: AppMenuConfig = {
     menus: ['File', 'Edit', 'Format', 'View', 'Window', 'Help'],

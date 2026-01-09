@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync } from 'fs';
-import { join, dirname } from 'path';
+import { readFileSync, writeFileSync, readdirSync } from 'fs';
+import { join, dirname, basename } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { tmpdir } from 'os';
 
@@ -17,7 +17,7 @@ async function getDict(filename) {
     content = content.replace(/: TranslationDict/g, '');
     // 3. Change export const to global assignment
     const langMatch = filename.match(/^([a-z]+)\.ts/);
-    const lang = langMatch[1];
+    const lang = langMatch ? langMatch[1] : filename.replace('.ts', '');
     content = content.replace(`export const ${lang} =`, `global.${lang} =`);
 
     // Create a temp file to import or eval
@@ -44,7 +44,11 @@ function getAllKeys(obj, prefix = '') {
 }
 
 async function run() {
-    const locales = ['en.ts', 'de.ts', 'es.ts', 'fr.ts', 'pt.ts', 'ro.ts', 'zh.ts'];
+    // Dynamically find all ts files in locales dir
+    const allFiles = readdirSync(LOCALES_DIR).filter(f => f.endsWith('.ts'));
+    
+    // Ensure en.ts is first (baseline)
+    const locales = ['en.ts', ...allFiles.filter(f => f !== 'en.ts').sort()];
     let enDict;
     try {
         enDict = await getDict('en.ts');

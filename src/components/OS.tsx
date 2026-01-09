@@ -15,15 +15,15 @@ import { Notepad } from './apps/Notepad';
 import { Calendar } from './apps/Calendar';
 import { PlaceholderApp } from './apps/PlaceholderApp';
 import { AppStore } from './apps/AppStore';
-import { useAppContext } from './AppContext';
-import { useFileSystem, type FileSystemContextType } from './FileSystemContext';
-import { Toaster } from './ui/sonner';
-import { toast } from 'sonner';
-import { getGridConfig, gridToPixel, pixelToGrid, findNextFreeCell, gridPosToKey, rearrangeGrid, type GridPosition } from '../utils/gridSystem';
-import { feedback } from '../services/soundFeedback';
-import { STORAGE_KEYS } from '../utils/memory';
-import { useWindowManager } from '../hooks/useWindowManager';
-import { useI18n } from '../i18n/index';
+import { useAppContext } from '@/components/AppContext';
+import { useFileSystem, type FileSystemContextType } from '@/components/FileSystemContext';
+import { Toaster } from '@/components/ui/sonner';
+import { notify } from '@/services/notifications';
+import { getGridConfig, gridToPixel, pixelToGrid, findNextFreeCell, gridPosToKey, rearrangeGrid, type GridPosition } from '@/utils/gridSystem';
+import { feedback } from '@/services/soundFeedback';
+import { STORAGE_KEYS } from '@/utils/memory';
+import { useWindowManager } from '@/hooks/useWindowManager';
+import { useI18n } from '@/i18n/index';
 
 import { Mail } from "@/components/apps/Mail.tsx";
 // Load icon positions (supports both pixel and grid formats with migration)
@@ -355,7 +355,7 @@ export default function OS() {
                     // Inject timestamp to force update and allow Music app to handle playback on mount/update
                     openWindowRef.current('music', { path, timestamp: Date.now() });
                 } else {
-                    toast.error(t('os.toasts.musicNotInstalled'));
+                    notify.system('error', 'OS', t('os.toasts.musicNotInstalled'), t('notifications.subtitles.appMissing'));
                 }
             } else if (isText) {
                 // Check if notepad app is installed by checking /usr/bin
@@ -363,7 +363,7 @@ export default function OS() {
                 if (notepadBinary) {
                     openWindow('notepad', { path });
                 } else {
-                    toast.error(t('os.toasts.notepadNotInstalled'));
+                    notify.system('error', 'OS', t('os.toasts.notepadNotInstalled'), t('notifications.subtitles.appMissing'));
                 }
             }
         }

@@ -1,37 +1,20 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  FolderOpen,
-  FileText,
-  Download,
-  HardDrive,
-  Search,
-  Grid3x3,
-  List,
-  Monitor,
-  Music,
-  Image,
-  Trash,
-  Trash2,
-  Settings,
-  Home
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { useAppContext } from './AppContext';
-import { AppTemplate } from './apps/AppTemplate';
-import { ResponsiveGrid } from './ui/ResponsiveGrid';
-import { useFileSystem, FileNode } from './FileSystemContext';
-import { useMusic } from './MusicContext';
-import { checkPermissions } from '../utils/fileSystemUtils';
-import { useAppStorage } from '../hooks/useAppStorage';
-import { useSessionStorage } from '../hooks/useSessionStorage';
-import { useElementSize } from '../hooks/useElementSize';
-import { FileIcon } from './ui/FileIcon';
-import { cn } from './ui/utils';
-import { feedback } from '../services/soundFeedback';
-import { useI18n } from '../i18n/index';
+import { ChevronLeft, ChevronRight, FolderOpen, FileText, Download, HardDrive, Search, Grid3x3, List, Monitor, Music, Image, Trash, Trash2, Settings, Home } from 'lucide-react';
+import { notify } from '@/services/notifications';
+import { useAppContext } from '@/components/AppContext';
+import { AppTemplate } from '@/components/apps/AppTemplate';
+import { ResponsiveGrid } from '@/components/ui/ResponsiveGrid';
+import { useFileSystem, FileNode } from '@/components/FileSystemContext';
+import { useMusic } from '@/components/MusicContext';
+import { checkPermissions } from '@/utils/fileSystemUtils';
+import { useAppStorage } from '@/hooks/useAppStorage';
+import { useSessionStorage } from '@/hooks/useSessionStorage';
+import { useElementSize } from '@/hooks/useElementSize';
+import { FileIcon } from '@/components/ui/FileIcon';
+import { cn } from '@/components/ui/utils';
+import { feedback } from '@/services/soundFeedback';
+import { useI18n } from '@/i18n/index';
 
 interface BreadcrumbPillProps {
   name: string;
@@ -156,11 +139,11 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
       const userObj = users.find(u => u.username === activeUser);
       if (userObj) {
         if (!checkPermissions(node, userObj, 'read')) {
-          toast.error(t('fileManager.toasts.permissionDenied', { name: node.name }));
+          notify.system('error', 'Finder', t('fileManager.toasts.permissionDenied', { name: node.name }), t('notifications.subtitles.permissionDenied'));
           return;
         }
         if (!checkPermissions(node, userObj, 'execute')) {
-          toast.error(t('fileManager.toasts.permissionDenied', { name: node.name }));
+          notify.system('error', 'Finder', t('fileManager.toasts.permissionDenied', { name: node.name }), t('notifications.subtitles.permissionDenied'));
           return;
         }
       }
@@ -196,7 +179,7 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
           // Delegate playback to App via initialPath/data (gated by local logic)
           if (onOpenApp) onOpenApp('music', { path: fullPath, timestamp: Date.now() }, activeUser);
         } else {
-          toast.error(t('fileManager.toasts.musicNotInstalled'));
+          notify.system('error', 'Finder', t('fileManager.toasts.musicNotInstalled'), t('notifications.subtitles.appMissing'));
         }
       } else if (isText) {
         // Check if notepad app is installed by checking /usr/bin
@@ -206,7 +189,7 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
           const fullPath = resolvePath(rawPath, activeUser);
           if (onOpenApp) onOpenApp('notepad', { path: fullPath }, activeUser);
         } else {
-          toast.error(t('fileManager.toasts.notepadNotInstalled'));
+          notify.system('error', 'Finder', t('fileManager.toasts.notepadNotInstalled'), t('notifications.subtitles.appMissing'));
         }
       }
     }
@@ -370,11 +353,11 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
         movedCount++;
       });
 
-      if (movedCount > 0) toast.success(t('fileManager.toasts.movedItems', { count: movedCount }));
+      if (movedCount > 0) notify.system('success', 'Finder', t('fileManager.toasts.movedItems', { count: movedCount }), t('notifications.subtitles.moved'));
 
     } catch (err) {
       console.error('Failed to parse drag data', err);
-      toast.error(t('fileManager.toasts.moveFailedInvalidData'));
+      notify.system('error', 'Finder', t('fileManager.toasts.moveFailedInvalidData'), t('notifications.subtitles.failed'));
     }
   }, [currentPath, moveNodeById, activeUser, t]);
 
@@ -394,15 +377,10 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
         moveNodeById(id, targetPath, activeUser);
       });
 
-      toast.success(
-        t('fileManager.toasts.movedItemsTo', {
-          count: idsToMove.length,
-          target: targetPath.split('/').pop() || targetPath,
-        })
-      );
+      notify.system('success', 'Finder', t('fileManager.toasts.movedItemsTo', { count: idsToMove.length, target: targetPath.split('/').pop() || targetPath }), t('notifications.subtitles.moved'));
     } catch (err) {
       console.error('Failed to drop on sidebar', err);
-      toast.error(t('fileManager.toasts.failedToProcessDrop'));
+      notify.system('error', 'Finder', t('fileManager.toasts.failedToProcessDrop'), t('notifications.subtitles.failed'));
     }
   }, [moveNodeById, activeUser, t]);
 
@@ -540,7 +518,7 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
                 }
               });
               setSelectedItems(new Set());
-              toast.success(t('fileManager.toasts.movedItemsToTrash', { count: selectedItems.size }));
+              notify.system('success', 'Finder', t('fileManager.toasts.movedItemsToTrash', { count: selectedItems.size }), t('notifications.subtitles.trash'));
             }
           }}
           disabled={selectedItems.size === 0}
@@ -685,7 +663,7 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
         moveNodeById(id, currentPath, activeUser);
         movedCount++;
       });
-      if (movedCount > 0) toast.success(t('fileManager.toasts.movedItems', { count: movedCount }));
+      if (movedCount > 0) notify.system('success', 'Finder', t('fileManager.toasts.movedItems', { count: movedCount }), t('notifications.subtitles.moved'));
     } catch (err) {
       console.error('Failed to handle container drop', err);
     }
@@ -897,7 +875,7 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
   return <AppTemplate sidebar={fileManagerSidebar} toolbar={toolbar} content={content} minContentWidth={600} />;
 }
 
-import { AppMenuConfig } from '../types';
+import { AppMenuConfig } from '@/types';
 
 export const finderMenuConfig: AppMenuConfig = {
   menus: ['File', 'Edit', 'View', 'Go', 'Window', 'Help'],

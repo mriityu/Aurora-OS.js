@@ -213,20 +213,37 @@ export const zh: TranslationDict = {
 		items: {
 			newEmail: {
 				title: '新邮件',
-				message: '你有 {{count}} 封未读邮件',
+				message: '您有 {{count}} 条未读消息',
 			},
 			meetingReminder: {
 				title: '会议提醒',
-				message: '团队同步将在 {{minutes}} 分钟后',
+				message: '团队会议在 {{minutes}} 分钟后开始',
 			},
 			newMessage: {
 				title: '新消息',
-				message: '{{sender}}：嗨，你现在有空吗？',
+				message: '{{sender}}: 嘿，有空吗？',
 			},
 			downloadComplete: {
 				title: '下载完成',
-				message: '{{filename}} 已准备好',
+				message: '{{filename}} 已就绪',
 			},
+		},
+		subtitles: {
+			appMissing: '应用程序缺失',
+			permissionDenied: '权限被拒绝',
+			saved: '已保存',
+			deleted: '已删除',
+			moved: '已移动',
+			trash: '废纸篓',
+			failed: '失败',
+			ui: '界面',
+			export: '导出',
+			import: '导入',
+			clipboard: '剪贴板',
+			validation: '验证',
+			success: '成功',
+			error: '错误',
+			warning: '警告',
 		},
 	},
 	memory: {

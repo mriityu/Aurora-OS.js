@@ -23,6 +23,11 @@
 - **Docker**: is now responsive with an "show all apps" features for over 3 apps in the first section.
 - **Code Quality**: Enhanced linting rules, resolved React hook dependency warnings, and standardized storage key management in `memory.ts`.
 
+### Fixed
+
+- **Tooltip Alignment**: Fixed tooltip alignment for Docker (vertically centered).
+- **Calendar**: Fixed date navigation alignment.
+
 ## 0.8.1
 
 ### Added

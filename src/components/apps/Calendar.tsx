@@ -2,21 +2,21 @@ import { useMemo, useState, useEffect } from 'react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, startOfWeek, endOfWeek, getHours, getMinutes, setHours, setMinutes, addMinutes, addDays, subDays } from 'date-fns';
 import { enUS, es as esLocale, fr as frLocale } from 'date-fns/locale';
 import { Plus, ChevronLeft, ChevronRight, MapPin, Calendar as CalendarIcon, Clock, Type, AlignLeft, Timer, ChevronsUpDown, Check } from 'lucide-react';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
-import { Button, buttonVariants } from '../ui/button';
-import { Calendar as MiniCalendar } from '../ui/calendar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { cn } from '../ui/utils';
-import { AppTemplate } from './AppTemplate';
-import { useAppContext } from '../AppContext';
-import { useFileSystem } from '../FileSystemContext';
-import { STORAGE_KEYS } from '../../utils/memory';
-import { toast } from 'sonner';
-import { useI18n } from '../../i18n/index';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Calendar as MiniCalendar } from '@/components/ui/calendar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/components/ui/utils';
+import { AppTemplate } from '@/components/apps/AppTemplate';
+import { useAppContext } from '@/components/AppContext';
+import { useFileSystem } from '@/components/FileSystemContext';
+import { STORAGE_KEYS } from '@/utils/memory';
+import { notify } from '@/services/notifications';
+import { useI18n } from '@/i18n/index';
 
 // --- Types ---
 
@@ -327,12 +327,12 @@ export function Calendar({ owner }: CalendarProps) {
     saveEventsToDisk(newEvents);
     setIsModalOpen(false);
     setEditingEvent({});
-    toast.success(t('calendar.toasts.eventDeleted'));
+    notify.system('success', 'Calendar', t('calendar.toasts.eventDeleted'), t('notifications.subtitles.deleted'));
   };
 
   const handleSaveEvent = () => {
     if (!editingEvent.title || !editingEvent.start || !editingEvent.durationMinutes) {
-      toast.error(t('calendar.toasts.requiredFields'));
+      notify.system('error', 'Calendar', t('calendar.toasts.requiredFields'), t('notifications.subtitles.validation'));
       return;
     }
 
@@ -369,7 +369,7 @@ export function Calendar({ owner }: CalendarProps) {
     saveEventsToDisk(newEvents);
     setIsModalOpen(false);
     setEditingEvent({});
-    toast.success(t('calendar.toasts.eventSaved'));
+    notify.system('success', 'Calendar', t('calendar.toasts.eventSaved'), t('notifications.subtitles.saved'));
   };
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -1223,7 +1223,7 @@ export function Calendar({ owner }: CalendarProps) {
   );
 }
 
-import { AppMenuConfig } from '../../types';
+import { AppMenuConfig } from '@/types';
 
 export const calendarMenuConfig: AppMenuConfig = {
   menus: ['File', 'Edit', 'View', 'Window', 'Help'],
