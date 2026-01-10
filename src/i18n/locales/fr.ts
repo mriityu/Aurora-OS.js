@@ -71,6 +71,8 @@ export const fr: TranslationDict = {
   a11y: {
     common: {
       close: 'Fermer',
+      open: 'Ouvrir',
+      notAvailable: 'N/A',
     },
     sidebar: {
       toggleSidebar: 'Basculer la barre latérale',
@@ -210,6 +212,8 @@ export const fr: TranslationDict = {
     items: {
       newWindow: 'Nouvelle fenêtre',
       newFolder: 'Nouveau dossier',
+      open: 'Ouvrir',
+      changeWallpaper: "Changer le fond d'écran",
       closeWindow: 'Fermer la fenêtre',
       undo: 'Annuler',
       redo: 'Rétablir',
@@ -223,7 +227,9 @@ export const fr: TranslationDict = {
       bringAllToFront: 'Tout ramener au premier plan',
       back: 'Précédent',
       forward: 'Suivant',
-      enclosingFolder: 'Dossier englobant',
+      enclosingFolder: 'Dossier parent',
+      getInfo: 'Lire les informations',
+      moveToTrash: 'Mettre à la corbeille',
     },
     help: {
       appHelp: 'Aide de {{appName}}',
@@ -268,21 +274,40 @@ export const fr: TranslationDict = {
     },
     items: {
       newEmail: {
-        title: 'Nouveau courriel',
+        title: 'Nouveau Courriel',
         message: 'Vous avez {{count}} messages non lus',
       },
       meetingReminder: {
-        title: 'Rappel de réunion',
-        message: 'Réunion dans {{minutes}} minutes',
+        title: 'Rappel de Réunion',
+        message: 'Sprint en équipe dans {{minutes}} minutes',
       },
       newMessage: {
-        title: 'Nouveau message',
-        message: '{{sender}} : Salut, tu es disponible ?',
+        title: 'Nouveau Message',
+        message: '{{sender}}: Salut, tu es disponible?',
       },
       downloadComplete: {
-        title: 'Téléchargement terminé',
+        title: 'Téléchargement Terminé',
         message: '{{filename}} est prêt',
       },
+    },
+    subtitles: {
+      appMissing: 'APP Manquante',
+      permissionDenied: 'Permission Refusée',
+      saved: 'Enregistré',
+      deleted: 'Supprimé',
+      moved: 'Déplacé',
+      trash: 'Corbeille',
+      failed: 'Échoué',
+      ui: 'Interface',
+      export: 'Exporter',
+      import: 'Importer',
+      clipboard: 'Presse-papiers',
+      validation: 'Validation',
+      success: 'Succès',
+      error: 'Erreur',
+      info: 'Infos',
+      warning: 'Avertissement',
+      fileError: 'Erreur de fichier',
     },
   },
   memory: {
@@ -414,7 +439,8 @@ export const fr: TranslationDict = {
   terminal: {
     menu: {
       newTab: 'Nouvel onglet',
-      clearScrollback: 'Effacer le défilement',
+      clearScrollback: "Effacer l'historique",
+      killProcess: 'Tuer le processus',
     },
     help: {
       availableCommands: 'Commandes disponibles :',
@@ -530,8 +556,10 @@ export const fr: TranslationDict = {
     },
   },
   filePicker: {
-    openFile: 'Ouvrir un fichier',
-    saveFile: 'Enregistrer un fichier',
+    openFile: 'Ouvrir le fichier',
+    openFileDescription: 'Sélectionnez un fichier à ouvrir depuis le système de fichiers',
+    saveFile: 'Enregistrer le fichier',
+    saveFileDescription: 'Choisissez un emplacement et un nom pour enregistrer votre fichier',
     emptyFolder: 'Ce dossier est vide',
     nameLabel: 'Nom :',
     untitledPlaceholder: 'Sans titre',
@@ -552,6 +580,11 @@ export const fr: TranslationDict = {
     details: {
       items: '{{count}} éléments',
       bytes: '{{count}} octets',
+      type: 'Type',
+      owner: 'Propriétaire',
+      permissions: 'Permissions',
+      modified: 'Modifié',
+      size: 'Taille',
     },
     sidebar: {
       favorites: 'Favoris',
@@ -569,17 +602,29 @@ export const fr: TranslationDict = {
     },
     actions: {
       moveToTrash: 'Mettre à la corbeille',
+      search: 'Rechercher',
     },
     toasts: {
       permissionDenied: 'Permission refusée : {{name}}',
       musicNotInstalled: 'L’app Musique n’est pas installée. Installez-la depuis l’App Store.',
       notepadNotInstalled: 'L’app Notes n’est pas installée. Installez-la depuis l’App Store.',
+      movedItem: '1 élément déplacé',
       movedItems: '{{count}} éléments déplacés',
+      movedItemTo: '1 élément déplacé vers {{target}}',
       movedItemsTo: '{{count}} éléments déplacés vers {{target}}',
+      movedItemToTrash: '1 élément déplacé vers la corbeille',
       movedItemsToTrash: '{{count}} éléments déplacés vers la corbeille',
       moveFailedInvalidData: 'Déplacement impossible : données invalides',
       failedToProcessDrop: 'Impossible de traiter le dépôt',
+      couldNotGetInfo: 'Impossible de récupérer les informations',
+      fileTypeNotSupported: "Le type de fichier '{{type}}' n'est pas pris en charge",
     },
+    search: {
+      noResultsTitle: 'Aucun résultat trouvé',
+      noResultsDesc: 'Aucun résultat trouvé pour "{{query}}"',
+      resultsTitle: 'Résultats de recherche ({{count}})',
+    },
+    emptyFolder: 'Ce dossier est vide',
   },
   messages: {
     sidebar: {
@@ -682,6 +727,12 @@ export const fr: TranslationDict = {
   notepad: {
     untitled: 'Sans titre',
     untitledTab: 'Sans titre {{index}}',
+    empty: {
+      title: 'Bloc-notes',
+      description: 'Créez un nouveau fichier ou ouvrez-en un existant pour commencer.',
+      newFile: 'Nouveau fichier',
+      openFile: 'Ouvrir un fichier',
+    },
     languages: {
       markdown: 'Markdown',
       javascript: 'JavaScript',

@@ -70,6 +70,8 @@ export const es: TranslationDict = {
   a11y: {
     common: {
       close: 'Cerrar',
+      open: 'Abrir',
+      notAvailable: 'N/A',
     },
     sidebar: {
       toggleSidebar: 'Alternar barra lateral',
@@ -208,8 +210,10 @@ export const es: TranslationDict = {
     },
     items: {
       newWindow: 'Nueva ventana',
-      newFolder: 'Nueva carpeta',
-      closeWindow: 'Cerrar ventana',
+      newFolder: 'Nueva Carpeta',
+      open: 'Abrir',
+      changeWallpaper: 'Cambiar Fondo',
+      closeWindow: 'Cerrar Ventana',
       undo: 'Deshacer',
       redo: 'Rehacer',
       cut: 'Cortar',
@@ -222,7 +226,9 @@ export const es: TranslationDict = {
       bringAllToFront: 'Traer todo al frente',
       back: 'Atrás',
       forward: 'Adelante',
-      enclosingFolder: 'Carpeta contenedora',
+      enclosingFolder: 'Carpeta Superior',
+      getInfo: 'Obtener Información',
+      moveToTrash: 'Mover a la papelera',
     },
     help: {
       appHelp: 'Ayuda de {{appName}}',
@@ -267,21 +273,40 @@ export const es: TranslationDict = {
     },
     items: {
       newEmail: {
-        title: 'Nuevo correo',
-        message: 'Tienes {{count}} mensajes sin leer',
+        title: 'Nuevo Correo',
+        message: 'Tienes {{count}} mensajes no leídos',
       },
       meetingReminder: {
-        title: 'Recordatorio de reunión',
-        message: 'Reunión en {{minutes}} minutos',
+        title: 'Recordatorio de Reunión',
+        message: 'Sincronización de equipo en {{minutes}} minutos',
       },
       newMessage: {
-        title: 'Nuevo mensaje',
+        title: 'Nuevo Mensaje',
         message: '{{sender}}: Hola, ¿estás disponible?',
       },
       downloadComplete: {
-        title: 'Descarga completa',
+        title: 'Descarga Completa',
         message: '{{filename}} está listo',
       },
+    },
+    subtitles: {
+      appMissing: 'APP Faltante',
+      permissionDenied: 'Permiso Denegado',
+      saved: 'Guardado',
+      deleted: 'Eliminado',
+      moved: 'Movido',
+      trash: 'Papelera',
+      failed: 'Fallido',
+      ui: 'Interfaz',
+      export: 'Exportar',
+      import: 'Importar',
+      clipboard: 'Portapapeles',
+      validation: 'Validación',
+      success: 'Éxito',
+      error: 'Error',
+      info: 'Información',
+      warning: 'Advertencia',
+      fileError: 'Error de archivo',
     },
   },
   memory: {
@@ -330,7 +355,7 @@ export const es: TranslationDict = {
     sizeUnknown: 'Desconocido',
     systemApp: 'App del sistema',
     install: 'Instalar',
-    uninstall: 'Desinstalar',
+    uninstall: 'Instalar',
     installed: 'Instalada',
   },
   browser: {
@@ -411,8 +436,9 @@ export const es: TranslationDict = {
   },
   terminal: {
     menu: {
-      newTab: 'Nueva pestaña',
-      clearScrollback: 'Limpiar historial',
+      newTab: 'Nueva Pestaña',
+      clearScrollback: 'Borrar Historial',
+      killProcess: 'Matar Proceso',
     },
     help: {
       availableCommands: 'Comandos disponibles:',
@@ -529,7 +555,9 @@ export const es: TranslationDict = {
   },
   filePicker: {
     openFile: 'Abrir archivo',
+    openFileDescription: 'Seleccione un archivo para abrir del sistema de archivos',
     saveFile: 'Guardar archivo',
+    saveFileDescription: 'Elija una ubicación y un nombre para guardar su archivo',
     emptyFolder: 'Esta carpeta está vacía',
     nameLabel: 'Nombre:',
     untitledPlaceholder: 'Sin título',
@@ -550,6 +578,11 @@ export const es: TranslationDict = {
     details: {
       items: '{{count}} elementos',
       bytes: '{{count}} bytes',
+      type: 'Tipo',
+      owner: 'Propietario',
+      permissions: 'Permisos',
+      modified: 'Modificado',
+      size: 'Tamaño',
     },
     sidebar: {
       favorites: 'Favoritos',
@@ -567,17 +600,29 @@ export const es: TranslationDict = {
     },
     actions: {
       moveToTrash: 'Mover a la papelera',
+      search: 'Buscar',
     },
     toasts: {
       permissionDenied: 'Permiso denegado: {{name}}',
       musicNotInstalled: 'La app Música no está instalada. Instálala desde la App Store.',
       notepadNotInstalled: 'La app Bloc de notas no está instalada. Instálala desde la App Store.',
+      movedItem: 'Se movió 1 elemento',
       movedItems: 'Se movieron {{count}} elementos',
+      movedItemTo: 'Se movió 1 elemento a {{target}}',
       movedItemsTo: 'Se movieron {{count}} elementos a {{target}}',
+      movedItemToTrash: 'Se movió 1 elemento a la papelera',
       movedItemsToTrash: 'Se movieron {{count}} elementos a la papelera',
       moveFailedInvalidData: 'Movimiento fallido: datos inválidos',
       failedToProcessDrop: 'No se pudo procesar el arrastre',
+      couldNotGetInfo: 'No se pudo obtener la información',
+      fileTypeNotSupported: "El tipo de archivo '{{type}}' no es compatible",
     },
+    search: {
+      noResultsTitle: 'No se encontraron resultados',
+      noResultsDesc: 'No se encontraron resultados para "{{query}}"',
+      resultsTitle: 'Resultados de búsqueda ({{count}})',
+    },
+    emptyFolder: 'Esta carpeta está vacía',
   },
   messages: {
     sidebar: {
@@ -680,6 +725,12 @@ export const es: TranslationDict = {
   notepad: {
     untitled: 'Sin título',
     untitledTab: 'Sin título {{index}}',
+    empty: {
+      title: 'Bloc de Notas',
+      description: 'Crea un nuevo archivo o abre uno existente para comenzar.',
+      newFile: 'Nuevo Archivo',
+      openFile: 'Abrir Archivo',
+    },
     languages: {
       markdown: 'Markdown',
       javascript: 'JavaScript',

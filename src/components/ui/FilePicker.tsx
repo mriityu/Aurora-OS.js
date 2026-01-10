@@ -1,18 +1,18 @@
 import { useState, useMemo } from 'react';
-import { Dialog, DialogContent } from './dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from './dialog';
 import { Button } from './button';
 import { Input } from './input';
-import { useFileSystem, FileNode } from '../FileSystemContext';
+import { useFileSystem, FileNode } from '@/components/FileSystemContext';
 import { FileIcon } from './FileIcon';
 import { ArrowUp, FolderOpen } from 'lucide-react';
-import { useAppContext } from '../AppContext';
-import { useThemeColors } from '../../hooks/useThemeColors';
+import { useAppContext } from '@/components/AppContext';
+import { useThemeColors } from '@/hooks/useThemeColors';
 import { cn } from './utils';
-import { toast } from 'sonner';
-import { checkPermissions } from '../../utils/fileSystemUtils';
+import { notify } from '@/services/notifications';
+import { checkPermissions } from '@/utils/fileSystemUtils';
 import { BreadcrumbPill } from './BreadcrumbPill';
 import { ResponsiveGrid } from './ResponsiveGrid';
-import { useI18n } from '../../i18n/index';
+import { useI18n } from '@/i18n/index';
 
 interface FilePickerProps {
     isOpen: boolean;
@@ -53,11 +53,11 @@ export function FilePicker({ isOpen, onClose, onSelect, mode, title, defaultPath
             const userObj = users.find(u => u.username === actingUser);
             if (userObj) {
                 if (!checkPermissions(node, userObj, 'read')) {
-                    toast.error(t('filePicker.toasts.permissionDenied', { name: node.name }));
+                    notify.system('error', 'File Picker', t('filePicker.toasts.permissionDenied', { name: node.name }), t('notifications.subtitles.permissionDenied'));
                     return;
                 }
                 if (!checkPermissions(node, userObj, 'execute')) {
-                    toast.error(t('filePicker.toasts.permissionDenied', { name: node.name }));
+                    notify.system('error', 'File Picker', t('filePicker.toasts.permissionDenied', { name: node.name }), t('notifications.subtitles.permissionDenied'));
                     return;
                 }
             }
@@ -129,7 +129,13 @@ export function FilePicker({ isOpen, onClose, onSelect, mode, title, defaultPath
                     background: windowBackground,
                     ...blurStyle
                 }}
-            >
+            >                <DialogTitle className="sr-only">
+                    {title || (mode === 'open' ? t('filePicker.openFile') : t('filePicker.saveFile'))}
+                </DialogTitle>
+                <DialogDescription className="sr-only">
+                    {mode === 'open' ? t('filePicker.openFileDescription') : t('filePicker.saveFileDescription')}
+                </DialogDescription>
+
                 {/* Custom Window Header */}
                 <div
                     className="h-11 border-b border-white/10 flex items-center justify-between px-4 shrink-0 select-none relative"

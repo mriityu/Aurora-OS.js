@@ -123,7 +123,7 @@ export function AppTemplate({
                       } as React.CSSProperties}
                     >
                       <item.icon className={cn(
-                        "w-4 h-4 flex-shrink-0",
+                        "w-4 h-4 shrink-0",
                         activeItem === item.id ? "text-white" : "text-white/50 group-hover:text-white/70"
                       )} />
                       {!isCompact && (
@@ -133,8 +133,7 @@ export function AppTemplate({
                           </span>
                           {item.badge && (
                             <span
-                              className="text-xs transition-opacity duration-200 font-medium"
-                              style={{ color: 'var(--accent-color)' }}
+                              className="text-xs transition-opacity duration-200 font-medium text-white/40"
                             >
                               {item.badge}
                             </span>

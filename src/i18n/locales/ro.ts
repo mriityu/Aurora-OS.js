@@ -70,6 +70,8 @@ export const ro: TranslationDict = {
     a11y: {
         common: {
             close: 'Închide',
+            open: 'Deschide',
+            notAvailable: 'N/A',
         },
         sidebar: {
             toggleSidebar: 'Comută Bara Laterală',
@@ -208,7 +210,9 @@ export const ro: TranslationDict = {
         items: {
             newWindow: 'Fereastră Nouă',
             newFolder: 'Dosar Nou',
-            closeWindow: 'Închide Fereastra',
+            open: 'Deschide',
+            changeWallpaper: 'Schimbă imaginea de fundal',
+            closeWindow: 'Închide fereastra',
             undo: 'Anulează',
             redo: 'Refă',
             cut: 'Taie',
@@ -222,6 +226,8 @@ export const ro: TranslationDict = {
             back: 'Înapoi',
             forward: 'Înainte',
             enclosingFolder: 'Dosar Părinte',
+            getInfo: 'Obține informații',
+            moveToTrash: 'Mută la Coșul de gunoi',
         },
         help: {
             appHelp: 'Ajutor {{appName}}',
@@ -281,6 +287,25 @@ export const ro: TranslationDict = {
                 title: 'Descărcare Completă',
                 message: '{{filename}} este gata',
             },
+        },
+        subtitles: {
+            appMissing: 'Aplicație Lipsă',
+            permissionDenied: 'Permisiune Refuzată',
+            saved: 'Salvat',
+            deleted: 'Șters',
+            moved: 'Mutat',
+            trash: 'Coș de gunoi',
+            failed: 'Eșuat',
+            ui: 'Interfață',
+            export: 'Export',
+            import: 'Import',
+            clipboard: 'Clipboard',
+            validation: 'Validare',
+            success: 'Succes',
+            error: 'Eroare',
+            info: 'Informații',
+            warning: 'Avertisment',
+            fileError: 'Eroare Fișier',
         },
     },
   memory: {
@@ -410,8 +435,9 @@ export const ro: TranslationDict = {
     },
     terminal: {
         menu: {
-            newTab: 'Tab Nou',
-            clearScrollback: 'Șterge Istoric',
+            newTab: 'Filă Nouă',
+            clearScrollback: 'Șterge Istoricul',
+            killProcess: 'Omoară procesul',
         },
         help: {
             availableCommands: 'Comenzi disponibile:',
@@ -527,8 +553,10 @@ export const ro: TranslationDict = {
         },
     },
     filePicker: {
-        openFile: 'Deschide Fișier',
-        saveFile: 'Salvează Fișier',
+        openFile: 'Deschide fișierul',
+    openFileDescription: 'Selectați un fișier pentru a-l deschide din sistemul de fișiere',
+    saveFile: 'Salvează fișierul',
+    saveFileDescription: 'Alegeți o locație și un nume pentru a salva fișierul',
         emptyFolder: 'Acest dosar este gol',
         nameLabel: 'Nume:',
         untitledPlaceholder: 'Fără Titlu',
@@ -549,6 +577,11 @@ export const ro: TranslationDict = {
         details: {
             items: '{{count}} elemente',
             bytes: '{{count}} octeți',
+            type: 'Tip',
+            owner: 'Proprietar',
+            permissions: 'Permisiuni',
+            modified: 'Modificat',
+            size: 'Mărime',
         },
         sidebar: {
             favorites: 'Favorite',
@@ -566,17 +599,29 @@ export const ro: TranslationDict = {
         },
         actions: {
             moveToTrash: 'Mută la Gunoi',
+            search: 'Caută',
         },
         toasts: {
             permissionDenied: 'Permisiune refuzată: {{name}}',
             musicNotInstalled: 'Muzica nu este instalată. Instaleaz-o din App Store.',
             notepadNotInstalled: 'Notepad nu este instalat. Instalează-l din App Store.',
+            movedItem: '1 element mutat',
             movedItems: 'S-au mutat {{count}} elemente',
+            movedItemTo: '1 element mutat în {{target}}',
             movedItemsTo: 'S-au mutat {{count}} elemente în {{target}}',
+            movedItemToTrash: '1 element mutat la Gunoi',
             movedItemsToTrash: 'S-au mutat {{count}} elemente la Gunoi',
             moveFailedInvalidData: 'Mutare eșuată: Date invalide',
             failedToProcessDrop: 'Nu s-a putut procesa plasarea',
+            couldNotGetInfo: 'Nu s-au putut obține informațiile',
+            fileTypeNotSupported: "Tipul de fișier '{{type}}' nu este suportat",
         },
+        search: {
+            noResultsTitle: 'Niciun rezultat găsit',
+            noResultsDesc: 'Niciun rezultat găsit pentru "{{query}}"',
+            resultsTitle: 'Rezultate căutare ({{count}})',
+        },
+        emptyFolder: 'Acest folder este gol',
     },
     messages: {
         sidebar: {
@@ -679,7 +724,13 @@ export const ro: TranslationDict = {
     notepad: {
         untitled: 'Fără titlu',
         untitledTab: 'Fără titlu {{index}}',
-        languages: {
+    empty: {
+      title: 'Notepad',
+      description: 'Creează un fișier nou sau deschide unul existent pentru a începe.',
+      newFile: 'Fișier Nou',
+      openFile: 'Deschide Fișier',
+    },
+    languages: {
             markdown: 'Markdown',
             javascript: 'JavaScript',
             typescript: 'TypeScript',

@@ -8,6 +8,7 @@ import { useI18n } from '../i18n';
 
 
 import { STORAGE_KEYS } from '../utils/memory';
+import { parseID3, base64ToUint8Array } from '../utils/id3Parser';
 
 export interface Song {
     id: string;
@@ -45,6 +46,8 @@ interface MusicContextType {
     setMusicOpen: (isOpen: boolean) => void;
     activeCategory: string;
     setActiveCategory: (category: string) => void;
+    librarySongs: Song[];
+    getSafeMeta: (filename: string) => { artist: string; title: string; album: string };
 }
 
 const MusicContext = createContext<MusicContextType | null>(null);
@@ -60,25 +63,26 @@ export function useMusic() {
 
 
 export function MusicProvider({ children, owner }: { children: React.ReactNode, owner?: string }) {
-    const { readFile, getNodeAtPath } = useFileSystem();
+    const { fileSystem, readFile, getNodeAtPath, resolvePath, listDirectory } = useFileSystem();
     const { activeUser: desktopUser } = useAppContext();
     const activeUser = owner || desktopUser;
     const { t } = useI18n();
 
-    // Helper to clean metadata
+    // Helper to clean metadata - Unified Logic
     const getSafeMeta = useCallback((filename: string) => {
         const nameWithoutExt = filename.replace(/\.[^/.]+$/, "");
         const parts = nameWithoutExt.split(' - ');
+        
         if (parts.length >= 2) {
             return { 
-                artist: parts[0].trim(), 
-                title: parts.slice(1).join(' - ').trim(), 
+                artist: parts[0].trim() || t('music.metadata.unknownArtist'), 
+                title: parts.slice(1).join(' - ').trim() || t('music.metadata.unknownTitle'), 
                 album: t('music.metadata.unknownAlbum') 
             };
         }
         return { 
             artist: t('music.metadata.unknownArtist'), 
-            title: nameWithoutExt, 
+            title: nameWithoutExt || t('music.metadata.unknownTitle'), 
             album: t('music.metadata.unknownAlbum') 
         };
     }, [t]);
@@ -158,45 +162,53 @@ export function MusicProvider({ children, owner }: { children: React.ReactNode, 
     const [duration, setDuration] = useState(0);
 
     const [activeCategory, setActiveCategory] = useSessionStorage<string>('music-active-category', 'songs', activeUser);
+    const [librarySongs, setLibrarySongs] = useState<Song[]>([]);
+    
+    // Track playback state for effects
+    const playbackStateRef = useRef({ isPlaying: false, currentTime: 0, duration: 0 });
+    useEffect(() => {
+        playbackStateRef.current = { isPlaying, currentTime, duration };
+    }, [isPlaying, currentTime, duration]);
 
     // Wrap setPlaylist to allow callbacks to work expectedly
     const setPlaylist: React.Dispatch<React.SetStateAction<Song[]>> = useCallback((value) => {
         setPlaylistInternal(prev => {
-            const newPlaylist = typeof value === 'function' ? value(prev) : value;
-            return newPlaylist;
+            const result = typeof value === 'function' ? value(prev) : value;
+            return result;
         });
     }, []);
 
     const soundRef = useRef<Howl | null>(null);
     const [volume, setVolumeState] = useState(soundManager.getVolume('music') * 100);
 
-    // 2. Persistence (Smart - only save if data exists, else clean up)
+    // 2. Persistence (Smart - only save if data exists, ELSE gated by isMusicOpen)
     useEffect(() => {
+        if (!isMusicOpen) return;
+        
         if (playlist.length > 0) {
             localStorage.setItem(keys.QUEUE, JSON.stringify(playlist));
         } else {
-            // Only remove if explicitly empty AND we previously had data/keys?
-            // Safer: Just remove. If initialization failed, we returned [], so we remove.
-            // This is the danger zone. But if hydration fixes the blobs, we are good.
             localStorage.removeItem(keys.QUEUE);
         }
-    }, [playlist, keys.QUEUE]);
+    }, [playlist, keys.QUEUE, isMusicOpen]);
 
     useEffect(() => {
+        if (!isMusicOpen) return;
         if (currentIndex !== -1) {
             localStorage.setItem(keys.INDEX, currentIndex.toString());
         } else {
             localStorage.removeItem(keys.INDEX);
         }
-    }, [currentIndex, keys.INDEX]);
+    }, [currentIndex, keys.INDEX, isMusicOpen]);
 
     useEffect(() => {
+        if (!isMusicOpen) return;
         if (recent.length > 0) {
             localStorage.setItem(keys.RECENT, JSON.stringify(recent));
         } else {
             localStorage.removeItem(keys.RECENT);
         }
-    }, [recent, keys.RECENT]);
+    }, [recent, keys.RECENT, isMusicOpen]);
 
     useEffect(() => {
         const unsubscribe = soundManager.subscribe(() => {
@@ -422,6 +434,8 @@ export function MusicProvider({ children, owner }: { children: React.ReactNode, 
 
     // Track current time and duration
     useEffect(() => {
+        if (!isMusicOpen) return;
+
         let rafId: number;
         
         const updateTime = () => {
@@ -446,10 +460,12 @@ export function MusicProvider({ children, owner }: { children: React.ReactNode, 
         return () => {
             if (rafId) cancelAnimationFrame(rafId);
         };
-    }, [isPlaying]);
+    }, [isPlaying, isMusicOpen]);
 
     // Persistence of Seek Position (Periodic + Unload)
     useEffect(() => {
+        if (!isMusicOpen) return;
+
         const saveState = () => {
             // Snapshot Playlist & Index (Safety for Resume System)
             if (playlist.length > 0) {
@@ -489,7 +505,161 @@ export function MusicProvider({ children, owner }: { children: React.ReactNode, 
             window.removeEventListener('pagehide', handleUnload);
             saveState(); // Cleanup save
         };
-    }, [keys.SEEK, keys.QUEUE, keys.INDEX, playlist, currentIndex]);
+    }, [keys.SEEK, keys.QUEUE, keys.INDEX, playlist, currentIndex, isMusicOpen]);
+
+    // REALITY CHECK: Stop services & playback on close
+    useEffect(() => {
+        if (!isMusicOpen) {
+            // App closed: stop everything immediately
+            if (playbackStateRef.current.isPlaying) {
+                // Defer to avoid synchronous setState error
+                setTimeout(() => stop(), 0);
+            }
+        }
+    }, [isMusicOpen, stop]);
+
+    // 4. Background Scanner (Moved from Music.tsx)
+    useEffect(() => {
+        if (!isMusicOpen) return;
+
+        let musicPath = resolvePath("~/Music", activeUser);
+        let pathPrefix = "~/Music/";
+
+        // Fallback to Home if Music folder doesn't exist
+        if (!getNodeAtPath(musicPath, activeUser)) {
+            musicPath = resolvePath("~", activeUser);
+            pathPrefix = "~/";
+        }
+
+        const files = listDirectory(musicPath, activeUser);
+
+        if (files) {
+            const audioFiles = files.filter(
+                (f: any) => f.type === "file" && /\.(mp3|wav|ogg|flac|m4a)$/i.test(f.name)
+            );
+
+            const parsedSongs: Song[] = audioFiles.map((file: any) => {
+                const meta = getSafeMeta(file.name);
+                return {
+                    id: file.id,
+                    path: `${pathPrefix}${file.name}`,
+                    url: file.content || "",
+                    title: meta.title,
+                    artist: meta.artist,
+                    album: meta.album,
+                    duration: "--:--",
+                };
+            });
+
+            // Defer to avoid synchronous setState error
+            setTimeout(() => setLibrarySongs(parsedSongs), 0);
+        } else {
+            setTimeout(() => setLibrarySongs([]), 0);
+        }
+    }, [
+        isMusicOpen,
+        activeUser,
+        fileSystem,
+        resolvePath,
+        listDirectory,
+        getNodeAtPath,
+        getSafeMeta
+    ]);
+
+    // Progressive Metadata Resolver
+    useEffect(() => {
+        if (!isMusicOpen) return;
+
+        // Find first song with missing duration in CURRENT playlist or Library
+        // To simplify, we'll scan the active category's list
+        const songsToScan = activeCategory === 'recent' ? recent : librarySongs;
+        const missingIdx = songsToScan.findIndex((s) => s.duration === "--:--");
+
+        if (missingIdx !== -1) {
+            const song = songsToScan[missingIdx];
+
+            const tempSound = new Howl({
+                src: [song.url],
+                html5: false,
+                preload: true,
+                volume: 0,
+                onload: async () => {
+                    const dur = tempSound.duration();
+                    const totalSecs = Math.round(dur);
+                    const mins = Math.floor(totalSecs / 60);
+                    const secs = totalSecs % 60;
+                    const formatted = `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+
+                    // Binary Metadata Extraction
+                    const extractMetadata = async () => {
+                        let enriched = {};
+                        try {
+                            let buffer: ArrayBuffer | Uint8Array;
+                            if (song.url.startsWith('data:')) {
+                                buffer = base64ToUint8Array(song.url);
+                            } else if (song.url.startsWith('http') || song.url.startsWith('/') || song.url.startsWith('./')) {
+                                console.log(`[MusicMetadata] Fetching tags for: ${song.title} (${song.url})`);
+                                // For URLs, fetch the binary content
+                                // Try range request first
+                                try {
+                                    const response = await fetch(song.url, {
+                                        headers: { 'Range': 'bytes=0-524287' } // 512KB is plenty
+                                    });
+                                    if (response.status === 206 || response.status === 200) {
+                                        buffer = await response.arrayBuffer();
+                                    } else {
+                                        throw new Error(`HTTP ${response.status}`);
+                                    }
+                                } catch (e) {
+                                    console.debug('[MusicMetadata] Range request failed, falling back to full fetch', e);
+                                    const response = await fetch(song.url);
+                                    buffer = await response.arrayBuffer();
+                                }
+                            } else {
+                                return {};
+                            }
+
+                            const tags = parseID3(buffer);
+                            if (tags.title || tags.artist || tags.album) {
+                                console.log(`[MusicMetadata] Found tags for ${song.title}:`, tags);
+                                enriched = {
+                                    title: tags.title || song.title,
+                                    artist: tags.artist || song.artist,
+                                    album: tags.album || song.album
+                                };
+                            } else {
+                                console.log(`[MusicMetadata] No ID3 tags found in binary for: ${song.title}`);
+                            }
+                        } catch (e) {
+                            console.warn('[MusicContext] Failed to extract metadata:', e);
+                        }
+                        return enriched;
+                    };
+
+                    const enrichedMeta = await extractMetadata();
+                    tempSound.unload();
+
+                    // Update BOTH states if needed, but primarily the one we are scanning
+                    const updateSong = (s: Song) => s.id === song.id ? { ...s, duration: formatted, ...enrichedMeta } : s;
+                    
+                    setPlaylist(prev => prev.map(updateSong));
+                    setLibrarySongs(prev => prev.map(updateSong));
+                    setRecent(prev => prev.map(updateSong));
+                },
+                onloaderror: () => {
+                    tempSound.unload();
+                    const updateSong = (s: Song) => s.id === song.id ? { ...s, duration: "0:00" } : s;
+                    setPlaylist(prev => prev.map(updateSong));
+                    setLibrarySongs(prev => prev.map(updateSong));
+                    setRecent(prev => prev.map(updateSong));
+                },
+            });
+
+            return () => {
+                tempSound.unload();
+            };
+        }
+    }, [isMusicOpen, activeCategory, recent, librarySongs, setPlaylist]);
 
     // Restore Session Trigger (On Load)
     useEffect(() => {
@@ -526,7 +696,9 @@ export function MusicProvider({ children, owner }: { children: React.ReactNode, 
             isMusicOpen,
             setMusicOpen,
             activeCategory,
-            setActiveCategory
+            setActiveCategory,
+            librarySongs,
+            getSafeMeta
         }}>
             {children}
         </MusicContext.Provider>

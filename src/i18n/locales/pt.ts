@@ -70,6 +70,8 @@ export const pt: TranslationDict = {
   a11y: {
     common: {
       close: 'Fechar',
+      open: 'Abrir',
+      notAvailable: 'N/A',
     },
     sidebar: {
       toggleSidebar: 'Alternar barra lateral',
@@ -150,6 +152,8 @@ export const pt: TranslationDict = {
     items: {
       newWindow: 'Nova Janela',
       newFolder: 'Nova Pasta',
+      open: 'Abrir',
+      changeWallpaper: 'Alterar Papel de Parede',
       closeWindow: 'Fechar Janela',
       undo: 'Desfazer',
       redo: 'Refazer',
@@ -164,6 +168,8 @@ export const pt: TranslationDict = {
       back: 'Voltar',
       forward: 'Avançar',
       enclosingFolder: 'Pasta Superior',
+      getInfo: 'Obter Informações',
+      moveToTrash: 'Mover para a Lixeira',
     },
     help: {
       appHelp: 'Ajuda do {{appName}}',
@@ -223,6 +229,25 @@ export const pt: TranslationDict = {
         title: 'Download Concluído',
         message: '{{filename}} está pronto',
       },
+    },
+    subtitles: {
+      appMissing: 'APP Faltando',
+      permissionDenied: 'Permissão Negada',
+      saved: 'Salvo',
+      deleted: 'Excluído',
+      moved: 'Movido',
+      trash: 'Lixeira',
+      failed: 'Falhou',
+      ui: 'Interface',
+      export: 'Exportar',
+      import: 'Importar',
+      clipboard: 'Área de transferência',
+      validation: 'Validação',
+      success: 'Sucesso',
+      error: 'Erro',
+      info: 'Informações',
+      warning: 'Aviso',
+      fileError: 'Erro de Arquivo',
     },
   },
   memory: {
@@ -354,6 +379,7 @@ export const pt: TranslationDict = {
     menu: {
       newTab: 'Nova aba',
       clearScrollback: 'Limpar histórico',
+      killProcess: 'Encerrar Processo',
     },
     help: {
       availableCommands: 'Comandos disponíveis:',
@@ -470,7 +496,9 @@ export const pt: TranslationDict = {
   },
   filePicker: {
     openFile: 'Abrir arquivo',
+    openFileDescription: 'Selecione um arquivo para abrir do sistema de arquivos',
     saveFile: 'Salvar arquivo',
+    saveFileDescription: 'Escolha um local e um nome para salvar seu arquivo',
     emptyFolder: 'Esta pasta está vazia',
     nameLabel: 'Nome:',
     untitledPlaceholder: 'Sem título',
@@ -491,6 +519,11 @@ export const pt: TranslationDict = {
     details: {
       items: '{{count}} itens',
       bytes: '{{count}} bytes',
+      type: 'Tipo',
+      owner: 'Proprietário',
+      permissions: 'Permissões',
+      modified: 'Modificado',
+      size: 'Tamanho',
     },
     sidebar: {
       favorites: 'Favoritos',
@@ -508,17 +541,29 @@ export const pt: TranslationDict = {
     },
     actions: {
       moveToTrash: 'Mover para a lixeira',
+      search: 'Pesquisar',
     },
     toasts: {
       permissionDenied: 'Permissão negada: {{name}}',
       musicNotInstalled: 'O app Música não está instalado. Instale na Loja de Apps.',
       notepadNotInstalled: 'O Bloco de Notas não está instalado. Instale na Loja de Apps.',
+      movedItem: '1 item movido',
       movedItems: '{{count}} itens movidos',
+      movedItemTo: '1 item movido para {{target}}',
       movedItemsTo: '{{count}} itens movidos para {{target}}',
+      movedItemToTrash: '1 item movido para a lixeira',
       movedItemsToTrash: '{{count}} itens movidos para a lixeira',
       moveFailedInvalidData: 'Falha ao mover: dados inválidos',
       failedToProcessDrop: 'Falha ao processar o arrastar-e-soltar',
+      couldNotGetInfo: 'Não foi possível recuperar as informações',
+      fileTypeNotSupported: "O tipo de arquivo '{{type}}' não é suportado",
     },
+    search: {
+      noResultsTitle: 'Nenhum resultado encontrado',
+      noResultsDesc: 'Nenhum resultado encontrado para "{{query}}"',
+      resultsTitle: 'Resultados da Pesquisa ({{count}})',
+    },
+    emptyFolder: 'Esta pasta está vazia',
   },
   messages: {
     sidebar: {
@@ -621,6 +666,12 @@ export const pt: TranslationDict = {
   notepad: {
     untitled: 'Sem título',
     untitledTab: 'Sem título {{index}}',
+    empty: {
+      title: 'Bloco de Notas',
+      description: 'Crie um novo arquivo ou abra um existente para começar.',
+      newFile: 'Novo Arquivo',
+      openFile: 'Abrir Arquivo',
+    },
     languages: {
       markdown: 'Markdown',
       javascript: 'JavaScript',

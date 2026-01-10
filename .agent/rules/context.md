@@ -1,0 +1,96 @@
+# AURORA OS.JS SYSTEM CONTEXT
+
+<!-- OPTIMIZED_FOR: GEMINI_3_PRO_HIGH -->
+
+<project_identity>
+**Aurora OS.js**: Ultra-realistic web-based OS simulator and hacking simulator game (React 19/Vite/Electron).
+**Goal**: High-fidelity hacking/sysadmin simulation (Linux/macOS hybrid).
+**Core Philosphy**: "Files-First". State acts as a view layer over the Virtual File System (VFS).
+</project_identity>
+
+<tech_stack>
+**Core**: React 19, TypeScript, Vite, Tailwind CSS (v4), Radix UI.
+**Platform**: Web (PWA) + Desktop (Electron).
+**State**: React Context + `localStorage` persistence.
+</tech_stack>
+
+<architecture_mechanics>
+
+1.  **Virtual File System (VFS)**:
+
+    - **Structure**: In-memory recursive JSON tree (`FileNode`).
+    - **Storage**: Serialized to `localStorage` key `aurora-filesystem`.
+    - **Sync**: Unidirectional State -> File sync (e.g., `users` state updates `/etc/passwd`).
+    - **Access**: MUST use `useFileSystem()` hook. NEVER mutate JSON directly.
+
+2.  **User System**:
+
+    - **Ids**: `root` (0), `guest` (1001), `activeUser` (physical), `currentUser` (logical).
+    - **Auth**: `useAuth()` hook. Logic synced to `/etc/passwd` & `/etc/group`.
+    - **Home**: `/home/<user>` created via `createUserHome()`.
+
+3.  **App Engine**:
+    - **Registry**: `src/config/appRegistry.ts` (Definition source of truth). 
+    - **Runtime**: Apps render in `WindowContext`.
+    - **ContextMenu**: Can be global (registry `contextMenu`) or localized (wrapping specific UI areas with `ContextMenuTrigger` in the app component).
+    - **Persistence**: Per-app storage via `useAppStorage` (key: `app-user`) or manual `localStorage` with `getAppStateKey`.
+
+4.  **Terminal Architecture**: - **PATH**: `["/bin", "/usr/bin"]`. - **`/bin`**: Contains **system commands** (e.g., `ls`, `cat`). - Implemented as **Internal Commands** in `src/utils/terminal/registry`. - Represented in VFS as files containing `#command <name>`. - **`/usr/bin`**: Contains **App Launchers** (e.g., `chrome`, `code`). - Implemented as **App IDs** in `src/config/appRegistry.ts`. - Represented in VFS as files containing `#!app <appId>`. - **Execution**: - `useTerminalLogic` resolves input -> checks built-ins -> checks PATH. - If `#!app ...` -> Launches Window. - If `#command ...` -> Executes internal function. - If other text -> Parses as Shell Script (supports `$VAR`, `VAR=val`).
+
+5.  **Notification & UI System**:
+    - **Usage**: `notify.system(type, source, message, subtitle)`.
+    - **Formatting**: `message` prop accepts `React.ReactNode`, allowing for rich grid/list layouts in toasts (e.g., "Get Info" dialogs).
+    - **Empty States**: Use `EmptyState` component (`src/components/ui/empty-state.tsx`) for standardizing empty folders, empty search results, and initial app states.
+    - **Performance**: High-traffic apps (like Notepad) MUST isolate re-renders by splitting the main editor/content logic into memoized sub-components.
+    - **Provider**: Handled via `Sonner` and `SystemToast` component.
+
+6.  **Audio & Metadata System**:
+    - **Howler Core**: All system audio is managed via `soundManager` (`src/services/sound.ts`).
+    - **Realism**: Global mute (`Howler.mute(true)`) silences the system without stopping background processes (e.g., music keep "playing" silently).
+    - **Binary Metadata**: Custom ID3 parser (`src/utils/id3Parser.ts`) extracts professional tags (TIT2, TPE1, TALB) from MP3 files.
+    - **Asset Fetching**: Metadata resolution for local assets uses `fetch` with `Range: bytes=0-512KB` to efficiently read headers without full downloads.
+    </architecture_mechanics>
+
+<critical_rules>
+
+- **FS Integrity**: ALWAYS use `createFile`, `writeFile`, `deleteNode` from `useFileSystem`.
+- **Trash Resolution**: `moveToTrash` MUST resolve path based on `asUser` context (e.g., `/root/.Trash`).
+- **Path Resolution**: Use absolute paths. Resolve relative via `resolvePath(path, cwd)`.
+- **Security**: Check permissions via `checkPermissions(node, user, 'read'|'write'|'execute')`.
+- **UI Integrity**: Use `forwardRef` for any component used with `<ContextMenuTrigger asChild>` to ensure Radix UI ref handling works.
+- **I18n**: All UI strings MUST use `useI18n()`. definition: `src/i18n/locales/en.ts`.
+- **Accessibility**: All `Dialog` or `AlertDialog` components MUST include a `Title` and `Description`. Use `sr-only` class to hide them if they clash with visual design but are required for A11y.
+- **Docs Sync**: On architecture changes, update `.agent/rules/context.md` & `public/llms-full.txt`.
+  </critical_rules>
+
+<codebase_map>
+| Path | Component | Description |
+| :--- | :--- | :--- |
+| `src/components/FileSystemContext.tsx` | **VFS Core** | Context for all FS operations. |
+| `src/utils/fileSystemUtils.ts" | **VFS Utils** | `FileNode` types, `initialFileSystem`, permission logic. |
+| `src/components/AppContext.tsx` | **Session** | Theme, Wallpapers, Physical User session. |
+| `src/config/appRegistry.ts` | **Registry** | Installed Apps configuration. |
+| `src/services/notifications.tsx` | **Notifications** | Central service for rich system toasts. |
+| `src/services/sound.ts` | **Sound Manager** | Global audio state and Howler integration. |
+| `src/utils/id3Parser.ts" | **ID3 Parser** | Binary metadata extractor for MP3 files. |
+| `src/components/apps/*` | **Apps** | Individual App components (Notepad, Terminal, etc). |
+</codebase_map>
+
+<ai_context>
+**External Alignment**:
+-   `public/llms.txt`: Standard entry point for external AI agents (summary + links).
+-   `public/llms-full.txt`: Full system context (mirror of this file) for deep understanding.
+</ai_context>
+
+<mcp_usage>
+**Server**: `aurora-os-docs`
+**Source**: `mental-os/Aurora-OS.js` via `gitmcp.io`.
+**Purpose**: Retrieval Augmented Generation (RAG) for codebase documentation.
+**When to use**:
+-   When you need deep context on specific functions or architecture not covered in this summary.
+-   To search for usage patterns across the entire repository without manual grepping.
+**Tools**:
+-   `search_Aurora_OS_js_documentation(query)`: Semantic search over docs.
+-   `fetch_Aurora_OS_js_documentation()`: Fetch full README/Docs.
+-   `search_Aurora_OS_js_code(query)`: Search code via GitHub API.
+</mcp_usage>

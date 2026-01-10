@@ -29,6 +29,16 @@ import { notify } from "../services/notifications";
 import { CORE_APP_IDS } from "../config/appConstants";
 import { STORAGE_KEYS } from "../utils/memory";
 
+export interface ClipboardItem {
+  id: string; // FileNode ID
+  sourceUserContext: string; // User who owns the "source" window/process
+}
+
+export interface ClipboardState {
+  items: ClipboardItem[];
+  operation: 'copy' | 'cut';
+}
+
 export interface FileSystemContextType {
   fileSystem: FileNode;
   isSafeMode: boolean; // Integrity Status
@@ -68,7 +78,8 @@ export interface FileSystemContextType {
   moveNodeById: (
     id: string,
     destParentPath: string,
-    asUser?: string
+    asUser?: string,
+    sourceUserContext?: string
   ) => boolean;
   moveToTrash: (path: string, asUser?: string) => boolean;
   emptyTrash: () => void;
@@ -94,6 +105,12 @@ export interface FileSystemContextType {
   uninstallApp: (appId: string, asUser?: string) => boolean;
   isAppInstalled: (appId: string) => boolean;
   saveFileSystem: () => void;
+  // Clipboard
+  clipboard: ClipboardState;
+  copyNodes: (ids: string[], sourceUserContext: string) => void;
+  cutNodes: (ids: string[], sourceUserContext: string) => void;
+  pasteNodes: (destPath: string, asUser?: string) => void; // asUser = paster
+  copyNodeById: (id: string, destParentPath: string, asUser?: string, sourceUserContext?: string) => boolean;
 }
 
 const FileSystemContext = createContext<FileSystemContextType | undefined>(
@@ -139,10 +156,13 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (currentUser) {
       const newHome = currentUser === "root" ? "/root" : `/home/${currentUser}`;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setCurrentPath(newHome);
     }
   }, [currentUser]);
+
+  // 4a. Clipboard State
+  const [clipboard, setClipboard] = useState<ClipboardState>({ items: [], operation: 'copy' });
 
   // 4. Queries (Read)
   const { resolvePath, getNodeAtPath, listDirectory, readFile } =
@@ -190,6 +210,7 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     writeFile,
     chmod,
     chown,
+    copyNodeById,
   } = useFileSystemMutations({
     fileSystem,
     setFileSystem,
@@ -202,6 +223,55 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     resolvePath,
     getNodeAtPath,
   });
+  
+  // Clipboard Logic
+  const copyNodes = useCallback((ids: string[], sourceUserContext: string) => {
+    setClipboard({
+      items: ids.map(id => ({ id, sourceUserContext })),
+      operation: 'copy'
+    });
+  }, []);
+
+  const cutNodes = useCallback((ids: string[], sourceUserContext: string) => {
+    setClipboard({
+      items: ids.map(id => ({ id, sourceUserContext })),
+      operation: 'cut'
+    });
+  }, []);
+
+  const pasteNodes = useCallback((destPath: string, asUser?: string) => {
+    if (clipboard.items.length === 0) return;
+
+    let successCount = 0;
+    const destUser = asUser || currentUser || undefined;
+
+    clipboard.items.forEach(item => {
+       if (clipboard.operation === 'copy') {
+          // We need copyNodeById exposed from mutations!
+          if (copyNodeById(item.id, destPath, destUser, item.sourceUserContext)) {
+             successCount++;
+          }
+       } else {
+          // Cut -> Move
+          if (moveNodeById(item.id, destPath, destUser, item.sourceUserContext)) {
+             successCount++;
+          }
+       }
+    });
+
+    if (successCount > 0) {
+       // Optional: Clear clipboard on cut? Standard OS behavior is usually clear or keep?
+       // Windows/Mac keeps it until next copy/cut usually, but "Cut" fails if file gone.
+       // Actually "Cut" usually grays out item. Here we don't visual gray out yet.
+       // If we move it, the ID might change if we didn't support proper move, but moveNodeById preserves node (and ID usually).
+       // Actually moveNodeById removes from source and adds to dest. ID persists.
+       // So we can paste again? No, "Cut" is usually one-time paste.
+       if (clipboard.operation === 'cut') {
+          setClipboard({ items: [], operation: 'copy' }); // Reset
+       }
+       notify.system('success', 'Clipboard', `Pasted ${successCount} item(s)`);
+    }
+  }, [clipboard, moveNodeById, copyNodeById, currentUser]);
 
   // Install app function
   const installApp = useCallback(
@@ -427,6 +497,11 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     uninstallApp,
     isAppInstalled,
     saveFileSystem: saveNow,
+    clipboard,
+    copyNodes,
+    cutNodes,
+    pasteNodes,
+    copyNodeById,
   }), [
     fileSystem,
     isSafeMode,
@@ -466,6 +541,11 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     uninstallApp,
     isAppInstalled,
     saveNow,
+    clipboard,
+    copyNodes,
+    cutNodes,
+    pasteNodes,
+    copyNodeById,
   ]);
 
   return (

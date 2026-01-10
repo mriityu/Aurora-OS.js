@@ -132,37 +132,54 @@ export function useFileSystemMutations({
 
     const moveToTrash = useCallback((path: string, asUser?: string): boolean => {
         const resolved = resolvePath(path);
-        const trashPath = resolvePath('~/.Trash');
-        if (resolved.startsWith(trashPath)) return deleteNode(path, asUser);
+        
+        // Resolve Trash Path based on ACTING user, not just '~'
+        const actor = asUser ? (users.find(u => u.username === asUser) || userObj) : userObj;
+        const trashBasePath = actor.username === 'root' ? '/root/.Trash' : `/home/${actor.username}/.Trash`;
+        
+        if (resolved.startsWith(trashBasePath)) return deleteNode(path, asUser);
+        
         const fileName = resolved.split('/').pop();
         if (!fileName) return false;
-        let destPath = `${trashPath}/${fileName}`;
+        let destPath = `${trashBasePath}/${fileName}`;
         let counter = 1;
-        while (getNodeAtPath(destPath, asUser)) {
+        
+        // Ensure destination name uniqueness
+        while (getNodeAtPath(destPath, asUser)) { // Check if exists in trash
             const extIndex = fileName.lastIndexOf('.');
             if (extIndex > 0) {
                 const name = fileName.substring(0, extIndex);
                 const ext = fileName.substring(extIndex);
-                destPath = `${trashPath}/${name} ${counter}${ext}`;
+                destPath = `${trashBasePath}/${name} ${counter}${ext}`;
             } else {
-                destPath = `${trashPath}/${fileName} ${counter}`;
+                destPath = `${trashBasePath}/${fileName} ${counter}`;
             }
             counter++;
         }
         return moveNode(path, destPath, asUser);
-    }, [resolvePath, getNodeAtPath, moveNode, deleteNode]);
+    }, [resolvePath, getNodeAtPath, moveNode, deleteNode, users, userObj]);
 
-    const moveNodeById = useCallback((id: string, destParentPath: string, asUser?: string): boolean => {
+    const moveNodeById = useCallback((id: string, destParentPath: string, asUser?: string, sourceUserContext?: string): boolean => {
         const result = findNodeAndParent(fileSystem, id);
         if (!result) return false;
         const { node: nodeToMove, parent: sourceParent } = result;
         const destParent = getNodeAtPath(resolvePath(destParentPath), asUser);
+        
+        // Destination user (who is performing the "paste/drop")
         const actingUser = asUser ? users.find(u => u.username === asUser) || userObj : userObj;
+        
+        // Source user (who performed the "cut/drag") - defaults to actingUser if not cross-window
+        const sourceActingUser = sourceUserContext 
+            ? users.find(u => u.username === sourceUserContext) || actingUser 
+            : actingUser;
 
-        if (!checkPermissions(sourceParent, actingUser, 'write')) {
-            notify.system('error', 'Permission Denied', `Cannot move from ${sourceParent.name}`);
+        // Check permission to delete from source using SOURCE user context
+        if (!checkPermissions(sourceParent, sourceActingUser, 'write')) {
+            notify.system('error', 'Permission Denied', `Cannot move from ${sourceParent.name} (as ${sourceActingUser.username})`);
             return false;
         }
+        
+        // Check permission to write to destination using DESTINATION user context
         if (!destParent || destParent.type !== 'directory' || !destParent.children) return false;
         if (!checkPermissions(destParent, actingUser, 'write')) {
             notify.system('error', 'Permission Denied', `Cannot move to ${destParent.name}`);
@@ -203,6 +220,87 @@ export function useFileSystemMutations({
             cloneDestParent.children.push(cloneNode);
             return newFS;
         });
+        return true;
+    }, [fileSystem, resolvePath, getNodeAtPath, userObj, users, setFileSystem]);
+
+    const copyNodeById = useCallback((id: string, destParentPath: string, asUser?: string, sourceUserContext?: string): boolean => {
+        const result = findNodeAndParent(fileSystem, id);
+        if (!result) return false;
+        const { node: sourceNode } = result;
+        const destParent = getNodeAtPath(resolvePath(destParentPath), asUser);
+        
+        // Destination user (pasting user)
+        const actingUser = asUser ? users.find(u => u.username === asUser) || userObj : userObj;
+        
+        // Source user (copying user)
+        const sourceActingUser = sourceUserContext 
+            ? users.find(u => u.username === sourceUserContext) || actingUser 
+            : actingUser;
+
+        // Check Read on Source
+        if (!checkPermissions(sourceNode, sourceActingUser, 'read')) {
+            notify.system('error', 'Permission Denied', `Cannot copy ${sourceNode.name} (read denied)`);
+            return false;
+        }
+
+        // Check Write on Dest
+        if (!destParent || destParent.type !== 'directory' || !destParent.children) return false;
+        if (!checkPermissions(destParent, actingUser, 'write')) {
+            notify.system('error', 'Permission Denied', `Cannot retrieve clipboard content to ${destParent.name} (write denied)`);
+            return false;
+        }
+
+        // Prevent overwrite for now (or auto-rename?) - Windows/Mac usually auto-rename "Copy of..." or "file (1)"
+        // Let's implement auto-rename if name exists.
+        let newName = sourceNode.name;
+        let counter = 1;
+        while (destParent.children.some(c => c.name === newName)) {
+            const extIndex = sourceNode.name.lastIndexOf('.');
+            if (extIndex > 0 && sourceNode.type === 'file') {
+                 const name = sourceNode.name.substring(0, extIndex);
+                 const ext = sourceNode.name.substring(extIndex);
+                 newName = `${name} copy ${counter}${ext}`;
+            } else {
+                 newName = `${sourceNode.name} copy ${counter}`;
+            }
+            counter++;
+        }
+
+        // Deep Clone & Regenerate IDs
+        const cloneNodeRecursive = (node: FileNode, owner: string): FileNode => {
+            const newNode = deepCloneFileNode(node);
+            newNode.id = crypto.randomUUID();
+            newNode.owner = owner; // Ownership transfers to the paster? Yes, typically.
+            // Or should it preserve owner? "cp" usually makes new file owned by executor.
+            // We set owner to actingUser.username.
+            newNode.modified = new Date();
+            
+            if (newNode.children) {
+                newNode.children = newNode.children.map(child => cloneNodeRecursive(child, owner));
+            }
+            return newNode;
+        };
+
+        const clonedNode = cloneNodeRecursive(sourceNode, actingUser.username);
+        clonedNode.name = newName;
+
+        setFileSystem(prevFS => {
+            const newFS = deepCloneFileSystem(prevFS);
+            const destResolved = resolvePath(destParentPath);
+            const destParts = destResolved.split('/').filter(p => p);
+            let current = newFS;
+            for (const part of destParts) {
+                if (current.children) {
+                    const found = current.children.find(c => c.name === part);
+                    if (found) current = found;
+                }
+            }
+            if (current && current.children) {
+                current.children.push(clonedNode);
+            }
+            return newFS;
+        });
+
         return true;
     }, [fileSystem, resolvePath, getNodeAtPath, userObj, users, setFileSystem]);
 
@@ -408,6 +506,7 @@ export function useFileSystemMutations({
         createDirectory,
         writeFile,
         chmod,
-        chown
+        chown,
+        copyNodeById
     };
 }

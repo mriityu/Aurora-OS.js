@@ -77,6 +77,8 @@ export const en: TranslationDict = {
   a11y: {
     common: {
       close: 'Close',
+      open: 'Open',
+      notAvailable: 'N/A',
     },
     sidebar: {
       toggleSidebar: 'Toggle Sidebar',
@@ -157,6 +159,8 @@ export const en: TranslationDict = {
     items: {
       newWindow: 'New Window',
       newFolder: 'New Folder',
+      open: 'Open',
+      changeWallpaper: 'Change Wallpaper',
       closeWindow: 'Close Window',
       undo: 'Undo',
       redo: 'Redo',
@@ -171,6 +175,8 @@ export const en: TranslationDict = {
       back: 'Back',
       forward: 'Forward',
       enclosingFolder: 'Enclosing Folder',
+      getInfo: 'Get Info',
+      moveToTrash: 'Move to Trash',
     },
     help: {
       appHelp: '{{appName}} Help',
@@ -230,6 +236,25 @@ export const en: TranslationDict = {
         title: 'Download Complete',
         message: '{{filename}} is ready',
       },
+    },
+    subtitles: {
+      appMissing: 'APP Missing',
+      permissionDenied: 'Permission Denied',
+      saved: 'Saved',
+      deleted: 'Deleted',
+      moved: 'Moved',
+      trash: 'Trash',
+      failed: 'Failed',
+      ui: 'Interface',
+      export: 'Export',
+      import: 'Import',
+      clipboard: 'Clipboard',
+      validation: 'Validation',
+      success: 'Success',
+      error: 'Error',
+      info: 'Info',
+      warning: 'Warning',
+      fileError: 'File Error',
     },
   },
   memory: {
@@ -358,6 +383,7 @@ export const en: TranslationDict = {
     menu: {
       newTab: 'New Tab',
       clearScrollback: 'Clear Scrollback',
+      killProcess: 'Kill Process',
     },
     help: {
       availableCommands: 'Available commands:',
@@ -474,7 +500,9 @@ export const en: TranslationDict = {
   },
   filePicker: {
     openFile: 'Open File',
+    openFileDescription: 'Select a file to open from the file system',
     saveFile: 'Save File',
+    saveFileDescription: 'Choose a location and name to save your file',
     emptyFolder: 'This folder is empty',
     nameLabel: 'Name:',
     untitledPlaceholder: 'Untitled',
@@ -495,6 +523,11 @@ export const en: TranslationDict = {
     details: {
       items: '{{count}} items',
       bytes: '{{count}} bytes',
+      type: 'Type',
+      owner: 'Owner',
+      permissions: 'Permissions',
+      modified: 'Modified',
+      size: 'Size',
     },
     sidebar: {
       favorites: 'Favorites',
@@ -512,17 +545,29 @@ export const en: TranslationDict = {
     },
     actions: {
       moveToTrash: 'Move to Trash',
+      search: 'Search',
     },
     toasts: {
       permissionDenied: 'Permission denied: {{name}}',
       musicNotInstalled: 'Music app is not installed. Install it from the App Store.',
       notepadNotInstalled: 'Notepad is not installed. Install it from the App Store.',
+      movedItem: 'Moved 1 item',
       movedItems: 'Moved {{count}} items',
+      movedItemTo: 'Moved 1 item to {{target}}',
       movedItemsTo: 'Moved {{count}} items to {{target}}',
+      movedItemToTrash: 'Moved 1 item to Trash',
       movedItemsToTrash: 'Moved {{count}} items to Trash',
       moveFailedInvalidData: 'Move failed: Invalid data',
       failedToProcessDrop: 'Failed to process drop',
+      couldNotGetInfo: 'Could not retrieve information',
+      fileTypeNotSupported: "File type '{{type}}' is not supported",
     },
+    search: {
+      noResultsTitle: 'No results found',
+      noResultsDesc: 'No results found for "{{query}}"',
+      resultsTitle: 'Search Results ({{count}})',
+    },
+    emptyFolder: 'This folder is empty',
   },
   messages: {
     sidebar: {
@@ -625,6 +670,12 @@ export const en: TranslationDict = {
   notepad: {
     untitled: 'Untitled',
     untitledTab: 'Untitled {{index}}',
+    empty: {
+      title: 'Notepad',
+      description: 'Create a new file or open an existing one to get started.',
+      newFile: 'New File',
+      openFile: 'Open File',
+    },
     languages: {
       markdown: 'Markdown',
       javascript: 'JavaScript',

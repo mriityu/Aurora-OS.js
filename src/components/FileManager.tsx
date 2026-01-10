@@ -1,37 +1,21 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  FolderOpen,
-  FileText,
-  Download,
-  HardDrive,
-  Search,
-  Grid3x3,
-  List,
-  Monitor,
-  Music,
-  Image,
-  Trash,
-  Trash2,
-  Settings,
-  Home
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { useAppContext } from './AppContext';
-import { AppTemplate } from './apps/AppTemplate';
-import { ResponsiveGrid } from './ui/ResponsiveGrid';
-import { useFileSystem, FileNode } from './FileSystemContext';
-import { useMusic } from './MusicContext';
-import { checkPermissions } from '../utils/fileSystemUtils';
-import { useAppStorage } from '../hooks/useAppStorage';
-import { useSessionStorage } from '../hooks/useSessionStorage';
-import { useElementSize } from '../hooks/useElementSize';
-import { FileIcon } from './ui/FileIcon';
-import { cn } from './ui/utils';
-import { feedback } from '../services/soundFeedback';
-import { useI18n } from '../i18n/index';
+import { ChevronLeft, ChevronRight, FolderOpen, FileText, Download, HardDrive, Search, Grid3x3, List, Monitor, Music, Image, Trash, Trash2, Settings, Home, Clipboard, Info, Scissors, Copy } from 'lucide-react';
+import { notify } from '@/services/notifications';
+import { useAppContext } from '@/components/AppContext';
+import { AppTemplate } from '@/components/apps/AppTemplate';
+import { ResponsiveGrid } from '@/components/ui/ResponsiveGrid';
+import { useFileSystem, FileNode } from '@/components/FileSystemContext';
+import { useMusic } from '@/components/MusicContext';
+import { checkPermissions } from '@/utils/fileSystemUtils';
+import { useAppStorage } from '@/hooks/useAppStorage';
+import { useSessionStorage } from '@/hooks/useSessionStorage';
+import { useElementSize } from '@/hooks/useElementSize';
+import { FileIcon } from '@/components/ui/FileIcon';
+import { cn } from '@/components/ui/utils';
+import { feedback } from '@/services/soundFeedback';
+import { useI18n } from '@/i18n/index';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface BreadcrumbPillProps {
   name: string;
@@ -91,14 +75,44 @@ function BreadcrumbPill({ name, isLast, accentColor, onClick, onDrop }: Breadcru
   );
 }
 
-export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: string; onOpenApp?: (id: string, args?: any, owner?: string) => void, owner?: string }) {
+import { ContextMenuConfig } from '@/types';
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+} from '@/components/ui/context-menu';
+import { renderContextMenuItems } from '@/components/ui/context-menu-utils';
+
+// ... (existing imports)
+
+export const finderContextMenuConfig: ContextMenuConfig = {
+  items: [
+    { type: 'item', labelKey: 'menubar.items.newFolder', label: 'New Folder', action: 'new-folder', icon: FolderOpen },
+    { type: 'item', labelKey: 'menubar.items.paste', label: 'Paste', action: 'paste', disabled: true, icon: Clipboard },
+    { type: 'separator' },
+    { type: 'item', labelKey: 'menubar.items.getInfo', label: 'Get Info', action: 'get-info', icon: Info }
+  ]
+};
+
+export function FileManager({ id, initialPath, onOpenApp, owner }: { id: string; initialPath?: string; onOpenApp?: (id: string, args?: any, owner?: string) => void, owner?: string }) {
   const { accentColor, activeUser: desktopUser } = useAppContext();
   const { t } = useI18n();
   const activeUser = owner || desktopUser;
   useMusic();
   // Drag and Drop Logic
   const [dragTargetId, setDragTargetId] = useState<string | null>(null);
-  const { listDirectory, homePath, moveNodeById, getNodeAtPath, moveToTrash, resolvePath, users } = useFileSystem();
+  const { listDirectory, moveNodeById, getNodeAtPath, moveToTrash, resolvePath, users, createDirectory, clipboard, copyNodes, cutNodes, pasteNodes } = useFileSystem();
+
+  // Calculate effective home path for the active user (which might differ from logged-in user)
+  const homePath = useMemo(() => {
+    if (activeUser === 'root') return '/root';
+    // Attempt to find user
+    const userObj = users.find(u => u.username === activeUser);
+    return userObj ? `/home/${userObj.username}` : `/home/${activeUser}`;
+  }, [activeUser, users]);
 
   const [containerRefSetter, { width }] = useElementSize();
   const gridRef = useRef<HTMLDivElement>(null);
@@ -111,15 +125,54 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
 
   // Each FileManager instance has its own navigation state (independent windows, NOT persisted)
   // Edit: User requested persistence but ONLY for Session (Cleared on Logout).
-  // We use a shared "last path" preference for the DEFAULT opening path.
-  const [lastPath, setLastPath] = useSessionStorage('finder-last-path', homePath);
+  // We use a shared "last path" preference for the DEFAULT opening path (Scoped to user!)
+  const [lastPath, setLastPath] = useSessionStorage(`finder-last-path-${activeUser}`, homePath);
 
-  const startPath = initialPath || lastPath;
+  const startPath = initialPath 
+    ? (initialPath === '~' || initialPath === '~/' ? homePath : initialPath) 
+    : lastPath;
   const [currentPath, setCurrentPath] = useState(startPath);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [items, setItems] = useState<FileNode[]>([]);
   const [history, setHistory] = useState<string[]>([startPath]);
   const [historyIndex, setHistoryIndex] = useState(0);
+
+  // Search State
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Recursive search logic
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+
+    const results: { node: FileNode; path: string }[] = [];
+    const rootNode = getNodeAtPath(currentPath, activeUser);
+
+    if (!rootNode) return [];
+
+    const search = (node: FileNode, path: string) => {
+      // Exclude hidden files from search for cleanliness
+      if (node.name.toLowerCase().includes(searchQuery.toLowerCase()) && node.name !== '.' && node.name !== '..') {
+        results.push({ node, path });
+      }
+
+      if (node.type === 'directory' && node.children) {
+        node.children.forEach(child => {
+          search(child, path === '/' ? `/${child.name}` : `${path}/${child.name}`);
+        });
+      }
+    };
+
+    // Start search from children of current path
+    if (rootNode.children) {
+      rootNode.children.forEach(child => {
+        search(child, currentPath === '/' ? `/${child.name}` : `${currentPath}/${child.name}`);
+      });
+    }
+
+    return results;
+  }, [searchQuery, currentPath, getNodeAtPath, activeUser]);
+
 
   // Sync current path to storage (only if it matches user expectation of "Session")
   useEffect(() => {
@@ -127,6 +180,75 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
       setLastPath(currentPath);
     }
   }, [currentPath, setLastPath]);
+
+  // Handle Context Menu Actions
+  const handleGetInfo = useCallback((pathOrNode: string | FileNode) => {
+       let node: FileNode | null | undefined;
+       if (typeof pathOrNode === 'string') {
+         node = getNodeAtPath(pathOrNode, activeUser);
+       } else {
+         node = pathOrNode;
+       }
+
+       if (node) {
+           const modDate = node.modified ? new Date(node.modified).toLocaleDateString() : t('a11y.common.notAvailable');
+           const details = (
+               <div className="flex flex-col gap-1 mt-1">
+                   <div className="grid grid-cols-[max-content_1fr] gap-x-2">
+                       <span className="text-white/50">{t('fileManager.details.type')}:</span>
+                       <span className="text-white/90">{node.type}</span>
+                       <span className="text-white/50">{t('fileManager.details.owner')}:</span>
+                       <span className="text-white/90">{node.owner}</span>
+                       <span className="text-white/50">{t('fileManager.details.permissions')}:</span>
+                       <span className="text-white/90 font-mono text-[11px]">{node.permissions || t('a11y.common.notAvailable')}</span>
+                       <span className="text-white/50">{t('fileManager.details.modified')}:</span>
+                       <span className="text-white/90">{modDate}</span>
+                       {node.size !== undefined && (
+                           <>
+                               <span className="text-white/50">{t('fileManager.details.size')}:</span>
+                               <span className="text-white/90">{t('fileManager.details.bytes', { count: node.size })}</span>
+                           </>
+                       )}
+                   </div>
+               </div>
+           );
+           notify.system('success', node.name || t('notifications.subtitles.info'), details, t('notifications.subtitles.info'));
+       } else {
+           notify.system('error', t('notifications.subtitles.error'), t('fileManager.toasts.couldNotGetInfo'), t('notifications.subtitles.error'));
+       }
+  }, [getNodeAtPath, activeUser, t]);
+
+  useEffect(() => {
+    const handleMenuAction = (e: CustomEvent) => {
+      const { action, appId, windowId } = e.detail;
+      if (appId !== 'finder' || (windowId && windowId !== id)) return;
+
+      switch (action) {
+        case 'new-folder': {
+          // Replaced handleCreateFolder logic here
+          let name = t('menubar.items.newFolder');
+          let counter = 1;
+          const checkExists = (n: string) => items.some(i => i.name === n);
+          while (checkExists(name)) {
+              name = `${t('menubar.items.newFolder')} ${counter}`;
+              counter++;
+          }
+          createDirectory(currentPath, name, activeUser);
+          break;
+        }
+        case 'paste':
+          pasteNodes(currentPath, activeUser);
+          break;
+        case 'get-info': {
+           handleGetInfo(currentPath);
+           break;
+        }
+      }
+    };
+
+    window.addEventListener('app-menu-action', handleMenuAction as EventListener);
+    return () => window.removeEventListener('app-menu-action', handleMenuAction as EventListener);
+  }, [currentPath, createDirectory, activeUser, t, id, items, pasteNodes, getNodeAtPath, handleGetInfo]);
 
   // Load directory contents when path changes
   useEffect(() => {
@@ -156,11 +278,11 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
       const userObj = users.find(u => u.username === activeUser);
       if (userObj) {
         if (!checkPermissions(node, userObj, 'read')) {
-          toast.error(t('fileManager.toasts.permissionDenied', { name: node.name }));
+          notify.system('error', 'Finder', t('fileManager.toasts.permissionDenied', { name: node.name }), t('notifications.subtitles.permissionDenied'));
           return;
         }
         if (!checkPermissions(node, userObj, 'execute')) {
-          toast.error(t('fileManager.toasts.permissionDenied', { name: node.name }));
+          notify.system('error', 'Finder', t('fileManager.toasts.permissionDenied', { name: node.name }), t('notifications.subtitles.permissionDenied'));
           return;
         }
       }
@@ -177,11 +299,15 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
     feedback.folder();
   }, [historyIndex, getNodeAtPath, users, activeUser, t]);
 
-  // Handle item double-click
-  const handleItemDoubleClick = useCallback((item: FileNode) => {
+  // Handle item double-click (or single click in search results)
+  const handleOpenItem = useCallback((item: FileNode, path: string) => {
     if (item.type === 'directory') {
-      const newPath = currentPath === '/' ? `/${item.name}` : `${currentPath}/${item.name}`;
-      navigateTo(newPath);
+      // If we are searching, clear search state so we enter the folder in normal view
+      if (isSearchOpen || searchQuery) {
+        setSearchQuery('');
+        setIsSearchOpen(false);
+      }
+      navigateTo(path);
     } else if (item.type === 'file') {
 
       const isMusic = /\.(mp3|wav|flac|ogg|m4a)$/i.test(item.name);
@@ -191,26 +317,34 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
         // Check if music app is installed by checking /usr/bin
         const musicBinary = getNodeAtPath('/usr/bin/music', activeUser);
         if (musicBinary) {
-          const rawPath = currentPath === '/' ? `/${item.name}` : `${currentPath}/${item.name}`;
-          const fullPath = resolvePath(rawPath, activeUser);
+          // Resolve full physical/virtual path for app usage
+          const fullPath = resolvePath(path, activeUser);
           // Delegate playback to App via initialPath/data (gated by local logic)
           if (onOpenApp) onOpenApp('music', { path: fullPath, timestamp: Date.now() }, activeUser);
         } else {
-          toast.error(t('fileManager.toasts.musicNotInstalled'));
+          notify.system('error', 'Finder', t('fileManager.toasts.musicNotInstalled'), t('notifications.subtitles.appMissing'));
         }
       } else if (isText) {
         // Check if notepad app is installed by checking /usr/bin
         const notepadBinary = getNodeAtPath('/usr/bin/notepad', activeUser);
         if (notepadBinary) {
-          const rawPath = currentPath === '/' ? `/${item.name}` : `${currentPath}/${item.name}`;
-          const fullPath = resolvePath(rawPath, activeUser);
+          const fullPath = resolvePath(path, activeUser);
           if (onOpenApp) onOpenApp('notepad', { path: fullPath }, activeUser);
         } else {
-          toast.error(t('fileManager.toasts.notepadNotInstalled'));
+          notify.system('error', 'Finder', t('fileManager.toasts.notepadNotInstalled'), t('notifications.subtitles.appMissing'));
         }
+      } else {
+          // Fallback or unknowns: maybe open in text editor or show info?
+          // For now, just generic "Cannot open"
+          notify.system('error', 'Finder', t('fileManager.toasts.fileTypeNotSupported', { type: item.name.split('.').pop() || 'unknown' }), t('notifications.subtitles.fileError'));
       }
     }
-  }, [currentPath, navigateTo, onOpenApp, activeUser, getNodeAtPath, resolvePath, t]);
+  }, [getNodeAtPath, activeUser, resolvePath, onOpenApp, navigateTo, t, isSearchOpen, searchQuery]);
+
+  const handleItemDoubleClick = useCallback((item: FileNode) => {
+    const fullPath = currentPath === '/' ? `/${item.name}` : `${currentPath}/${item.name}`;
+    handleOpenItem(item, fullPath);
+  }, [currentPath, handleOpenItem]);
 
   // Go back in history
   const goBack = useCallback(() => {
@@ -283,10 +417,11 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
       id: item.id, // Legacy support for single item drops
       ids: itemsToDrag, // NEW: Multi-item payload
       name: item.name,
-      type: item.type
+      type: item.type,
+      sourceUser: activeUser // Pass source user context for permission checks
     }));
     e.dataTransfer.effectAllowed = 'move';
-  }, [selectedItems]); // dependencies
+  }, [selectedItems, activeUser]); // dependencies
 
   const handleDragOver = useCallback((e: React.DragEvent, item: FileNode) => {
     e.preventDefault(); // allow drop
@@ -313,6 +448,7 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
 
     // If target is a directory, consume the event (drop INTO directory)
     if (targetItem.type === 'directory') {
+      setIsDraggingOver(false);
       e.stopPropagation();
     } else {
       // If target is file, let it bubble to container (drop INTO current path)
@@ -329,52 +465,24 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
       idsToMove.forEach((id: string) => {
         if (id === targetItem.id) return; // Can't drop on self
 
-        // Need to find the name for this ID to log/notify? 
-        // We don't have the node object here for external drops easily, but moveNodeById handles it.
-        // BUT we need the name to construct destination path? 
-        // Wait, moveNodeById(id, destPath). destPath includes the filename?
-        // If destPath is a directory, moveNodeById should handle "into"? 
-        // Checking moveNodeById signature... 
-        // implementation usually expects specific path. 
-        // Let's verify moveNodeById behavior. 
-        // If we move /foo/bar.txt to /baz/, the new path is /baz/bar.txt.
-        // The current `moveNodeById` takes (id, newPath).
-        // If `newPath` is a directory, does it automagically append filename?
-        // Looking at usage in original file: 
-        // `const destPath = ... /${targetItem.name}` which is the FOLDER path.
-        // If moveNodeById expects FULL PATH including filename, we have a problem for external IDs where we don't know the name.
-        // Let's assume for now we need the name. `data` payload has `name`. But only for the PRIMARY item.
-        // CRITICAL: We need name for ALL items in multi-drag. 
-        // FIX: The payload should include metadata for all items.
-
-        // Since I can't easily change the payload to include map of id->name without iterating everything in dragStart...
-        // I will assume for now `moveNodeById` can handle directory targets or I need to fetch names.
-        // Actually, `moveNodeById` inside `useFileSystemMutations` likely updates the parent.
-
-        // In the original code: 
-        /* 
-          const destPath = currentPath === '/'
+        const destPath = currentPath === '/'
             ? `/${targetItem.name}`
             : `${currentPath}/${targetItem.name}`;
-           moveNodeById(data.id, destPath, activeUser);
-        */
-        // This implies passing the FOLDER as destPath works? 
-        // If so, great. If acts as "Rename", then we have a bug for moving into folders.
-        // Let's assume it works as "Move Into" based on context.
-
-        const destPath = currentPath === '/'
-          ? `/${targetItem.name}`
-          : `${currentPath}/${targetItem.name}`;
-
-        moveNodeById(id, destPath, activeUser);
-        movedCount++;
+           
+        if (moveNodeById(id, destPath, activeUser, data.sourceUser)) {
+            movedCount++;
+        }
       });
 
-      if (movedCount > 0) toast.success(t('fileManager.toasts.movedItems', { count: movedCount }));
+
+      if (movedCount > 0) {
+        const key = movedCount === 1 ? 'fileManager.toasts.movedItemTo' : 'fileManager.toasts.movedItemsTo';
+        notify.system('success', 'Finder', t(key, { count: movedCount, target: targetItem.name }), t('notifications.subtitles.moved'));
+      }
 
     } catch (err) {
       console.error('Failed to parse drag data', err);
-      toast.error(t('fileManager.toasts.moveFailedInvalidData'));
+      notify.system('error', 'Finder', t('fileManager.toasts.moveFailedInvalidData'), t('notifications.subtitles.failed'));
     }
   }, [currentPath, moveNodeById, activeUser, t]);
 
@@ -390,19 +498,20 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
       const data = JSON.parse(e.dataTransfer.getData('application/json'));
       const idsToMove = data.ids || (data.id ? [data.id] : []);
 
+      let movedCount = 0;
       idsToMove.forEach((id: string) => {
-        moveNodeById(id, targetPath, activeUser);
+        if (moveNodeById(id, targetPath, activeUser, data.sourceUser)) {
+          movedCount++;
+        }
       });
 
-      toast.success(
-        t('fileManager.toasts.movedItemsTo', {
-          count: idsToMove.length,
-          target: targetPath.split('/').pop() || targetPath,
-        })
-      );
+      if (movedCount > 0) {
+        const key = movedCount === 1 ? 'fileManager.toasts.movedItemTo' : 'fileManager.toasts.movedItemsTo';
+        notify.system('success', 'Finder', t(key, { count: movedCount, target: targetPath.split('/').pop() || targetPath }), t('notifications.subtitles.moved'));
+      }
     } catch (err) {
       console.error('Failed to drop on sidebar', err);
-      toast.error(t('fileManager.toasts.failedToProcessDrop'));
+      notify.system('error', 'Finder', t('fileManager.toasts.failedToProcessDrop'), t('notifications.subtitles.failed'));
     }
   }, [moveNodeById, activeUser, t]);
 
@@ -414,57 +523,62 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
 
   // Sidebar configuration
   const fileManagerSidebar = useMemo(() => {
-    const trashNode = getNodeAtPath(`${homePath}/.Trash`, activeUser);
+    // Determine the home path for the ACTIVE user (owner of this window), not necessarily the logged-in user
+    const userHomePath = activeUser === 'root' ? '/root' : `/home/${activeUser}`;
+
+    // Helper to Create Items if they exist
+    const createSidebarItem = (id: string, icon: any, label: string, path: string) => {
+      const node = getNodeAtPath(path, activeUser);
+      // Only show if node exists
+      if (!node) return null;
+
+      const badge = (node.type === 'directory' && node.children && node.children.length > 0)
+        ? node.children.length.toString()
+        : undefined;
+
+      return {
+        id,
+        icon,
+        label,
+        badge,
+        action: () => navigateTo(path),
+        ...sidebarDropProps(path)
+      };
+    };
+
+    const favoritesToCheck = [
+      { id: 'home', icon: Home, label: t('fileManager.places.home'), path: userHomePath },
+      { id: 'desktop', icon: Monitor, label: t('fileManager.places.desktop'), path: `${userHomePath}/Desktop` },
+      { id: 'documents', icon: FileText, label: t('fileManager.places.documents'), path: `${userHomePath}/Documents` },
+      { id: 'downloads', icon: Download, label: t('fileManager.places.downloads'), path: `${userHomePath}/Downloads` },
+      { id: 'pictures', icon: Image, label: t('fileManager.places.pictures'), path: `${userHomePath}/Pictures` },
+      { id: 'music', icon: Music, label: t('fileManager.places.music'), path: `${userHomePath}/Music` },
+    ];
+
+    const trashPath = `${userHomePath}/.Trash`;
+    const trashNode = getNodeAtPath(trashPath, activeUser);
     const isTrashEmpty = !trashNode?.children || trashNode.children.length === 0;
+
+    // Only show Trash if it exists (it should, but good to be safe)
+    const trashItem = trashNode ? {
+      id: 'trash',
+      icon: isTrashEmpty ? Trash : Trash2,
+      label: t('fileManager.places.trash'),
+      badge: (trashNode.children && trashNode.children.length > 0) ? trashNode.children.length.toString() : undefined,
+      action: () => navigateTo(trashPath),
+      ...sidebarDropProps(trashPath)
+    } : null;
+
+    // Filter out nulls
+    const favorites = favoritesToCheck
+      .map(item => createSidebarItem(item.id, item.icon, item.label, item.path))
+      .filter((item): item is NonNullable<typeof item> => item !== null);
 
     return {
       sections: [
         {
           title: t('fileManager.sidebar.favorites'),
-          items: [
-            {
-              id: 'home',
-              icon: Home,
-              label: t('fileManager.places.home'),
-              action: () => navigateTo(homePath),
-              ...sidebarDropProps(homePath)
-            },
-            {
-              id: 'desktop',
-              icon: Monitor,
-              label: t('fileManager.places.desktop'),
-              action: () => navigateTo(`${homePath}/Desktop`),
-              ...sidebarDropProps(`${homePath}/Desktop`)
-            },
-            {
-              id: 'documents',
-              icon: FileText,
-              label: t('fileManager.places.documents'),
-              action: () => navigateTo(`${homePath}/Documents`),
-              ...sidebarDropProps(`${homePath}/Documents`)
-            },
-            {
-              id: 'downloads',
-              icon: Download,
-              label: t('fileManager.places.downloads'),
-              action: () => navigateTo(`${homePath}/Downloads`),
-              ...sidebarDropProps(`${homePath}/Downloads`)
-            },
-            {
-              id: 'pictures',
-              icon: Image,
-              label: t('fileManager.places.pictures'),
-              action: () => navigateTo(`${homePath}/Pictures`),
-              ...sidebarDropProps(`${homePath}/Pictures`)
-            },
-            {
-              id: 'music',
-              icon: Music,
-              label: t('fileManager.places.music'),
-              action: () => navigateTo(`${homePath}/Music`),
-              ...sidebarDropProps(`${homePath}/Music`)
-            },
-          ]
+          items: favorites
         },
         {
           title: t('fileManager.sidebar.system'),
@@ -494,19 +608,11 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
         },
         {
           title: t('fileManager.sidebar.locations'),
-          items: [
-            {
-              id: 'trash',
-              icon: isTrashEmpty ? Trash : Trash2,
-              label: t('fileManager.places.trash'),
-              action: () => navigateTo(`${homePath}/.Trash`),
-              ...sidebarDropProps(`${homePath}/.Trash`)
-            },
-          ]
+          items: trashItem ? [trashItem] : []
         },
       ]
     };
-  }, [homePath, navigateTo, sidebarDropProps, getNodeAtPath, activeUser, t]);
+  }, [activeUser, navigateTo, sidebarDropProps, getNodeAtPath, t]);
 
   const toolbar = (
     <div className="flex items-center w-full gap-2 px-0">
@@ -540,7 +646,8 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
                 }
               });
               setSelectedItems(new Set());
-              toast.success(t('fileManager.toasts.movedItemsToTrash', { count: selectedItems.size }));
+              const key = selectedItems.size === 1 ? 'fileManager.toasts.movedItemToTrash' : 'fileManager.toasts.movedItemsToTrash';
+              notify.system('success', 'Finder', t(key, { count: selectedItems.size }), t('notifications.subtitles.trash'));
             }
           }}
           disabled={selectedItems.size === 0}
@@ -554,76 +661,106 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
       {/* Breadcrumbs - Flexible Middle */}
       <div className="flex-1 flex items-center gap-1.5 overflow-hidden mx-2 mask-linear-fade">
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full">
-          {currentPath === '/' ? (
-            <BreadcrumbPill
-              name="/"
-              isLast={true}
-              accentColor={accentColor}
-              onClick={() => { }}
-              onDrop={(e) => handleSidebarDrop(e, '/')}
-            />
+          {isSearchOpen ? (
+             <div className="relative w-full max-w-md mx-auto flex items-center animate-in fade-in duration-200">
+                 <Search className="absolute left-3 w-4 h-4 text-white/40" />
+                 <input 
+                    autoFocus
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={t('fileManager.actions.search')}
+                    className="w-full bg-black/20 border border-white/10 rounded-full py-1.5 pl-9 pr-8 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/20 focus:bg-black/30 transition-all"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                            setSearchQuery('');
+                            setIsSearchOpen(false);
+                            // Refocus grid on escape?
+                        }
+                    }}
+                 />
+                 {searchQuery && (
+                     <button 
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2 p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white"
+                     >
+                        <span className="sr-only">Clear</span>
+                        <div className="w-3 h-3 flex items-center justify-center font-bold text-[10px]">✕</div>
+                     </button>
+                 )}
+             </div>
           ) : (
-            (() => {
-              // Convert to absolute path to avoid '~' which breaks navigation
-              const resolvedPath = resolvePath(currentPath);
-              const segments = resolvedPath.split('/').filter(Boolean);
+            currentPath === '/' ? (
+                <BreadcrumbPill
+                name="/"
+                isLast={true}
+                accentColor={accentColor}
+                onClick={() => { }}
+                onDrop={(e) => handleSidebarDrop(e, '/')}
+                />
+            ) : (
+                (() => {
+                // Convert to absolute path to avoid '~' which breaks navigation
+                const resolvedPath = resolvePath(currentPath, activeUser);
+                const segments = resolvedPath.split('/').filter(Boolean);
 
-              // Responsive Logic
-              const CONTROLS_WIDTH = 260; // Safe width for left/right controls + padding
-              const availableWidth = Math.max(0, width - CONTROLS_WIDTH);
+                // Responsive Logic
+                const CONTROLS_WIDTH = 260; // Safe width for left/right controls + padding
+                const availableWidth = Math.max(0, width - CONTROLS_WIDTH);
 
-              // If extremely narrow, hide breadcrumbs immediately
-              if (availableWidth < 60) return null;
+                // If extremely narrow, hide breadcrumbs immediately
+                if (availableWidth < 60) return null;
 
-              // Calculate width of each segment (approximate)
-              // 8px per char + 24px padding + 6px gap
-              const segmentWidths = segments.map(s => s.length * 8 + 30);
+                // Calculate width of each segment (approximate)
+                // 8px per char + 24px padding + 6px gap
+                const segmentWidths = segments.map(s => s.length * 8 + 30);
 
-              let visibleSegmentsCount = 0;
-              let currentWidth = 0;
+                let visibleSegmentsCount = 0;
+                let currentWidth = 0;
 
-              // Add from end (right) to start (left)
-              for (let i = segments.length - 1; i >= 0; i--) {
-                if (currentWidth + segmentWidths[i] <= availableWidth) {
-                  currentWidth += segmentWidths[i];
-                  visibleSegmentsCount++;
-                } else {
-                  // No force show - if it doesn't fit, it doesn't show
-                  break;
+                // Add from end (right) to start (left)
+                for (let i = segments.length - 1; i >= 0; i--) {
+                    if (currentWidth + segmentWidths[i] <= availableWidth) {
+                    currentWidth += segmentWidths[i];
+                    visibleSegmentsCount++;
+                    } else {
+                    // No force show - if it doesn't fit, it doesn't show
+                    break;
+                    }
                 }
-              }
 
-              // If we can't fit even one segment properly, show nothing (or maybe just root if that fits, but root is handled separately above)
-              if (visibleSegmentsCount === 0) return null;
+                // If we can't fit even one segment properly, show nothing (or maybe just root if that fits, but root is handled separately above)
+                if (visibleSegmentsCount === 0) return null;
 
-              const startIdx = segments.length - visibleSegmentsCount;
-              const visibleSegments = segments.slice(startIdx);
-              const hiddenSegments = segments.slice(0, startIdx);
+                const startIdx = segments.length - visibleSegmentsCount;
+                const visibleSegments = segments.slice(startIdx);
+                const hiddenSegments = segments.slice(0, startIdx);
 
-              // Reconstruct path for the visible segments
-              // The first visible segment's full path depends on previous hidden ones
-              let cumulativePath = hiddenSegments.length > 0
-                ? '/' + hiddenSegments.join('/')
-                : '';
+                // Reconstruct path for the visible segments
+                // The first visible segment's full path depends on previous hidden ones
+                let cumulativePath = hiddenSegments.length > 0
+                    ? '/' + hiddenSegments.join('/')
+                    : '';
 
-              return visibleSegments.map((segment, index) => {
-                cumulativePath += `/${segment}`;
-                const isLast = index === visibleSegments.length - 1;
-                const path = cumulativePath; // Close over value
-                const displayName = segment;
+                return visibleSegments.map((segment, index) => {
+                    cumulativePath += `/${segment}`;
+                    const isLast = index === visibleSegments.length - 1;
+                    const path = cumulativePath; // Close over value
+                    const displayName = segment;
 
-                return (
-                  <BreadcrumbPill
-                    key={path}
-                    name={displayName}
-                    isLast={isLast}
-                    accentColor={accentColor}
-                    onClick={() => navigateTo(path)}
-                    onDrop={(e) => handleSidebarDrop(e, path)}
-                  />
-                );
-              });
-            })()
+                    return (
+                    <BreadcrumbPill
+                        key={path}
+                        name={displayName}
+                        isLast={isLast}
+                        accentColor={accentColor}
+                        onClick={() => navigateTo(path)}
+                        onDrop={(e) => handleSidebarDrop(e, path)}
+                    />
+                    );
+                });
+                })()
+            )
           )}
         </div>
       </div>
@@ -650,11 +787,17 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
             <List className="w-4 h-4" />
           </button>
         </div>
-        <button className="p-1.5 hover:bg-white/5 rounded-md transition-colors">
-          <Search className="w-4 h-4 text-white/50" />
+        <button 
+            onClick={() => {
+                setIsSearchOpen(!isSearchOpen);
+                if (!isSearchOpen) setTimeout(() => (document.querySelector('input[type="text"]') as HTMLElement)?.focus(), 50);
+            }} 
+            className={`p-1.5 rounded-md transition-colors ${isSearchOpen ? 'bg-white/20 text-white' : 'hover:bg-white/5 text-white/50'}`}
+        >
+          <Search className="w-4 h-4" />
         </button>
       </div>
-    </div >
+    </div>
   );
 
   // State for container drop zone visual feedback
@@ -682,14 +825,36 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
 
       let movedCount = 0;
       idsToMove.forEach((id: string) => {
-        moveNodeById(id, currentPath, activeUser);
-        movedCount++;
+        // Logic for Container Drop (into currentPath):
+        // We don't have the original filename easily unless we look it up or passed it.
+        // `moveNodeById` logic: `destParentPath` should be the folder path.
+        // But `moveNodeById` implementation expects `destParentPath` ??
+        // Actually, let's re-read `moveNodeById` implementation I JUST CHANGED.
+        // `const destParent = getNodeAtPath(resolvePath(destParentPath), asUser);`
+        // So `destParentPath` is indeed the PARENT folder.
+        // AND it does `if (destParent.children.some(child => child.name === nodeToMove.name)) return false;`
+        // So it uses the node's EXISTING name.
+        
+        // Therefore, we just pass `currentPath` as `destParentPath`.
+        
+        if (moveNodeById(id, currentPath, activeUser, data.sourceUser)) {
+           movedCount++;
+        }
       });
-      if (movedCount > 0) toast.success(t('fileManager.toasts.movedItems', { count: movedCount }));
+
+      if (movedCount > 0) {
+        if (movedCount === 1) {
+            notify.system('success', t('notifications.subtitles.moved') || 'Moved', t('fileManager.toasts.movedItem') || 'Moved 1 item');
+        } else {
+            notify.system('success', t('notifications.subtitles.moved') || 'Moved', t('fileManager.toasts.movedItems', { count: movedCount }) || `Moved ${movedCount} items`);
+        }
+        // feedback.move(); // Assuming feedback is defined elsewhere
+      }
     } catch (err) {
-      console.error('Failed to handle container drop', err);
+      console.error('Drop error:', err);
+      notify.system('error', t('notifications.subtitles.failed') || 'Failed', t('fileManager.toasts.failedToProcessDrop') || 'Failed to process drop');
     }
-  }, [moveNodeById, currentPath, activeUser, t]);
+  }, [currentPath, moveNodeById, activeUser, t, setIsDraggingOver]);
 
   // Selection Box State
   const [selectionBox, setSelectionBox] = useState<{ start: { x: number, y: number }, current: { x: number, y: number } } | null>(null);
@@ -767,29 +932,102 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
     };
   }, [selectionBox, selectedItems, items]); // items needed for index mapping
 
+  // Context Menu Helpers
+  const handleCopy = useCallback((id: string) => {
+    const node = items.find(i => i.id === id);
+    if (!node) return;
+    // Check READ permission
+    if (!checkPermissions(node, users.find(u => u.username === activeUser) || { username: activeUser } as any, 'read')) {
+        notify.system('error', 'Permission Denied', 'Cannot copy item');
+        return;
+    }
+    copyNodes([id], activeUser);
+  }, [items, users, activeUser, copyNodes]);
+
+  const handleCut = useCallback((id: string) => {
+    const node = items.find(i => i.id === id);
+    if (!node) return;
+    // Check WRITE permission (to delete original)
+    // Actually cut doesn't check until move? But UI usually checks.
+    // Let's defer to operation time or check generic write on parent?
+    // We'll just allow it and let paste fail if needed.
+    cutNodes([id], activeUser);
+  }, [items, activeUser, cutNodes]);
+
+
+
+
+
+  // Context Menu for Items (Grid/List)
+  const renderItemContextMenu = (item: FileNode, children: React.ReactNode) => (
+    <ContextMenu key={item.id}>
+      <ContextMenuTrigger asChild>
+        {children}
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-48">
+        <ContextMenuItem onClick={() => {
+            const fullPath = currentPath === '/' ? `/${item.name}` : `${currentPath}/${item.name}`;
+            handleOpenItem(item, fullPath);
+        }}>
+          <FolderOpen className="mr-2 h-4 w-4" /> {t('a11y.common.open')}
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => handleCopy(item.id)}>
+          <Copy className="mr-2 h-4 w-4" /> {t('menubar.items.copy')}
+          <ContextMenuShortcut>⌘C</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => handleCut(item.id)}>
+          <Scissors className="mr-2 h-4 w-4" /> {t('menubar.items.cut')}
+          <ContextMenuShortcut>⌘X</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem onClick={() => handleGetInfo(item)}>
+          <Info className="mr-2 h-4 w-4" /> {t('menubar.items.getInfo')}
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem 
+            onClick={() => {
+                const fullPath = currentPath === '/' ? `/${item.name}` : `${currentPath}/${item.name}`;
+                moveToTrash(fullPath, activeUser);
+            }} 
+            className="text-red-400 focus:text-red-400 focus:bg-red-500/20"
+        >
+          <Trash2 className="mr-2 h-4 w-4" /> {t('fileManager.actions.moveToTrash')}
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+
   const content = (
+    <ContextMenu>
+    <ContextMenuTrigger asChild disabled={selectedItems.size > 0 && !selectionBox}> 
+    {/* Explicitly disable background context menu if items are selected? 
+        Actually, usually clicking on background clears selection unless modifier. 
+        Our onMouseDown clears selection if not clicking a button.
+        But Right Click (Context Menu) ALSO fires mousedown usually?
+        If I right click background, `onMouseDown` fires -> clears selection -> Background Menu opens.
+        So this is fine.
+    */}
     <div
       ref={(node: HTMLDivElement | null) => {
         containerRefSetter(node);
         gridRef.current = node;
       }}
+      // ... props ...
       className="flex-1 overflow-y-auto p-6 transition-colors duration-200 relative outline-none"
-      tabIndex={0} // Allow focus for keyboard events
+      tabIndex={0}
       style={{
-        backgroundColor: isDraggingOver ? `${accentColor}10` : undefined, // 10% opacity
-        boxShadow: isDraggingOver ? `inset 0 0 0 2px ${accentColor}80` : undefined // 50% opacity border
+        backgroundColor: isDraggingOver ? `${accentColor}10` : undefined,
+        boxShadow: isDraggingOver ? `inset 0 0 0 2px ${accentColor}80` : undefined
       }}
       onDragOver={handleContainerDragOver}
       onDragLeave={handleContainerDragLeave}
       onDrop={handleContainerDrop}
       onMouseDown={(e) => {
-        // Deselect if clicking on background (not on a button)
         const target = e.target as HTMLElement;
         if (!target.closest('button')) {
           if (!e.shiftKey && !e.metaKey && !e.ctrlKey) {
             setSelectedItems(new Set());
           }
-          // Start Selection Box
           setSelectionBox({
             start: { x: e.clientX, y: e.clientY },
             current: { x: e.clientX, y: e.clientY }
@@ -797,67 +1035,104 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
         }
       }}
     >
-      {/* Selection Box Overlay */}
+      {/* ... selection box ... */}
       {selectionBox && gridRef.current && (
-        (() => {
-          const containerRect = gridRef.current!.getBoundingClientRect();
-          const scrollLeft = gridRef.current!.scrollLeft;
-          const scrollTop = gridRef.current!.scrollTop;
-
-          const left = Math.min(selectionBox.start.x, selectionBox.current.x) - containerRect.left + scrollLeft;
-          const top = Math.min(selectionBox.start.y, selectionBox.current.y) - containerRect.top + scrollTop;
-          const width = Math.abs(selectionBox.current.x - selectionBox.start.x);
-          const height = Math.abs(selectionBox.current.y - selectionBox.start.y);
-
-          return (
-            <div
-              className="absolute border border-blue-400/50 bg-blue-500/20 z-50 pointer-events-none"
-              style={{ left, top, width, height }}
-            />
-          );
-        })()
+         // ... (abbreviated, use original code if possible or keep logic)
+         (() => {
+           const containerRect = gridRef.current!.getBoundingClientRect();
+           const scrollLeft = gridRef.current!.scrollLeft;
+           const scrollTop = gridRef.current!.scrollTop;
+           const left = Math.min(selectionBox.start.x, selectionBox.current.x) - containerRect.left + scrollLeft;
+           const top = Math.min(selectionBox.start.y, selectionBox.current.y) - containerRect.top + scrollTop;
+           const width = Math.abs(selectionBox.current.x - selectionBox.start.x);
+           const height = Math.abs(selectionBox.current.y - selectionBox.start.y);
+           return (
+             <div
+               className="absolute border border-blue-400/50 bg-blue-500/20 z-50 pointer-events-none"
+               style={{ left, top, width, height }}
+             />
+           );
+         })()
       )}
 
-      {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full text-white/40">
-          <FolderOpen className="w-16 h-16 mb-4" />
-          <p>This folder is empty</p>
+      {searchQuery ? (
+        // Search Logic (keep as is)
+        <div className="flex flex-col gap-1 w-full relative h-full">
+            {searchResults.length === 0 ? (
+                <EmptyState
+                    icon={Search}
+                    title={t('fileManager.search.noResultsTitle')}
+                    description={t('fileManager.search.noResultsDesc', { query: searchQuery })}
+                    className="h-full"
+                />
+            ) : (
+                <div className="flex flex-col gap-1 p-2 w-full">
+                  <h3 className="text-white/50 text-xs uppercase font-medium px-2 mb-2 sticky top-0 backdrop-blur-md bg-black/20 z-10 py-2 rounded-lg">
+                    {t('fileManager.search.resultsTitle', { count: searchResults.length })}
+                  </h3>
+                  <div className="flex flex-col gap-1">
+                  {searchResults.map(({ node, path }) => (
+                      <button
+                          key={path}
+                          onClick={() => handleOpenItem(node, path)}
+                          className="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 text-left group w-full transition-colors"
+                      >
+                          <div className="w-8 h-8 shrink-0 flex items-center justify-center">
+                            <FileIcon name={node.name} type={node.type} accentColor={accentColor} className="w-full h-full" />
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                              <span className="text-sm font-medium text-white group-hover:text-white transition-colors truncate">{node.name}</span>
+                              <span className="text-xs text-white/40 truncate">{path}</span>
+                          </div>
+                      </button>
+                  ))}
+                  </div>
+                </div>
+            )}
         </div>
+      ) : items.length === 0 ? (
+        <EmptyState
+          icon={FolderOpen}
+          title={t('fileManager.emptyFolder')}
+          className="h-full"
+        />
       ) : appState.viewMode === 'grid' ? (
         <ResponsiveGrid minItemWidth={110} className="gap-6">
-          {items.map((item) => (
-            <button
-              key={item.id}
-              onClick={(e) => handleItemClick(e, item.id)}
-              onDoubleClick={() => handleItemDoubleClick(item)}
-              draggable
-              onDragStart={(e) => handleDragStart(e, item)}
-              onDragOver={(e) => handleDragOver(e, item)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, item)}
-              className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-colors group relative
-              ${selectedItems.has(item.id) ? 'bg-white/10 ring-1 ring-white/20' : 'hover:bg-white/5'}
-              ${dragTargetId === item.id ? 'bg-blue-500/20 ring-2 ring-blue-500' : ''}`}
-            >
-              <div className="w-20 h-20 flex items-center justify-center pointer-events-none">
-                <FileIcon name={item.name} type={item.type} accentColor={accentColor} isEmpty={item.children?.length === 0} />
-              </div>
-              <div className="w-full text-center pointer-events-none">
-                <div className="text-sm text-white/90 truncate px-1 w-full">
-                  {item.name}
+          {items.map((item) => 
+            renderItemContextMenu(item, (
+                <button
+                onClick={(e) => handleItemClick(e, item.id)}
+                onDoubleClick={() => handleItemDoubleClick(item)}
+                draggable
+                onDragStart={(e) => handleDragStart(e, item)}
+                onDragOver={(e) => handleDragOver(e, item)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, item)}
+                className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-colors group relative
+                ${selectedItems.has(item.id) ? 'bg-white/10 ring-1 ring-white/20' : 'hover:bg-white/5'}
+                ${dragTargetId === item.id ? 'bg-blue-500/20 ring-2 ring-blue-500' : ''}`}
+                >
+                <div className="w-20 h-20 flex items-center justify-center pointer-events-none">
+                    <FileIcon name={item.name} type={item.type} accentColor={accentColor} isEmpty={item.children?.length === 0} />
                 </div>
-                {item.type === 'directory' && item.children && (
-                  <div className="text-xs mt-0.5" style={{ color: accentColor }}>
-                    {item.children.length} item{item.children.length !== 1 ? 's' : ''}
-                  </div>
-                )}
-              </div>
-            </button>
-          ))}
+                <div className="w-full text-center pointer-events-none">
+                    <div className="text-sm text-white/90 truncate px-1 w-full">
+                    {item.name}
+                    </div>
+                    {item.type === 'directory' && item.children && (
+                    <div className="text-xs mt-0.5" style={{ color: accentColor }}>
+                        {item.children.length} item{item.children.length !== 1 ? 's' : ''}
+                    </div>
+                    )}
+                </div>
+                </button>
+            ))
+          )}
         </ResponsiveGrid>
       ) : (
         <div className="flex flex-col gap-1">
-          {items.map((item) => (
+          {items.map((item) => 
+            renderItemContextMenu(item, (
             <button
               key={item.id}
               onClick={(e) => handleItemClick(e, item.id)}
@@ -888,16 +1163,32 @@ export function FileManager({ initialPath, onOpenApp, owner }: { initialPath?: s
                 </div>
               )}
             </button>
-          ))}
+            ))
+          )}
         </div>
       )}
     </div>
+    </ContextMenuTrigger>
+      <ContextMenuContent className="w-48">
+        {renderContextMenuItems(
+          finderContextMenuConfig.items.map(item => {
+            if (item.type === 'item' && item.action === 'paste') {
+               return { ...item, disabled: clipboard.items.length === 0 };
+            }
+            return item;
+          }),
+          t,
+          'finder',
+          id
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
   );
 
   return <AppTemplate sidebar={fileManagerSidebar} toolbar={toolbar} content={content} minContentWidth={600} />;
 }
 
-import { AppMenuConfig } from '../types';
+import { AppMenuConfig } from '@/types';
 
 export const finderMenuConfig: AppMenuConfig = {
   menus: ['File', 'Edit', 'View', 'Go', 'Window', 'Help'],

@@ -75,6 +75,8 @@ export const zh: TranslationDict = {
 	a11y: {
 		common: {
 			close: '关闭',
+			open: '打开',
+			notAvailable: '不可用',
 		},
 		sidebar: {
 			toggleSidebar: '切换侧边栏',
@@ -153,9 +155,11 @@ export const zh: TranslationDict = {
 			conversations: '对话',
 		},
 		items: {
-			newWindow: '新窗口',
-			newFolder: '新建文件夹',
-			closeWindow: '关闭窗口',
+      newWindow: '新窗口',
+      newFolder: '新建文件夹',
+      open: '打开',
+      changeWallpaper: '更改壁纸',
+      closeWindow: '关闭窗口',
 			undo: '撤销',
 			redo: '重做',
 			cut: '剪切',
@@ -167,10 +171,12 @@ export const zh: TranslationDict = {
 			minimize: '最小化',
 			bringAllToFront: '全部置于最前',
 			back: '后退',
-			forward: '前进',
-			enclosingFolder: '上级文件夹',
-		},
-		help: {
+      forward: '前进',
+      enclosingFolder: '上级文件夹',
+      getInfo: '显示简介',
+      moveToTrash: '移到废纸篓',
+    },
+    help: {
 			appHelp: '{{appName}} 帮助',
 		},
 		default: {
@@ -213,20 +219,39 @@ export const zh: TranslationDict = {
 		items: {
 			newEmail: {
 				title: '新邮件',
-				message: '你有 {{count}} 封未读邮件',
+				message: '您有 {{count}} 条未读消息',
 			},
 			meetingReminder: {
 				title: '会议提醒',
-				message: '团队同步将在 {{minutes}} 分钟后',
+				message: '团队会议在 {{minutes}} 分钟后开始',
 			},
 			newMessage: {
 				title: '新消息',
-				message: '{{sender}}：嗨，你现在有空吗？',
+				message: '{{sender}}: 嘿，有空吗？',
 			},
 			downloadComplete: {
 				title: '下载完成',
-				message: '{{filename}} 已准备好',
+				message: '{{filename}} 已就绪',
 			},
+		},
+		subtitles: {
+			appMissing: '应用程序缺失',
+			permissionDenied: '权限被拒绝',
+			saved: '已保存',
+			deleted: '已删除',
+			moved: '已移动',
+			trash: '废纸篓',
+			failed: '失败',
+			ui: '界面',
+			export: '导出',
+			import: '导入',
+			clipboard: '剪贴板',
+			validation: '验证',
+			success: '成功',
+			error: '错误',
+			info: '信息',
+			warning: '警告',
+			fileError: '文件错误',
 		},
 	},
 	memory: {
@@ -353,9 +378,10 @@ export const zh: TranslationDict = {
 	},
 	terminal: {
 		menu: {
-			newTab: '新标签页',
-			clearScrollback: '清除滚动缓冲',
-		},
+      newTab: '新建标签页',
+      clearScrollback: '清除回滚',
+      killProcess: '结束进程',
+    },
 		help: {
 			availableCommands: '可用命令：',
 			usage: '用法',
@@ -471,7 +497,9 @@ export const zh: TranslationDict = {
 	},
 	filePicker: {
 		openFile: '打开文件',
+		openFileDescription: '从文件系统中选择要打开的文件',
 		saveFile: '保存文件',
+		saveFileDescription: '选择保存文件的位置和名称',
 		emptyFolder: '此文件夹为空',
 		nameLabel: '名称：',
 		untitledPlaceholder: '未命名',
@@ -492,6 +520,11 @@ export const zh: TranslationDict = {
 		details: {
 			items: '{{count}} 个项目',
 			bytes: '{{count}} 字节',
+			type: '类型',
+			owner: '所有者',
+			permissions: '权限',
+			modified: '修改日期',
+			size: '大小',
 		},
 		sidebar: {
 			favorites: '收藏',
@@ -509,17 +542,29 @@ export const zh: TranslationDict = {
 		},
 		actions: {
 			moveToTrash: '移到废纸篓',
+			search: '搜索',
 		},
 		toasts: {
 			permissionDenied: '权限被拒绝：{{name}}',
 			musicNotInstalled: '音乐应用未安装。请从应用商店安装。',
 			notepadNotInstalled: '记事本未安装。请从应用商店安装。',
+			movedItem: '已移动 1 个项目',
 			movedItems: '已移动 {{count}} 个项目',
+			movedItemTo: '已将 1 个项目移动到 {{target}}',
 			movedItemsTo: '已将 {{count}} 个项目移动到 {{target}}',
-			movedItemsToTrash: '已将 {{count}} 个项目移到废纸篓',
+			movedItemToTrash: '已将 1 个项目移动到废纸篓',
+			movedItemsToTrash: '已将 {{count}} 个项目移动到废纸篓',
 			moveFailedInvalidData: '移动失败：无效数据',
 			failedToProcessDrop: '处理拖放失败',
+			couldNotGetInfo: '无法获取信息',
+			fileTypeNotSupported: "不支持的文件类型 '{{type}}'",
 		},
+		search: {
+			noResultsTitle: '未找到结果',
+			noResultsDesc: '未找到关于 "{{query}}" 的结果',
+			resultsTitle: '搜索结果 ({{count}})',
+		},
+		emptyFolder: '此文件夹为空',
 	},
 	messages: {
 		sidebar: {
@@ -622,6 +667,12 @@ export const zh: TranslationDict = {
 	notepad: {
 		untitled: '未命名',
 		untitledTab: '未命名 {{index}}',
+		empty: {
+			title: '记事本',
+			description: '创建新文件或打开现有文件以开始。',
+			newFile: '新建文件',
+			openFile: '打开文件',
+		},
 		languages: {
 			markdown: 'Markdown',
 			javascript: 'JavaScript',

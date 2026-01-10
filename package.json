@@ -1,6 +1,6 @@
 {
       "name": "aurora-os-js",
-      "version": "0.8.2",
+      "version": "0.8.3",
       "private": true,
       "type": "module",
       "author": "Cătălin-Robert Drăgoiu",
@@ -120,6 +120,7 @@
             "tailwindcss": "^4.1.17",
             "tailwindcss-animate": "^1.0.7",
             "terser": "^5.44.1",
+            "tsx": "^4.21.0",
             "typescript": "^5.9.3",
             "typescript-eslint": "^8.52.0",
             "vite": "^7.3.0",
@@ -135,7 +136,11 @@
             "ts:electron": "tsc -p tsconfig.electron.json",
             "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev\" \"wait-on http://localhost:3000 && npm run ts:electron && cross-env VITE_DEV_SERVER_URL=http://localhost:3000 electron .\"",
             "electron:build": "npm run build && npm run ts:electron && electron-builder",
-            "test": "vitest"
+            "test": "vitest",
+            "translations:generate": "tsx scripts/ts-to-json.ts",
+            "translations:validate": "tsx scripts/validate-translations.ts",
+            "translations:build": "npm run translations:validate && tsx scripts/json-to-ts.ts",
+            "translations:build:changed": "npm run translations:validate && tsx scripts/json-to-ts.ts --changed"
       },
       "build": {
             "appId": "com.auroraos.app",
@@ -166,7 +171,8 @@
                   "es",
                   "fr",
                   "pt",
-                  "ro"
+                  "ro",
+                  "zh"
             ]
       },
       "overrides": {

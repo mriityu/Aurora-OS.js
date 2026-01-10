@@ -2,14 +2,14 @@ import { useState, useRef } from 'react';
 import pkg from '../../../package.json';
 
 import { Terminal, Code, Cpu, Activity, PartyPopper, Bell, Volume2, HardDrive, FileJson, RefreshCw, Trash2, Download, Upload, XCircle, ChevronRight, ChevronDown, Copy } from 'lucide-react';
-import { AppTemplate } from './AppTemplate';
-import { GlassButton } from '../ui/GlassButton';
-import { EmptyState } from '../ui/empty-state';
-import { notify } from '../../services/notifications';
-import { feedback } from '../../services/soundFeedback';
-import { getStorageStats, formatBytes } from '../../utils/memory';
-import { useFileSystem } from '../../components/FileSystemContext';
-import { useI18n } from '../../i18n/index';
+import { AppTemplate } from '@/components/apps/AppTemplate';
+import { GlassButton } from '@/components/ui/GlassButton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { notify } from '@/services/notifications';
+import { feedback } from '@/services/soundFeedback';
+import { getStorageStats, formatBytes } from '@/utils/memory';
+import { useFileSystem } from '@/components/FileSystemContext';
+import { useI18n } from '@/i18n/index';
 
 export function DevCenter() {
     const { fileSystem, resetFileSystem } = useFileSystem();
@@ -74,7 +74,7 @@ export function DevCenter() {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            notify.system('success', t('devCenter.storage.toastTitle'), t('devCenter.storage.exportSuccess'));
+            notify.system('success', t('devCenter.storage.toastTitle'), t('devCenter.storage.exportSuccess'), t('notifications.subtitles.export'));
         } catch {
             notify.system('error', t('devCenter.storage.toastTitle'), t('devCenter.storage.exportFail'));
         }
@@ -97,9 +97,9 @@ export function DevCenter() {
                     localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
                 });
                 refreshStorage();
-                notify.system('success', t('devCenter.storage.toastTitle'), t('devCenter.storage.importSuccess'));
+                notify.system('success', t('devCenter.storage.toastTitle'), t('devCenter.storage.importSuccess'), t('notifications.subtitles.import'));
             } catch {
-                notify.system('error', t('devCenter.storage.toastTitle'), t('devCenter.storage.importFail'));
+                notify.system('error', t('devCenter.storage.toastTitle'), t('devCenter.storage.importFailed'), t('notifications.subtitles.import'));
             }
         };
         reader.readAsText(file);
@@ -111,7 +111,7 @@ export function DevCenter() {
         if (confirm(t('devCenter.storage.clearConfirm'))) {
             localStorage.clear();
             refreshStorage();
-            notify.system('success', t('devCenter.storage.toastTitle'), t('devCenter.storage.clearSuccess'));
+            notify.system('success', t('devCenter.storage.toastTitle'), t('devCenter.storage.clearSuccess'), t('notifications.subtitles.success'));
         }
     };
 
@@ -392,7 +392,7 @@ export function DevCenter() {
     );
 }
 
-import { AppMenuConfig } from '../../types';
+import { AppMenuConfig } from '@/types';
 
 export const devCenterMenuConfig: AppMenuConfig = {
     menus: ['File', 'Edit', 'View', 'Tools', 'Window', 'Help'],
