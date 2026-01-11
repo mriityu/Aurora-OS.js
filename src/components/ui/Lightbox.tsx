@@ -5,7 +5,7 @@ import { Photo } from '@/components/PhotosContext';
 import { Dialog, DialogPortal, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/components/ui/utils';
 import { useThemeColors } from '@/hooks/useThemeColors';
-import { isValidImageUrl } from '@/utils/urlUtils';
+import { getSafeImageUrl } from '@/utils/urlUtils';
 
 interface LightboxProps {
     photo: Photo;
@@ -115,7 +115,7 @@ export function Lightbox({ photo, onClose, onToggleFavorite }: LightboxProps) {
                             }}
                         >
                             <img
-                                src={isValidImageUrl(photo.url) ? photo.url : ''}
+                                src={getSafeImageUrl(photo.url) || ''}
                                 alt={photo.name}
                                 draggable={false}
                                 className="max-w-[85vw] max-h-[85vh] rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] object-contain transition-shadow duration-300"

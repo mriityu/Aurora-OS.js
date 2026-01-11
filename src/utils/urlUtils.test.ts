@@ -1,59 +1,66 @@
 import { describe, it, expect } from 'vitest';
-import { isValidImageUrl } from './urlUtils';
+import { getSafeImageUrl, isValidImageUrl } from './urlUtils';
 
-describe('isValidImageUrl', () => {
-  it('should allow valid http/https URLs', () => {
-    expect(isValidImageUrl('https://example.com/image.png')).toBe(true);
-    expect(isValidImageUrl('http://example.com/image.jpg')).toBe(true);
+describe('getSafeImageUrl', () => {
+  it('should return sanitized URL for valid http/https', () => {
+    expect(getSafeImageUrl('https://example.com/image.png')).toBe('https://example.com/image.png');
+    expect(getSafeImageUrl('http://example.com/image.jpg')).toBe('http://example.com/image.jpg');
   });
 
-  it('should allow valid data URIs', () => {
-    expect(isValidImageUrl('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==')).toBe(true);
+  it('should return sanitized URL for valid data URIs', () => {
+    const dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    expect(getSafeImageUrl(dataUrl)).toBe(dataUrl);
   });
 
-  it('should allow valid relative paths', () => {
-    expect(isValidImageUrl('/home/user/images/photo.jpg')).toBe(true);
-    expect(isValidImageUrl('./assets/logo.png')).toBe(true);
-    expect(isValidImageUrl('../shared/background.png')).toBe(true);
-    expect(isValidImageUrl('assets/image.png')).toBe(true);
+  it('should return sanitized URL for valid relative paths', () => {
+    expect(getSafeImageUrl('/home/user/images/photo.jpg')).toBe('/home/user/images/photo.jpg');
+    expect(getSafeImageUrl('./assets/logo.png')).toBe('./assets/logo.png');
+    expect(getSafeImageUrl('../shared/background.png')).toBe('../shared/background.png');
+    expect(getSafeImageUrl('assets/image.png')).toBe('assets/image.png');
   });
 
-  it('should block javascript: protocol', () => {
-    expect(isValidImageUrl('javascript:alert(1)')).toBe(false);
-    expect(isValidImageUrl('JAVASCRIPT:alert(1)')).toBe(false);
+  it('should return null for javascript: protocol', () => {
+    expect(getSafeImageUrl('javascript:alert(1)')).toBe(null);
+    expect(getSafeImageUrl('JAVASCRIPT:alert(1)')).toBe(null);
     // Control characters check
-    expect(isValidImageUrl('java\0script:alert(1)')).toBe(false);
-    expect(isValidImageUrl('java\x1Fscript:alert(1)')).toBe(false);
+    expect(getSafeImageUrl('java\0script:alert(1)')).toBe(null);
+    expect(getSafeImageUrl('java\x1Fscript:alert(1)')).toBe(null);
   });
 
-  it('should block vbscript: protocol', () => {
-    expect(isValidImageUrl('vbscript:msgbox "hello"')).toBe(false);
+  it('should return null for vbscript: protocol', () => {
+    expect(getSafeImageUrl('vbscript:msgbox "hello"')).toBe(null);
   });
 
-  it('should block data: protocol if not parsed correctly or malicious look-alike', () => {
-    // Malformed data URI that might be treated as script by some older browsers/contexts
-    // In our logic, if it parses as URL, data: is allowed. 
-    // If it doesn't parse, we fallback.
-    // Let's test a case that clearly fails URL parsing but has 'data:'
-    expect(isValidImageUrl('data:text/html,<script>alert(1)</script>')).toBe(true); 
-    // Wait, technically data: IS allowed by our logic if it parses. 
-    // CodeQL warning was about "Incomplete URL scheme check". 
-    // The sink is <img src>, so data:text/html technically won't execute XSS in an IMG tag in modern browsers,
-    // but it's good practice to be careful. 
-    // However, our requirement allows 'data:' protocol. 
-    // So 'data:text/html...' is VALID by protocol, though useless for an image.
+  it('should allow data: protocol if parsed correctly', () => {
+    // Note: Our logic allows data: if it parses as URL.
+    expect(getSafeImageUrl('data:text/html,<script>alert(1)</script>')).toBe('data:text/html,<script>alert(1)</script>');
   });
 
-  it('should block arbitrary schemes', () => {
-    expect(isValidImageUrl('malicious:payload')).toBe(false);
+  it('should return null for arbitrary schemes', () => {
+    expect(getSafeImageUrl('malicious:payload')).toBe(null);
   });
 
-  it('should block strings with colons that are not valid URLs and look like schemas', () => {
-    expect(isValidImageUrl('weird:entry')).toBe(false);
+  it('should return null for strings with colons that are not valid URLs and look like schemas', () => {
+    expect(getSafeImageUrl('weird:entry')).toBe(null);
   });
 
   it('should allow simple filenames', () => {
-    expect(isValidImageUrl('photo.jpg')).toBe(true);
-    expect(isValidImageUrl('my_image.png')).toBe(true);
+    expect(getSafeImageUrl('photo.jpg')).toBe('photo.jpg');
+    expect(getSafeImageUrl('my_image.png')).toBe('my_image.png');
+  });
+
+  it('should return null for null/undefined input', () => {
+    expect(getSafeImageUrl(null)).toBe(null);
+    expect(getSafeImageUrl(undefined)).toBe(null);
+  });
+});
+
+describe('isValidImageUrl (Legacy)', () => {
+  it('should return true for valid URLs', () => {
+    expect(isValidImageUrl('https://example.com/image.png')).toBe(true);
+  });
+  
+  it('should return false for malicious URLs', () => {
+    expect(isValidImageUrl('javascript:alert(1)')).toBe(false);
   });
 });
