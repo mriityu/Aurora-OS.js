@@ -50,6 +50,17 @@
     - **Realism**: Global mute (`Howler.mute(true)`) silences the system without stopping background processes (e.g., music keep "playing" silently).
     - **Binary Metadata**: Custom ID3 parser (`src/utils/id3Parser.ts`) extracts professional tags (TIT2, TPE1, TALB) from MP3 files.
     - **Asset Fetching**: Metadata resolution for local assets uses `fetch` with `Range: bytes=0-512KB` to efficiently read headers without full downloads.
+
+7.  **System Initialization**:
+    - **Timestamp**: `STORAGE_KEYS.INSTALL_DATE` is set upon Onboarding completion to mark the exact "System Install Time".
+    - **Usage**: Used by Calendar for historical accuracy of the "Loop Started" event.
+    </architecture_mechanics>
+
+8.  **Simulated Cloud Services**:
+    -   **Pattern**: Services (e.g., `MailService`) act as "Cloud" backends, separate from the local VFS.
+    -   **Persistence**: They independently use `localStorage` (e.g., `trustmail-db`) to persist state across sessions/reloads.
+    -   **Interface**: Apps interact with them via static Service classes. Apps then "cache" this data locally (e.g., in `mail.json`) to simulate local state syncing.
+    -   **Gameplay**: This separation exists to support gameplay mechanics like "Offline Mode" or "Hacking", where the local file (`mail.json`) might be out of sync or contain vulnerable plain-text secrets like `recoverySecret`.
     </architecture_mechanics>
 
 <critical_rules>

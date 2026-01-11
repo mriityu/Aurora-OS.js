@@ -670,6 +670,8 @@ export const pt: TranslationDict = {
       archive: 'Arquivar',
       unarchive: 'Desarquivar',
       delete: 'Excluir',
+      restore: 'Restaurar',
+      deleteForever: 'Excluir permanentemente',
     },
     time: {
       minutesAgo: 'há {{minutes}}m',

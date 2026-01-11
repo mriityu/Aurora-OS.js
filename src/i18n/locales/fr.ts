@@ -731,6 +731,8 @@ export const fr: TranslationDict = {
       archive: 'Archiver',
       unarchive: 'Désarchiver',
       delete: 'Supprimer',
+      restore: 'Restaurer',
+      deleteForever: 'Supprimer définitivement',
     },
     time: {
       minutesAgo: 'il y a {{minutes}} min',

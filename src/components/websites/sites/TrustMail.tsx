@@ -2,55 +2,26 @@
  * TrustMail - Fake email service website
  * Potential use: Phishing scenarios, credential harvesting, social engineering
  */
-import { encodePassword } from "../../../utils/authUtils";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { WebsiteHeader, WebsiteLayout, WebsiteContainer, WebsiteProps } from '@/components/websites';
 import { Mail, Lock, User, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
-import { useFileSystem } from '@/components/FileSystemContext';
+import { MailService } from '@/services/MailService';
+import { Email } from '@/components/apps/Mail';
 
-export function TrustMail({ owner }: WebsiteProps) {
-    const [page, setPage] = useState<'home' | 'signup' | 'success' | 'exists'>('home');
+export function TrustMail(_props: WebsiteProps) {
+    const [page, setPage] = useState<'home' | 'signup' | 'success' | 'recover'>('home');
     const [formData, setFormData] = useState({ email: '', password: '', confirmPassword: '' });
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [existingEmail, setExistingEmail] = useState('');
+    
+    // Recovery State
+    const [recoverySecret, setRecoverySecret] = useState('');
+    const [recoveredPassword, setRecoveredPassword] = useState<string | null>(null);
 
-    const { createFile, readFile, createDirectory, homePath: userHome, currentUser: activeUser } = useFileSystem();
-
-    // Effective user for account ownership (supports sudo browser)
-    const effectiveUser = owner || activeUser || 'guest';
-    const configDir = `${userHome}/.Config`;
-    const mailConfigPath = `${configDir}/mail.json`;
-
-    // Check if mail.json already exists in filesystem
-    const hasExistingAccount = () => {
-        const mailConfig = readFile(mailConfigPath, effectiveUser);
-        return !!mailConfig;
-    };
-
-    // Get the email from existing mail.json
-    const getExistingEmail = () => {
-        const mailConfig = readFile(mailConfigPath, effectiveUser);
-        if (!mailConfig) return '';
-
-        try {
-            const config = JSON.parse(mailConfig);
-            return config.email || '';
-        } catch {
-            return '';
-        }
-    };
-
-    // Check on mount if account exists
-    useEffect(() => {
-        if (hasExistingAccount() && page === 'home') {
-            setExistingEmail(getExistingEmail());
-            setPage('exists');
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    // Multi-account support: We no longer restrict 1 account per user.
+    // Logic for "hasExistingAccount" is removed to allow infinite accounts.
 
     const handleSignUp = (e: React.FormEvent) => {
         e.preventDefault();
@@ -88,73 +59,62 @@ export function TrustMail({ owner }: WebsiteProps) {
             // Use the username directly to create email with @trustmail.com domain
             const trustmailEmail = `${formData.email}@trustmail.com`;
 
-            // Check if account already exists in filesystem
-            if (hasExistingAccount()) {
-                setLoading(false);
-                setError('An account already exists for this user');
-                return;
-            }
-
             try {
-                // Ensure .Config directory exists
-                createDirectory(userHome, '.Config', effectiveUser || undefined);
+                // 1. Create account in Cloud Service
+                
+                const result = MailService.createAccount(trustmailEmail, formData.password);
 
-                // 1. Create mail.json with credentials
-                const mailConfig = {
-                    email: trustmailEmail,
-                    password: encodePassword(formData.password),
-                    provider: 'trustmail',
-                    createdAt: new Date().toISOString()
-                };
+                if (result.success && result.secret) {
+                   // 2. Initialize inbox with welcome emails
+                   const welcomeEmails: Email[] = [
+                        {
+                            id: "welcome-1",
+                            from: "TrustMail Team",
+                            fromEmail: "support@trustmail.com",
+                            subject: "Welcome to TrustMail!",
+                            body: `Hello,\n\nWelcome to TrustMail! We're excited to have you on board.\n\nYour account has been successfully created and is ready to use. With TrustMail, you get:\n\n- **Advanced Security:** End-to-end encryption for all your messages\n- **Unlimited Storage:** Never worry about running out of space\n- **Fast Performance:** Lightning-quick email delivery\n- **24/7 Support:** Our team is always here to help\n\nIf you have any questions or need assistance, feel free to contact our support team at support@trustmail.com.\n\nBest regards,\nThe TrustMail Team`,
+                            timestamp: new Date(),
+                            read: false,
+                            starred: false,
+                            archived: false,
+                            deleted: false,
+                        },
+                        {
+                            id: "job-offer-1",
+                            from: "Recruiting Team",
+                            fromEmail: "careers@trustmail.com",
+                            subject: "Exciting Job Opportunity - Senior Software Engineer",
+                            body: `Hi there,\n\nWe hope you're doing well! We're reaching out because we believe you might be a great fit for an exciting opportunity at our company.\n\n**Position:** Senior Software Engineer\n**Department:** Engineering\n**Location:** Remote\n\nWe're looking for experienced developers who are passionate about building world-class software. This is a fantastic opportunity to work with cutting-edge technologies and collaborate with a talented team.\n\n**What we're looking for:**\n- 5+ years of software development experience\n- Strong proficiency in modern programming languages\n- Experience with cloud technologies (AWS, GCP, or Azure)\n- Excellent problem-solving skills\n- Team player with strong communication\n\n**What we offer:**\n- Competitive salary and benefits package\n- Remote work flexibility\n- Professional development opportunities\n- Collaborative and inclusive work environment\n\nPlease see the attached job description for more details. If you're interested, please reply to this email or visit our careers page.\n\nLooking forward to hearing from you!\n\nBest regards,\nThe Recruiting Team`,
+                            timestamp: new Date(Date.now() - 3600000),
+                            read: false,
+                            starred: false,
+                            archived: false,
+                            deleted: false,
+                            attachments: [
+                                {
+                                    id: "job-desc-1",
+                                    name: "Job_Description_Senior_Engineer.txt",
+                                    size: 4500,
+                                    type: "application/text",
+                                    content: `JOB DESCRIPTION - Senior Software Engineer\n\nCOMPANY: TrustMail Inc.\nPOSITION: Senior Software Engineer\nDEPARTMENT: Engineering\nLOCATION: Remote\nSALARY RANGE: $150,000 - $200,000 per year\n\nABOUT US:\nWe are a leading email and communication platform serving millions of users worldwide. Our mission is to provide secure, reliable, and user-friendly communication tools.\n\nRESPONSIBILITIES:\n- Design and develop scalable backend services\n- Lead code reviews and mentor junior developers\n- Collaborate with product and design teams\n- Optimize system performance and reliability\n- Contribute to architectural decisions\n\nREQUIRED SKILLS:\n- 5+ years of professional software development experience\n- Strong knowledge of data structures and algorithms\n- Experience with distributed systems\n- Proficiency in multiple programming languages\n- Understanding of security best practices\n- Experience with CI/CD pipelines\n\nNICE TO HAVE:\n- Experience with machine learning applications\n- Knowledge of cryptography\n- Open source contributions\n- Experience with Kubernetes\n\nBENEFITS:\n- Health, dental, and vision insurance\n- 401(k) matching\n- Unlimited PTO\n- Home office setup budget\n- Professional development budget\n- Stock options\n\nAPPLICATION PROCESS:\nPlease submit your resume and a cover letter explaining why you're interested in this position. We review applications on a rolling basis.\n\nContact: careers@trustmail.com`,
+                                },
+                            ],
+                        },
+                   ];
 
-                createFile(configDir, 'mail.json', JSON.stringify(mailConfig, null, 2), effectiveUser || undefined);
+                   MailService.addEmails(trustmailEmail, welcomeEmails);
 
-                // 2. Initialize inbox.json with welcome emails
-                const welcomeEmails = [
-                    {
-                        id: "welcome-1",
-                        from: "TrustMail Team",
-                        fromEmail: "support@trustmail.com",
-                        subject: "Welcome to TrustMail!",
-                        body: `Hello,\n\nWelcome to TrustMail! We're excited to have you on board.\n\nYour account has been successfully created and is ready to use. With TrustMail, you get:\n\n- **Advanced Security:** End-to-end encryption for all your messages\n- **Unlimited Storage:** Never worry about running out of space\n- **Fast Performance:** Lightning-quick email delivery\n- **24/7 Support:** Our team is always here to help\n\nIf you have any questions or need assistance, feel free to contact our support team at support@trustmail.com.\n\nBest regards,\nThe TrustMail Team`,
-                        timestamp: new Date(),
-                        read: false,
-                        starred: false,
-                        archived: false,
-                        deleted: false,
-                    },
-                    {
-                        id: "job-offer-1",
-                        from: "Recruiting Team",
-                        fromEmail: "careers@trustmail.com",
-                        subject: "Exciting Job Opportunity - Senior Software Engineer",
-                        body: `Hi there,\n\nWe hope you're doing well! We're reaching out because we believe you might be a great fit for an exciting opportunity at our company.\n\n**Position:** Senior Software Engineer\n**Department:** Engineering\n**Location:** Remote\n\nWe're looking for experienced developers who are passionate about building world-class software. This is a fantastic opportunity to work with cutting-edge technologies and collaborate with a talented team.\n\n**What we're looking for:**\n- 5+ years of software development experience\n- Strong proficiency in modern programming languages\n- Experience with cloud technologies (AWS, GCP, or Azure)\n- Excellent problem-solving skills\n- Team player with strong communication\n\n**What we offer:**\n- Competitive salary and benefits package\n- Remote work flexibility\n- Professional development opportunities\n- Collaborative and inclusive work environment\n\nPlease see the attached job description for more details. If you're interested, please reply to this email or visit our careers page.\n\nLooking forward to hearing from you!\n\nBest regards,\nThe Recruiting Team`,
-                        timestamp: new Date(Date.now() - 3600000),
-                        read: false,
-                        starred: false,
-                        archived: false,
-                        deleted: false,
-                        attachments: [
-                            {
-                                id: "job-desc-1",
-                                name: "Job_Description_Senior_Engineer.txt",
-                                size: 4500,
-                                type: "application/text",
-                                content: `JOB DESCRIPTION - Senior Software Engineer\n\nCOMPANY: TrustMail Inc.\nPOSITION: Senior Software Engineer\nDEPARTMENT: Engineering\nLOCATION: Remote\nSALARY RANGE: $150,000 - $200,000 per year\n\nABOUT US:\nWe are a leading email and communication platform serving millions of users worldwide. Our mission is to provide secure, reliable, and user-friendly communication tools.\n\nRESPONSIBILITIES:\n- Design and develop scalable backend services\n- Lead code reviews and mentor junior developers\n- Collaborate with product and design teams\n- Optimize system performance and reliability\n- Contribute to architectural decisions\n\nREQUIRED SKILLS:\n- 5+ years of professional software development experience\n- Strong knowledge of data structures and algorithms\n- Experience with distributed systems\n- Proficiency in multiple programming languages\n- Understanding of security best practices\n- Experience with CI/CD pipelines\n\nNICE TO HAVE:\n- Experience with machine learning applications\n- Knowledge of cryptography\n- Open source contributions\n- Experience with Kubernetes\n\nBENEFITS:\n- Health, dental, and vision insurance\n- 401(k) matching\n- Unlimited PTO\n- Home office setup budget\n- Professional development budget\n- Stock options\n\nAPPLICATION PROCESS:\nPlease submit your resume and a cover letter explaining why you're interested in this position. We review applications on a rolling basis.\n\nContact: careers@trustmail.com`,
-                            },
-                        ],
-                    },
-                ];
+                   // Store the created email AND secret for display
+                   setFormData(prev => ({ ...prev, email: trustmailEmail, secret: result.secret }));
 
-                createFile(configDir, 'inbox.json', JSON.stringify({ emails: welcomeEmails }, null, 2), effectiveUser || undefined);
-
-                // Store the created email for display
-                setFormData(prev => ({ ...prev, email: trustmailEmail }));
-
-                setLoading(false);
-                setPage('success');
+                   setLoading(false);
+                   setPage('success');
+                } else {
+                    setError("Failed to create account. User might already exist.");
+                    setLoading(false);
+                }
             } catch (err) {
-                console.error("Failed to create account in filesystem:", err);
+                console.error("Failed to create account:", err);
                 setError("Failed to create account. Please try again.");
                 setLoading(false);
             }
@@ -167,55 +127,7 @@ export function TrustMail({ owner }: WebsiteProps) {
         setError('');
     };
 
-    // Already created account page
-    if (page === 'exists') {
-        return (
-            <WebsiteLayout bg="bg-gradient-to-br from-green-50 via-white to-emerald-50">
-                <WebsiteHeader
-                    bg="bg-white"
-                    logo={
-                        <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                                <Mail className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                                <div className="text-xl font-bold text-gray-900">TrustMail</div>
-                                <div className="text-xs text-gray-500">Secure email service</div>
-                            </div>
-                        </div>
-                    }
-                />
 
-                <WebsiteContainer size="md" className="min-h-[calc(100vh-80px)] flex items-center">
-                    <div className="w-full max-w-md mx-auto text-center">
-                        <div className="bg-white rounded-2xl shadow-2xl p-12">
-                            <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <AlertCircle className="w-10 h-10 text-yellow-600" />
-                            </div>
-
-                            <h1 className="text-2xl font-bold text-gray-900 mb-4">Account Already Created</h1>
-
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
-                                <p className="text-sm text-gray-600 mb-2">Your registered email:</p>
-                                <p className="text-lg font-semibold text-gray-900">{existingEmail}</p>
-                            </div>
-
-                            <p className="text-gray-600 mb-8">
-                                You have already created a TrustMail account. One account per user is allowed. Use the credentials from your existing account to log into the Mail application.
-                            </p>
-
-                            <button
-                                onClick={() => setPage('home')}
-                                className="w-full px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
-                            >
-                                Back to Home
-                            </button>
-                        </div>
-                    </div>
-                </WebsiteContainer>
-            </WebsiteLayout>
-        );
-    }
 
     // Home Page
     if (page === 'home') {
@@ -290,15 +202,117 @@ export function TrustMail({ owner }: WebsiteProps) {
                                     Create Account
                                 </button>
 
-                                <div className="text-center">
+                                <div className="text-center space-y-2">
                                     <p className="text-sm text-gray-600">
-                                        Have an account?{' '}
-                                        <button className="text-green-600 hover:text-green-700 font-medium">
-                                            Sign In
+                                        <button 
+                                            onClick={() => setPage('recover')}
+                                            className="text-green-600 hover:text-green-700 font-medium"
+                                        >
+                                            Recover Account
                                         </button>
                                     </p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </WebsiteContainer>
+            </WebsiteLayout>
+        );
+    }
+
+    // Recover Page
+    if (page === 'recover') {
+        const handleRecovery = (e: React.FormEvent) => {
+            e.preventDefault();
+            const password = MailService.recoverPassword(recoverySecret);
+            if (password) {
+                setRecoveredPassword(password);
+                setError('');
+            } else {
+                setError('Invalid recovery secret.');
+                setRecoveredPassword(null);
+            }
+        };
+
+        return (
+            <WebsiteLayout bg="bg-gradient-to-br from-green-50 via-white to-emerald-50">
+                <WebsiteHeader
+                    bg="bg-white"
+                    logo={
+                        <div className="flex items-center gap-2">
+                            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                                <Mail className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <div className="text-xl font-bold text-gray-900">TrustMail</div>
+                                <div className="text-xs text-gray-500">Secure email service</div>
+                            </div>
+                        </div>
+                    }
+                />
+
+                <WebsiteContainer size="md" className="min-h-[calc(100vh-80px)] flex items-center">
+                    <div className="w-full max-w-md mx-auto">
+                         <div className="bg-white rounded-2xl shadow-2xl p-8">
+                            <div className="text-center mb-8">
+                                <h2 className="text-2xl font-bold text-gray-900">Account Recovery</h2>
+                                <p className="text-gray-500">Enter your secret key to verify identity</p>
+                            </div>
+
+                            <form onSubmit={handleRecovery} className="space-y-4">
+                                {error && (
+                                    <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4" />
+                                        {error}
+                                    </div>
+                                )}
+
+                                 {recoveredPassword ? (
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                                        <p className="text-sm text-green-800 mb-1 font-medium">Identity Verified</p>
+                                        <p className="text-xs text-green-600 mb-2">Your password is:</p>
+                                        <p className="font-mono font-bold text-lg select-all bg-white p-2 rounded border border-green-100">
+                                            {recoveredPassword}
+                                        </p>
+                                    </div>
+                                 ) : (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Recovery Secret
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={recoverySecret}
+                                            onChange={(e) => setRecoverySecret(e.target.value)}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all"
+                                            placeholder="e.g. x8d9-2kd9-..."
+                                        />
+                                    </div>
+                                 )}
+
+                                {!recoveredPassword && (
+                                    <button
+                                        type="submit"
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-xl transition-all mt-2"
+                                    >
+                                        Verify Secret
+                                    </button>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setPage('home');
+                                        setRecoveredPassword(null);
+                                        setRecoverySecret('');
+                                        setError('');
+                                    }}
+                                    className="w-full text-gray-500 text-sm hover:text-gray-700 mt-4 text-center block"
+                                >
+                                    Back to Home
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </WebsiteContainer>
@@ -476,6 +490,18 @@ export function TrustMail({ owner }: WebsiteProps) {
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8">
                             <p className="text-sm text-gray-600 mb-2">Your email address:</p>
                             <p className="text-lg font-semibold text-gray-900 break-all">{formData.email}</p>
+                            
+                            {/* NEW: Secret Display */}
+                            <div className="mt-4 pt-4 border-t border-green-200">
+                                <p className="text-sm text-red-600 font-bold mb-2">SECRET RECOVERY KEY</p>
+                                <p className="font-mono text-sm bg-white p-2 rounded border border-green-200 select-all break-all">
+                                    {/* @ts-expect-error dynamic prop */}
+                                    {formData.secret}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-2">
+                                    Save this secret! You can use it to recover your password if you forget it.
+                                </p>
+                            </div>
                         </div>
 
                         <p className="text-gray-600 mb-8">

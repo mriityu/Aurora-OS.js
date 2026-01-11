@@ -121,6 +121,13 @@ Or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
 
 - **Photos App**: Full-featured gallery with albums, favorites, lightbox, and background library scanning.
 - **Mock Content**: Initial set of high-quality mock images seeded to `~/Pictures`.
+- **Simulated Cloud Services**: Added initial support for simulated cloud services (e.g., TrustMail accounts DB).
+- **TrustMail**: Added Account Recovery system with secret key generation and storage.
+
+### Removed
+
+- **TrustMail and Mail**: Dependency on local inbox and outbox.
+- **TrustMail**: Removed single-account limitation (multi-account support).
 
 ### Improved
 
@@ -132,6 +139,7 @@ Or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
 - **Calendar first event**: aka. "Loop Started" event is now set to follow the onboarding complition time.
 - **Time source**: now influence Calendar app (local time vs. server time).
 - **Modals**: such as "Open File" or "Create/Edit Event" blurs the background.
+- **Main Services & Mail**: Trash functionality and permanent deletion.
 
 ### Fixed
 

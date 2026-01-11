@@ -33,6 +33,7 @@ export const STORAGE_KEYS = {
     TRUSTMAIL_ACCOUNTS: 'trustmail_accounts', // Database of created accounts
     TRUSTMAIL_CURRENT: 'global_mail_account', // Currently logged in user for the website
     GLOBAL_MAILBOX: 'global_mailbox', // Legacy mailbox backup
+    MAIL_SERVER_DB: 'aurora_mail_server_db', // Simulated Cloud Mail Server DB
 } as const;
 
 const MEMORY_CONFIG = {
@@ -63,7 +64,8 @@ const MEMORY_CONFIG = {
             STORAGE_KEYS.VERSION,
             STORAGE_KEYS.INSTALLED_APPS,
             STORAGE_KEYS.TRUSTMAIL_ACCOUNTS, // Account DB is "hard"
-            STORAGE_KEYS.GLOBAL_MAILBOX // Legacy data is "hard"
+            STORAGE_KEYS.GLOBAL_MAILBOX, // Legacy data is "hard"
+            STORAGE_KEYS.MAIL_SERVER_DB // Simulated Cloud DB
         ] as string[],
         prefixes: [] // Future proofing
     }

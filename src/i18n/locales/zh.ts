@@ -671,6 +671,8 @@ export const zh: TranslationDict = {
 			archive: '归档',
 			unarchive: '取消归档',
 			delete: '删除',
+			restore: '恢复',
+			deleteForever: '永久删除',
 		},
 		time: {
 			minutesAgo: '{{minutes}} 分钟前',

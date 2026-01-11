@@ -728,6 +728,8 @@ export const ro: TranslationDict = {
             archive: 'Arhivează',
             unarchive: 'Dezarhivează',
             delete: 'Șterge',
+            restore: 'Restaurează',
+            deleteForever: 'Șterge Definitiv',
         },
         time: {
             minutesAgo: 'acum {{minutes}}m',

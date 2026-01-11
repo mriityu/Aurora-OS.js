@@ -56,6 +56,13 @@
     - **Usage**: Used by Calendar for historical accuracy of the "Loop Started" event.
     </architecture_mechanics>
 
+8.  **Simulated Cloud Services**:
+    -   **Pattern**: Services (e.g., `MailService`) act as "Cloud" backends, separate from the local VFS.
+    -   **Persistence**: They independently use `localStorage` (e.g., `trustmail-db`) to persist state across sessions/reloads.
+    -   **Interface**: Apps interact with them via static Service classes. Apps then "cache" this data locally (e.g., in `mail.json`) to simulate local state syncing.
+    -   **Gameplay**: This separation exists to support gameplay mechanics like "Offline Mode" or "Hacking", where the local file (`mail.json`) might be out of sync or contain vulnerable plain-text secrets like `recoverySecret`.
+    </architecture_mechanics>
+
 <critical_rules>
 
 - **FS Integrity**: ALWAYS use `createFile`, `writeFile`, `deleteNode` from `useFileSystem`.

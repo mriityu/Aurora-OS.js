@@ -1,6 +1,6 @@
 //Lets slowly move towards alias paths (@) for imports
 import { AppTemplate } from "@/components/apps/AppTemplate";
-import { Inbox, Trash2, Archive, Star, Search, Reply, Forward, Paperclip, Download, Eye, EyeOff, LogOut } from "lucide-react";
+import { Inbox, Trash2, Archive, Star, Search, Reply, Forward, Paperclip, Download, Eye, EyeOff, LogOut, RotateCcw } from "lucide-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAppContext } from "@/components/AppContext";
 import { useSessionStorage } from "@/hooks/useSessionStorage.ts";
@@ -10,11 +10,12 @@ import { GlassButton } from "@/components/ui/GlassButton";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useI18n } from "@/i18n";
-import { decodePassword } from "@/utils/authUtils";
+import { decodePassword, encodePassword } from "@/utils/authUtils";
 import { useFileSystem } from "@/components/FileSystemContext";
 import { notify } from "@/services/notifications";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { AppMenuConfig } from "@/types.ts";
+import { MailService } from "@/services/MailService";
 
 export interface EmailAttachment {
   id: string;
@@ -108,7 +109,6 @@ export function Mail({ owner }: { owner?: string }) {
   // File System Paths - File Authority
   const configDir = `${userHome}/.Config`;
   const mailConfigPath = `${configDir}/mail.json`;
-  const inboxPath = `${configDir}/inbox.json`;
 
   // Authentication state (Session)
   const [sessionUser, setSessionUser] = useSessionStorage<string | null>(
@@ -143,8 +143,14 @@ export function Mail({ owner }: { owner?: string }) {
       if (mailConfigContent) {
         try {
           const config = JSON.parse(mailConfigContent);
-          if (config.email) {
+          // Try to decode password for service login
+          const decryptedPassword = decodePassword(config.password);
+          
+          if (config.email && MailService.login(config.email, decryptedPassword)) {
             setSessionUser(config.email);
+            // Fetch emails immediately after auto-login
+            const emails = MailService.getEmails(config.email);
+            setStoredEmails(emails); // Initialize state
             setAuthLoading(false);
             return;
           }
@@ -170,26 +176,18 @@ export function Mail({ owner }: { owner?: string }) {
   const loadEmails = useCallback(() => {
     if (!sessionUser) return;
 
-    // 1. Try reading from .Config/inbox.json
-    const inboxContent = readFile(inboxPath, activeUser);
-    if (inboxContent) {
-      try {
-        const data = JSON.parse(inboxContent);
-        if (Array.isArray(data.emails)) {
-          setStoredEmails(data.emails);
-          if (data.emails.length > 0) {
-            setSelectedEmailId(curr => curr || data.emails[0].id);
-          }
-          return;
-        }
-      } catch (e) {
-        console.error("Failed to parse inbox.json", e);
-      }
+    // 1. Fetch from Mail Service (Cloud)
+    const emails = MailService.getEmails(sessionUser);
+    setStoredEmails(emails);
+    if (emails.length > 0 && !selectedEmailId) {
+       setSelectedEmailId(emails[0].id);
     }
+    
+    // Legacy support: We could merge with local inbox.json if we wanted, 
+    // but MailService is the Single Source of Truth now.
+    // We can ignore inbox.json reading here.
 
-    // 3. Empty state
-    setStoredEmails([]);
-  }, [sessionUser, readFile, inboxPath, activeUser]);
+  }, [sessionUser, selectedEmailId]);
 
   // Load emails when user changes or mounts
   useEffect(() => {
@@ -197,30 +195,17 @@ export function Mail({ owner }: { owner?: string }) {
     loadEmails();
   }, [loadEmails]);
 
-  // --- Data Saving Logic ---
-  // Any change to storedEmails should ideally persist to disk.
-  // We use a useEffect with a small debounce or direct write could work.
-  // Given this is a local simulator, direct write on change is fine for now.
-  const persistEmails = useCallback((emailsToSave: Email[]) => {
+  // --- Data Persistence Logic ---
+  const updateEmailState = (emailId: string, updates: Partial<Email>) => {
     if (!sessionUser) return;
 
-    // Ensure dir exists
-    createDirectory(userHome, '.Config', activeUser);
+    // 1. Optimistic UI Update
+    setStoredEmails(prev => prev.map(email => 
+      email.id === emailId ? { ...email, ...updates } : email
+    ));
 
-    const data = {
-      emails: emailsToSave,
-      updatedAt: new Date().toISOString()
-    };
-
-    writeFile(inboxPath, JSON.stringify(data, null, 2), activeUser);
-  }, [sessionUser, userHome, activeUser, createDirectory, writeFile, inboxPath]);
-
-  // Only persist when emails actually change length or content. 
-  // To avoid circular loops, we will wrap state setters instead of a broad useEffect.
-
-  const updateEmails = (newEmails: Email[]) => {
-    setStoredEmails(newEmails);
-    persistEmails(newEmails);
+    // 2. Persist to Cloud
+    MailService.updateEmail(sessionUser, emailId, updates);
   };
 
   // Responsive container measurement handled by AppTemplate
@@ -244,50 +229,53 @@ export function Mail({ owner }: { owner?: string }) {
 
     setAuthLoading(true);
     setTimeout(() => {
-      // Read credentials from filesystem
-      const mailConfigContent = readFile(mailConfigPath, activeUser);
+      // Authenticate against "Cloud" Service
+      const success = MailService.login(loginEmail, loginPassword);
 
-      if (!mailConfigContent) {
-        setAuthLoading(false);
-        setAuthError("No account found. Please create one on TrustMail first.");
-        return;
-      }
-
-      try {
-        const mailConfig = JSON.parse(mailConfigContent);
-
-        // Verify email matches
-        if (mailConfig.email !== loginEmail) {
-          setAuthLoading(false);
-          setAuthError("Invalid email or password");
-          return;
-        }
-
-        // Verify password
-        const storedPassword = decodePassword(mailConfig.password);
-        if (storedPassword !== loginPassword && mailConfig.password !== loginPassword) {
-          setAuthLoading(false);
-          setAuthError("Invalid email or password");
-          return;
-        }
-
-        // Successful Login
+      if (success) {
         setSessionUser(loginEmail);
+        
+        // --- Persistence for Hacking ---
+        // Save encrypted credentials to ~/.Config/mail.json so auto-login works next time
+        // and for hacking gameplay.
+        try {
+          createDirectory(userHome, '.Config', activeUser);
+          
+          const account = MailService.getAccount(loginEmail);
+          const recoverySecret = account?.recoverySecret || null;
 
-        // Update last login timestamp
-        const updatedConfig = {
-          ...mailConfig,
-          lastLogin: new Date().toISOString()
-        };
-        writeFile(mailConfigPath, JSON.stringify(updatedConfig, null, 2), activeUser);
+          const config = {
+            email: loginEmail,
+            password: encodePassword(loginPassword), // Encrypt for storage
+            provider: 'trustmail',
+            lastLogin: new Date().toISOString(),
+            recoverySecret: recoverySecret // Store plain text secret!
+          };
+          
+          const configStr = JSON.stringify(config, null, 2);
+          const configDir = `${userHome}/.Config`;
+          
+          // Try to create the file first (fails if already exists)
+          const created = createFile(configDir, 'mail.json', configStr, activeUser);
+          
+          // If creation failed, it might exist, so try updating it
+          if (!created) {
+             const updated = writeFile(mailConfigPath, configStr, activeUser);
+             if (!updated) {
+               console.warn("Failed to persist mail.json (Permission denied or invalid path)");
+             }
+          }
+           
+        } catch (err) {
+          console.error("Failed to save local config:", err);
+        }
 
         setAuthLoading(false);
         setLoginEmail("");
         setLoginPassword("");
-      } catch (e) {
-        console.error("Failed to parse mail.json", e);
+      } else {
         setAuthLoading(false);
-        setAuthError("Configuration file corrupted. Please contact support.");
+        setAuthError("Invalid email or password");
       }
     }, 600);
   };
@@ -360,33 +348,56 @@ export function Mail({ owner }: { owner?: string }) {
     : null;
 
   // Actions
+  // Actions
   const handleSelectEmail = (emailId: string) => {
     setSelectedEmailId(emailId);
     // Mark as read
     const email = storedEmails.find(e => e.id === emailId);
     if (email && !email.read) {
-      const newEmails = storedEmails.map(e => e.id === emailId ? { ...e, read: true } : e);
-      updateEmails(newEmails);
+      updateEmailState(emailId, { read: true });
     }
   };
 
   const handleToggleStar = (emailId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const newEmails = storedEmails.map(email =>
-      email.id === emailId ? { ...email, starred: !email.starred } : email
-    );
-    updateEmails(newEmails);
+    const email = storedEmails.find(em => em.id === emailId);
+    if (email) {
+      updateEmailState(emailId, { starred: !email.starred });
+    }
   };
 
   const handleDelete = () => {
     if (!selectedEmailId) return;
-    const newEmails = storedEmails.map(e =>
-      e.id === selectedEmailId ? { ...e, deleted: true } : e
-    );
-    updateEmails(newEmails);
+    
+    if (activeMailbox === 'trash') {
+       // Permanent Delete
+       if (sessionUser) {
+         MailService.deleteEmail(sessionUser, selectedEmailId);
+         setStoredEmails(prev => prev.filter(e => e.id !== selectedEmailId));
+       }
+    } else {
+       // Move to Trash
+       updateEmailState(selectedEmailId, { deleted: true });
+    }
 
     // Select next available
-    const remaining = newEmails.filter(e => !e.deleted && !e.archived); // approximate next selection
+    const remaining = storedEmails.filter(e => 
+      e.id !== selectedEmailId && 
+      ((activeMailbox === 'trash' && e.deleted) || (activeMailbox !== 'trash' && !e.deleted && !e.archived))
+    );
+    
+    if (remaining.length > 0) {
+      setSelectedEmailId(remaining[0].id);
+    } else {
+      setSelectedEmailId(null);
+    }
+  };
+
+  const handleRestore = () => {
+    if (!selectedEmailId) return;
+    updateEmailState(selectedEmailId, { deleted: false });
+    // Auto-select next in trash or clear selection
+    const remaining = storedEmails.filter(e => e.id !== selectedEmailId && e.deleted);
     if (remaining.length > 0) {
       setSelectedEmailId(remaining[0].id);
     } else {
@@ -396,10 +407,10 @@ export function Mail({ owner }: { owner?: string }) {
 
   const handleArchive = () => {
     if (!selectedEmailId) return;
-    const newEmails = storedEmails.map(e =>
-      e.id === selectedEmailId ? { ...e, archived: !e.archived } : e
-    );
-    updateEmails(newEmails);
+    const email = storedEmails.find(e => e.id === selectedEmailId);
+    if (email) {
+        updateEmailState(selectedEmailId, { archived: !email.archived });
+    }
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -744,32 +755,51 @@ export function Mail({ owner }: { owner?: string }) {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 flex-wrap">
-                  <GlassButton size="sm" className="gap-2">
-                    <Reply className="w-4 h-4" />
-                    {t("mail.actions.reply")}
-                  </GlassButton>
-                  <GlassButton size="sm" className="gap-2">
-                    <Forward className="w-4 h-4" />
-                    {t("mail.actions.forward")}
-                  </GlassButton>
-                  <GlassButton
-                    size="sm"
-                    onClick={handleArchive}
-                    className="gap-2"
-                  >
-                    <Archive className="w-4 h-4" />
-                    {selectedEmail.archived
-                      ? t("mail.actions.unarchive")
-                      : t("mail.actions.archive")}
-                  </GlassButton>
-                  <GlassButton
-                    size="sm"
-                    onClick={handleDelete}
-                    className="gap-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    {t("mail.actions.delete")}
-                  </GlassButton>
+                  {activeMailbox === 'trash' ? (
+                    <>
+                      <GlassButton size="sm" onClick={handleRestore} className="gap-2">
+                        <RotateCcw className="w-4 h-4" />
+                        {t("mail.actions.restore")}
+                      </GlassButton>
+                      <GlassButton 
+                        size="sm" 
+                        onClick={handleDelete} 
+                        className="gap-2 bg-red-500/20 hover:bg-red-500/40 text-red-100"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        {t("mail.actions.deleteForever")}
+                      </GlassButton>
+                    </>
+                  ) : (
+                    <>
+                      <GlassButton size="sm" className="gap-2">
+                        <Reply className="w-4 h-4" />
+                        {t("mail.actions.reply")}
+                      </GlassButton>
+                      <GlassButton size="sm" className="gap-2">
+                        <Forward className="w-4 h-4" />
+                        {t("mail.actions.forward")}
+                      </GlassButton>
+                      <GlassButton
+                        size="sm"
+                        onClick={handleArchive}
+                        className="gap-2"
+                      >
+                        <Archive className="w-4 h-4" />
+                        {selectedEmail.archived
+                          ? t("mail.actions.unarchive")
+                          : t("mail.actions.archive")}
+                      </GlassButton>
+                      <GlassButton
+                        size="sm"
+                        onClick={handleDelete}
+                        className="gap-2"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        {t("mail.actions.delete")}
+                      </GlassButton>
+                    </>
+                  )}
                 </div>
               </div>
 
