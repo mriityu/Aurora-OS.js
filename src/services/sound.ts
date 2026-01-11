@@ -1,4 +1,4 @@
-import { Howl } from 'howler';
+import { Howl, Howler } from 'howler';
 import { STORAGE_KEYS } from '../utils/memory';
 
 // Sound constants
@@ -141,6 +141,7 @@ class SoundManager {
 
     public setMute(muted: boolean) {
         this.isMuted = muted;
+        Howler.mute(muted);
         this.notifyListeners();
     }
 

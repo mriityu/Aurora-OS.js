@@ -1,7 +1,3 @@
----
-trigger: always_on
----
-
 # AURORA OS.JS SYSTEM CONTEXT
 
 <!-- OPTIMIZED_FOR: GEMINI_3_PRO_HIGH -->
@@ -33,14 +29,27 @@ trigger: always_on
     - **Auth**: `useAuth()` hook. Logic synced to `/etc/passwd` & `/etc/group`.
     - **Home**: `/home/<user>` created via `createUserHome()`.
 
-3.  **App Engine**: - **Registry**: `src/config/appRegistry.ts` (Definition source of truth). - **Runtime**: Apps render in `WindowContext`. - **Persistence**: Per-app storage via `useAppStorage` (key: `app-user`).
+3.  **App Engine**:
+    - **Registry**: `src/config/appRegistry.ts` (Definition source of truth). 
+    - **Runtime**: Apps render in `WindowContext`.
+    - **Multi-user Isolation**: Apps MUST handle `owner` props. If `owner` differs from `activeUser`, wrap internal logic in a local Provider (e.g., `PhotosProvider`) passed with that `owner`. This ensures correct `~/` path resolution for elevated/switched sessions (sudo/su).
+    - **ContextMenu**: Can be global (registry `contextMenu`) or localized (wrapping specific UI areas with `ContextMenuTrigger` in the app component).
+    - **Persistence**: Per-app storage via `useAppStorage` (key: `app-user`) or manual `localStorage` with `getAppStateKey`.
 
 4.  **Terminal Architecture**: - **PATH**: `["/bin", "/usr/bin"]`. - **`/bin`**: Contains **system commands** (e.g., `ls`, `cat`). - Implemented as **Internal Commands** in `src/utils/terminal/registry`. - Represented in VFS as files containing `#command <name>`. - **`/usr/bin`**: Contains **App Launchers** (e.g., `chrome`, `code`). - Implemented as **App IDs** in `src/config/appRegistry.ts`. - Represented in VFS as files containing `#!app <appId>`. - **Execution**: - `useTerminalLogic` resolves input -> checks built-ins -> checks PATH. - If `#!app ...` -> Launches Window. - If `#command ...` -> Executes internal function. - If other text -> Parses as Shell Script (supports `$VAR`, `VAR=val`).
 
-5.  **Notification System**:
+5.  **Notification & UI System**:
     - **Usage**: `notify.system(type, source, message, subtitle)`.
     - **Formatting**: `message` prop accepts `React.ReactNode`, allowing for rich grid/list layouts in toasts (e.g., "Get Info" dialogs).
+    - **Empty States**: Use `EmptyState` component (`src/components/ui/empty-state.tsx`) for standardizing empty folders, empty search results, and initial app states.
+    - **Performance**: High-traffic apps (like Notepad) MUST isolate re-renders by splitting the main editor/content logic into memoized sub-components.
     - **Provider**: Handled via `Sonner` and `SystemToast` component.
+
+6.  **Audio & Metadata System**:
+    - **Howler Core**: All system audio is managed via `soundManager` (`src/services/sound.ts`).
+    - **Realism**: Global mute (`Howler.mute(true)`) silences the system without stopping background processes (e.g., music keep "playing" silently).
+    - **Binary Metadata**: Custom ID3 parser (`src/utils/id3Parser.ts`) extracts professional tags (TIT2, TPE1, TALB) from MP3 files.
+    - **Asset Fetching**: Metadata resolution for local assets uses `fetch` with `Range: bytes=0-512KB` to efficiently read headers without full downloads.
     </architecture_mechanics>
 
 <critical_rules>
@@ -48,9 +57,11 @@ trigger: always_on
 - **FS Integrity**: ALWAYS use `createFile`, `writeFile`, `deleteNode` from `useFileSystem`.
 - **Trash Resolution**: `moveToTrash` MUST resolve path based on `asUser` context (e.g., `/root/.Trash`).
 - **Path Resolution**: Use absolute paths. Resolve relative via `resolvePath(path, cwd)`.
+- **Imports**: Use absolute `@/` alias for all internal imports (e.g., `@/components/AppContext`).
 - **Security**: Check permissions via `checkPermissions(node, user, 'read'|'write'|'execute')`.
 - **UI Integrity**: Use `forwardRef` for any component used with `<ContextMenuTrigger asChild>` to ensure Radix UI ref handling works.
 - **I18n**: All UI strings MUST use `useI18n()`. definition: `src/i18n/locales/en.ts`.
+- **Accessibility**: All `Dialog` or `AlertDialog` components MUST include a `Title` and `Description`. Use `sr-only` class to hide them if they clash with visual design but are required for A11y.
 - **Docs Sync**: On architecture changes, update `.agent/rules/context.md` & `public/llms-full.txt`.
   </critical_rules>
 
@@ -58,10 +69,13 @@ trigger: always_on
 | Path | Component | Description |
 | :--- | :--- | :--- |
 | `src/components/FileSystemContext.tsx` | **VFS Core** | Context for all FS operations. |
-| `src/utils/fileSystemUtils.ts` | **VFS Utils** | `FileNode` types, `initialFileSystem`, permission logic. |
+| `src/utils/fileSystemUtils.ts" | **VFS Utils** | `FileNode` types, `initialFileSystem`, permission logic. |
 | `src/components/AppContext.tsx` | **Session** | Theme, Wallpapers, Physical User session. |
 | `src/config/appRegistry.ts` | **Registry** | Installed Apps configuration. |
 | `src/services/notifications.tsx` | **Notifications** | Central service for rich system toasts. |
+| `src/services/notifications.tsx` | **Notifications** | Central service for rich system toasts. |
+| `src/services/sound.ts` | **Sound Manager** | Global audio state and Howler integration. |
+| `src/utils/id3Parser.ts" | **ID3 Parser** | Binary metadata extractor for MP3 files. |
 | `src/components/apps/*` | **Apps** | Individual App components (Notepad, Terminal, etc). |
 </codebase_map>
 

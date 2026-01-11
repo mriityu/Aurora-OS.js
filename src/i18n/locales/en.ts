@@ -500,7 +500,9 @@ export const en: TranslationDict = {
   },
   filePicker: {
     openFile: 'Open File',
+    openFileDescription: 'Select a file to open from the file system',
     saveFile: 'Save File',
+    saveFileDescription: 'Choose a location and name to save your file',
     emptyFolder: 'This folder is empty',
     nameLabel: 'Name:',
     untitledPlaceholder: 'Untitled',
@@ -515,6 +517,7 @@ export const en: TranslationDict = {
     toasts: {
       musicNotInstalled: 'Music app is not installed. Install it from the App Store.',
       notepadNotInstalled: 'Notepad is not installed. Install it from the App Store.',
+      photosNotInstalled: 'Photos app is not installed. Install it from the App Store.',
     },
   },
   fileManager: {
@@ -549,6 +552,7 @@ export const en: TranslationDict = {
       permissionDenied: 'Permission denied: {{name}}',
       musicNotInstalled: 'Music app is not installed. Install it from the App Store.',
       notepadNotInstalled: 'Notepad is not installed. Install it from the App Store.',
+      photosNotInstalled: 'Photos app is not installed. Install it from the App Store.',
       movedItem: 'Moved 1 item',
       movedItems: 'Moved {{count}} items',
       movedItemTo: 'Moved 1 item to {{target}}',
@@ -563,6 +567,7 @@ export const en: TranslationDict = {
     search: {
       noResultsTitle: 'No results found',
       noResultsDesc: 'No results found for "{{query}}"',
+      resultsTitle: 'Search Results ({{count}})',
     },
     emptyFolder: 'This folder is empty',
   },
@@ -603,6 +608,30 @@ export const en: TranslationDict = {
       slideshow: 'Slideshow',
       rotateClockwise: 'Rotate Clockwise',
       rotateCounterClockwise: 'Rotate Counter Clockwise',
+    },
+    empty: {
+      recent: {
+        title: 'No recently viewed photos',
+        description: 'Your recently opened photos will appear here.',
+      },
+      favorites: {
+        title: 'No favorites yet',
+        description: 'Mark photos as favorites to see them here.',
+      },
+      library: {
+        title: 'No photos found',
+        description: 'No photo files were found in your Pictures folder.',
+        openFolder: 'Open {{folder}} Folder',
+      },
+      noFolder: {
+        title: "{{user}}'s Library Not Found",
+        description: 'The folder {{path}} was not found for this user.',
+      },
+      openHome: 'Open Home Directory',
+    },
+    folders: {
+      pictures: 'Pictures',
+      home: 'Home',
     },
   },
   mail: {
@@ -667,6 +696,12 @@ export const en: TranslationDict = {
   notepad: {
     untitled: 'Untitled',
     untitledTab: 'Untitled {{index}}',
+    empty: {
+      title: 'Notepad',
+      description: 'Create a new file or open an existing one to get started.',
+      newFile: 'New File',
+      openFile: 'Open File',
+    },
     languages: {
       markdown: 'Markdown',
       javascript: 'JavaScript',
@@ -750,6 +785,7 @@ export const en: TranslationDict = {
     },
     actions: {
       createEvent: 'Create Event',
+      createCategory: 'Create Category',
       clear: 'Clear',
       delete: 'Delete',
       cancel: 'Cancel',
@@ -757,6 +793,7 @@ export const en: TranslationDict = {
     },
     loadingEvents: 'Loading events...',
     toasts: {
+      cannotDeleteSystemCategory: 'System categories cannot be deleted',
       eventDeleted: 'Event deleted',
       eventSaved: 'Event saved',
       requiredFields: 'Please fill in required fields',
@@ -826,6 +863,7 @@ export const en: TranslationDict = {
         notes: 'Initial filesystem.',
       },
     },
+
   },
   devCenter: {
     appTitle: 'DevCenter',
