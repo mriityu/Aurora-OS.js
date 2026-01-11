@@ -28,7 +28,7 @@ export default defineConfig({
   build: {
     target: 'esnext',
     outDir: 'dist',
-    minify: 'terser',
+    minify: 'esbuild',
     assetsInlineLimit: 10240,
     emptyOutDir: true,
     chunkSizeWarningLimit: 1000,
