@@ -20,9 +20,9 @@ export function NotificationsApplet({ onOpenApp }: NotificationsAppletProps) {
   const { notifications, unreadCount, markRead, clearAll, remove } = useAppNotifications();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleNotificationClick = (appId: string, data: Record<string, unknown> | undefined, owner: string | undefined) => {
+  const handleNotificationClick = (id: string, appId: string, data: Record<string, unknown> | undefined, owner: string | undefined) => {
     if (appId && onOpenApp) {
-      markRead(appId);
+      markRead(id);
       onOpenApp(appId, data, owner);
       setIsOpen(false);
     }
@@ -80,11 +80,11 @@ export function NotificationsApplet({ onOpenApp }: NotificationsAppletProps) {
                 return (
                 <motion.div
                   key={notification.id}
-                  className={`p-4 transition-colors relative group ${notification.unread ? 'bg-white/4' : 'hover:bg-white/3'}`}
+                  className={`p-4 transition-colors relative group ${notification.unread ? 'bg-white/5' : 'bg-black/20 opacity-60 hover:opacity-100'}`}
                   initial={{ opacity: 0, x: reduceMotion ? 0 : 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: reduceMotion ? 0 : idx * 0.05 }}
-                  onClick={() => handleNotificationClick(notification.appId, notification.data, notification.owner)}
+                  onClick={() => handleNotificationClick(notification.id, notification.appId, notification.data, notification.owner)}
                 >
                   <div className="flex gap-3">
                     <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white/70 shrink-0 border border-white/10">
