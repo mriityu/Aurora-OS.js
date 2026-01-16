@@ -1285,6 +1285,13 @@ export const en: TranslationDict = {
       system: 'System Alerts',
       interface: 'Interface',
       feedback: 'Input Feedback',
+      ambiance: 'Ambiance',
+    },
+    mixerLabels: {
+      masterOutput: 'Master Output',
+      musicAppLevel: 'Music App Level',
+      sfxInterface: 'SFX & Interface',
+      backgroundLoop: 'Background Loop',
     },
   },
 };

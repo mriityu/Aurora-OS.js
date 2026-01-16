@@ -10,7 +10,7 @@ trigger: always_on
 
 **Aurora OS.js**: Ultra-realistic web-based OS simulator and hacking simulator game (React 19/Vite/Electron).
 **Goal**: High-fidelity hacking/sysadmin simulation (Linux/macOS hybrid).
-**Core Philosphy**: "Files-First". State acts as a view layer over the Virtual File System (VFS).
+**Core Philosophy**: "Files-First". State acts as a view layer over the Virtual File System (VFS).
 
 </project_identity>
 
@@ -18,28 +18,25 @@ trigger: always_on
 
 **Core**: React 19, TypeScript, Vite, Tailwind CSS (v4), Radix UI.
 **Platform**: Web (PWA) + Desktop (Electron).
-**State**: React Context + `localStorage` persistence.
+**State**: React Context + `localStorage` persistence (Hierarchical: System Defaults + User Overrides).
 
 </tech_stack>
 
 <architecture_mechanics>
 
 1.  **Virtual File System (VFS)**:
-
     - **Structure**: In-memory recursive JSON tree (`FileNode`).
     - **Storage**: Serialized to `localStorage` key `aurora-filesystem`.
     - **Sync**: Unidirectional State -> File sync (e.g., `users` state updates `/etc/passwd`).
     - **Access**: MUST use `useFileSystem()` hook. NEVER mutate JSON directly.
 
 2.  **User System**:
-
     - **Ids**: `root` (0), `guest` (1001), `activeUser` (physical), `currentUser` (logical).
     - **Auth**: `useAuth()` hook. Logic synced to `/etc/passwd` & `/etc/group`.
     - **Persistence**: `useAppStorage` uses `activeUser` to scope keys (e.g., `aurora-os-settings-user`).
     - **Home**: `/home/<user>` created via `createUserHome()`.
 
 3.  **App Engine**:
-
     - **Registry**: `src/config/appRegistry.ts` (Definition source of truth).
     - **Runtime**: Apps render in `WindowContext`.
     - **ContextMenu**: Can be global (registry `contextMenu`) or localized (wrapping specific UI areas with `ContextMenuTrigger` in the app component).
@@ -48,7 +45,6 @@ trigger: always_on
     - **Config**: Simulation apps (Mail, Messages) use `~/.Config/<app>.json` for encrypted credentials, enabling "hacking" gameplay mechanisms.
 
 4.  **Terminal Architecture**:
-
     - **PATH**: `["/bin", "/usr/bin"]`.
     - **`/bin`**: Contains **system commands** (e.g., `ls`, `cat`).
       - Implemented as **Internal Commands** in `src/utils/terminal/registry`.
@@ -67,7 +63,6 @@ trigger: always_on
       - **Hostname**: Fully dynamic. `hostname` command reads `/etc/hostname` from VFS.
 
 5.  **Notification & UI System**:
-
     - **Usage**: `notify.system(type, source, message, subtitle)` or `notify.app(appId, title, message)` (via CustomEvent).
     - **Architecture**: Event-based (`aurora-app-notification`). Applets listen via `useAppNotifications`.
     - **Formatting**: `message` prop accepts `React.ReactNode`, allowing for rich grid/list layouts in toasts.
@@ -77,14 +72,14 @@ trigger: always_on
     - **Global Indicators**: Retro "Hard Drive" LED (Green/Red) in bottom-left, triggered by `localStorage` I/O. Filters out "Soft" reads (e.g., volume) via monkey-patched `memory.ts`.
 
 6.  **Audio & Metadata System**:
-
-    - **Howler Core**: All system audio is managed via `soundManager` (`src/services/sound.ts`).
+    - **Howler Core**: All system audio (SFX, Music, Ambiance) is managed via `soundManager` (`src/services/sound.ts`).
+    - **Channels**: Dedicated `ambiance` channel (looping, independent volume) + `master`, `system`, `ui`, `feedback`, `music`.
     - **Realism**: Global mute (`Howler.mute(true)`) silences the system without stopping background processes (e.g., music keep "playing" silently).
+    - **Startup**: High-fidelity `computerStart.mp3` (Intro) and `biosStart.mp3` (Boot).
     - **Binary Metadata**: Custom ID3 parser (`src/utils/id3Parser.ts`) extracts professional tags (TIT2, TPE1, TALB) from MP3 files.
     - **Asset Fetching**: Metadata resolution for local assets uses `fetch` with `Range: bytes=0-512KB` to efficiently read headers without full downloads.
 
 7.  **Game Flow & Pre-OS Experience**:
-
     - **State Machine**: 6-state flow handled by `GameRoot.tsx` (INTRO → MENU → FIRST_BOOT/BOOT → ONBOARDING → GAMEPLAY).
     - **Main Menu**: Video game-style interface with keyboard nav. Includes **Settings** (Tabbed: Display/Audio/System) and **Credits** modals.
       - **Floating Window**: `DevStatusWindow.tsx` provides persistent system status and contribution CTAs.
@@ -101,9 +96,7 @@ trigger: always_on
       - `mode="glass"`: Restored legacy glassmorphism, sans-serif, animated "Orbit" logo. Used for Login/Onboarding.
 
 8.  **Reference Implementations**:
-
     - **Finder (`FileManager.tsx`)**:
-
       - **Pattern**: Recursive directory traversal via `useFileSystem`.
       - **UI**: Dynamic breadcrumbs with drag-and-drop support.
       - **State**: Persists `viewMode` via `useAppStorage`.

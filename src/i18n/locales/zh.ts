@@ -1279,6 +1279,13 @@ export const zh: TranslationDict = {
 			system: '系统提示',
 			interface: '界面',
 			feedback: '输入反馈',
+			ambiance: '环境音效',
+		},
+		mixerLabels: {
+			masterOutput: '主输出',
+			musicAppLevel: '音乐应用音量',
+			sfxInterface: '音效与界面',
+			backgroundLoop: '背景循环',
 		},
 	},
 };

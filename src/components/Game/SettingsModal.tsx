@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, Monitor, RefreshCw, Trash2, X, Speaker, Laptop, Settings, Check } from 'lucide-react';
+import { Volume2, Monitor, RefreshCw, Trash2, X, Speaker, Laptop, Settings, Check, Waves } from 'lucide-react';
 import pkg from '@/../package.json';
 import { cn } from '@/components/ui/utils';
 import { feedback } from '@/services/soundFeedback';
@@ -64,7 +64,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     const [volumes, setVolumes] = useState({
         master: soundManager.getVolume('master') * 100,
         music: soundManager.getVolume('music') * 100,
-        sfx: soundManager.getVolume('ui') * 100 // Use UI as proxy for SFX group
+        sfx: soundManager.getVolume('ui') * 100, // Use UI as proxy for SFX group
+        ambiance: soundManager.getVolume('ambiance') * 100,
     });
 
     // Fullscreen
@@ -76,8 +77,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
     // Determine current graphics preset
     const getPreset = () => {
-        if (blurEnabled && !disableShadows && !disableGradients) return 'ultra';
-        if (!blurEnabled && disableShadows && disableGradients) return 'performance';
+        if (blurEnabled && !disableShadows && !disableGradients && !reduceMotion) return 'ultra';
+        if (!blurEnabled && disableShadows && disableGradients && reduceMotion) return 'performance';
         return 'custom';
     };
 
@@ -87,17 +88,20 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             setBlurEnabled(true);
             setDisableShadows(false);
             setDisableGradients(false);
+            setReduceMotion(false);
         } else {
             setBlurEnabled(false);
             setDisableShadows(true);
             setDisableGradients(true);
+            setReduceMotion(true);
         }
     };
 
-    const updateVolume = (category: 'master' | 'music' | 'sfx', val: number) => {
+    const updateVolume = (category: 'master' | 'music' | 'sfx' | 'ambiance', val: number) => {
         setVolumes(prev => ({ ...prev, [category]: val }));
         if (category === 'master') soundManager.setVolume('master', val / 100);
         else if (category === 'music') soundManager.setVolume('music', val / 100);
+        else if (category === 'ambiance') soundManager.setVolume('ambiance', val / 100);
         else {
             // Group SFX
             soundManager.setVolume('ui', val / 100);
@@ -121,7 +125,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -223,7 +227,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                                     <div className="relative z-10">
                                                         <div className="flex justify-between items-center mb-2">
                                                             <div className="font-bold uppercase text-sm">High Fidelity</div>
-                                                            {getPreset() === 'ultra' && <div className="w-2 h-2 bg-white animate-pulse" />}
+                                                            {getPreset() === 'ultra' && <div className={cn("w-2 h-2 bg-white", !reduceMotion && "animate-pulse")} />}
                                                         </div>
                                                         <div className="text-[10px] opacity-60">Blur, Shadows, Vibrancy enabled. visual++</div>
                                                     </div>
@@ -240,7 +244,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                                     <div className="relative z-10">
                                                         <div className="flex justify-between items-center mb-2">
                                                             <div className="font-bold uppercase text-sm">Performance</div>
-                                                            {getPreset() === 'performance' && <div className="w-2 h-2 bg-white animate-pulse" />}
+                                                            {getPreset() === 'performance' && <div className={cn("w-2 h-2 bg-white", !reduceMotion && "animate-pulse")} />}
                                                         </div>
                                                         <div className="text-[10px] opacity-60">Max FPS. Minimal effects. speed++</div>
                                                     </div>
@@ -261,6 +265,18 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                                 >
                                                     [ {disableGradients ? 'X' : ' '} ] Simple Colors
                                                 </button>
+                                                <button
+                                                    onClick={() => setBlurEnabled(!blurEnabled)}
+                                                    className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5", !blurEnabled ? "border-white text-white" : "border-zinc-800 text-zinc-600")}
+                                                >
+                                                    [ {!blurEnabled ? 'X' : ' '} ] Solid Backgrounds
+                                                </button>
+                                                <button
+                                                    onClick={() => setDisableShadows(!disableShadows)}
+                                                    className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5", disableShadows ? "border-white text-white" : "border-zinc-800 text-zinc-600")}
+                                                >
+                                                    [ {disableShadows ? 'X' : ' '} ] No Shadows
+                                                </button>
                                             </div>
                                         </div>
                                     </>
@@ -273,13 +289,13 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                             <div className="space-y-4">
                                                 <div className="flex justify-between text-white border-b border-zinc-800 pb-2">
                                                     <span className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider">
-                                                        <Volume2 className="w-4 h-4" /> Master Output
+                                                        <Volume2 className="w-4 h-4" /> {t('audio.mixerLabels.masterOutput')}
                                                     </span>
                                                     <span className="font-mono text-sm text-white">{volumes.master.toString().padStart(3, '0')}%</span>
                                                 </div>
                                                 <div className="relative h-4 bg-zinc-900 border border-zinc-700 w-full">
                                                     <div
-                                                        className="absolute top-0 left-0 h-full bg-white"
+                                                        className="absolute top-0 left-0 h-full bg-white transition-all duration-75"
                                                         style={{ width: `${volumes.master}%` }}
                                                     />
                                                     <input
@@ -292,45 +308,80 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                                 </div>
                                             </div>
 
-                                            {/* Music */}
-                                            <div className="space-y-2">
-                                                <div className="flex justify-between text-zinc-400">
-                                                    <span className="font-bold text-xs uppercase tracking-wider">Music Level</span>
-                                                    <span className="font-mono text-xs">{volumes.music.toString().padStart(3, '0')}%</span>
+                                            {/* Sub Mixes */}
+                                            <div className="space-y-6 pt-6 border-t border-zinc-800/50">
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between text-zinc-400">
+                                                        <span className="font-bold text-xs uppercase tracking-wider">{t('audio.mixerLabels.musicAppLevel')}</span>
+                                                        <span className="font-mono text-xs">{volumes.music.toString().padStart(3, '0')}%</span>
+                                                    </div>
+                                                    <div className="relative h-2 bg-zinc-900 border border-zinc-800 w-full group hover:border-white/50 transition-colors">
+                                                        <div
+                                                            className="absolute top-0 left-0 h-full bg-zinc-400 group-hover:bg-white transition-colors"
+                                                            style={{ width: `${volumes.music}%` }}
+                                                        />
+                                                        <input
+                                                            type="range"
+                                                            min="0" max="100"
+                                                            value={volumes.music}
+                                                            onChange={(e) => updateVolume('music', parseInt(e.target.value))}
+                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <div className="relative h-2 bg-zinc-900 border border-zinc-800 w-full group hover:border-white/50 transition-colors">
-                                                    <div
-                                                        className="absolute top-0 left-0 h-full bg-zinc-400 group-hover:bg-white transition-colors"
-                                                        style={{ width: `${volumes.music}%` }}
-                                                    />
-                                                    <input
-                                                        type="range"
-                                                        min="0" max="100"
-                                                        value={volumes.music}
-                                                        onChange={(e) => updateVolume('music', parseInt(e.target.value))}
-                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                    />
+
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between text-zinc-400">
+                                                        <span className="font-bold text-xs uppercase tracking-wider">{t('audio.mixerLabels.sfxInterface')}</span>
+                                                        <span className="font-mono text-xs">{volumes.sfx.toString().padStart(3, '0')}%</span>
+                                                    </div>
+                                                    <div className="relative h-2 bg-zinc-900 border border-zinc-800 w-full group hover:border-white/50 transition-colors">
+                                                        <div
+                                                            className="absolute top-0 left-0 h-full bg-zinc-400 group-hover:bg-white transition-colors"
+                                                            style={{ width: `${volumes.sfx}%` }}
+                                                        />
+                                                        <input
+                                                            type="range"
+                                                            min="0" max="100"
+                                                            value={volumes.sfx}
+                                                            onChange={(e) => updateVolume('sfx', parseInt(e.target.value))}
+                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            {/* SFX */}
-                                            <div className="space-y-2">
-                                                <div className="flex justify-between text-zinc-400">
-                                                    <span className="font-bold text-xs uppercase tracking-wider">SFX & Interface</span>
-                                                    <span className="font-mono text-xs">{volumes.sfx.toString().padStart(3, '0')}%</span>
-                                                </div>
-                                                <div className="relative h-2 bg-zinc-900 border border-zinc-800 w-full group hover:border-white/50 transition-colors">
-                                                    <div
-                                                        className="absolute top-0 left-0 h-full bg-zinc-400 group-hover:bg-white transition-colors"
-                                                        style={{ width: `${volumes.sfx}%` }}
-                                                    />
-                                                    <input
-                                                        type="range"
-                                                        min="0" max="100"
-                                                        value={volumes.sfx}
-                                                        onChange={(e) => updateVolume('sfx', parseInt(e.target.value))}
-                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                    />
+                                        {/* Ambiance */}
+                                        <div className="space-y-4">
+                                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider border-b border-white/20 pb-2 flex items-center gap-2">
+                                                <span className="w-2 h-2 bg-white/40" /> {t('audio.categories.ambiance')}
+                                            </h3>
+                                            <div className="flex items-center gap-4 bg-zinc-950/50 p-4 border border-zinc-800">
+                                                <button
+                                                    onClick={() => updateVolume('ambiance', volumes.ambiance === 0 ? 50 : 0)}
+                                                    className="p-3 bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
+                                                >
+                                                    <Waves className="w-5 h-5" />
+                                                </button>
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="flex justify-between text-xs uppercase font-bold tracking-wider">
+                                                        <span>{t('audio.mixerLabels.backgroundLoop')}</span>
+                                                        <span>{Math.round(volumes.ambiance).toString().padStart(3, '0')}%</span>
+                                                    </div>
+                                                    <div className="relative h-2 bg-zinc-900 border border-zinc-800 w-full group hover:border-white/50 transition-colors">
+                                                        <div
+                                                            className="absolute top-0 left-0 h-full bg-zinc-400 group-hover:bg-white transition-colors"
+                                                            style={{ width: `${volumes.ambiance}%` }}
+                                                        />
+                                                        <input
+                                                            type="range"
+                                                            min="0" max="100"
+                                                            value={volumes.ambiance}
+                                                            onChange={(e) => updateVolume('ambiance', parseInt(e.target.value))}
+                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

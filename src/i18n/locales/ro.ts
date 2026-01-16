@@ -1280,6 +1280,13 @@ export const ro: TranslationDict = {
             system: 'Alerte Sistem',
             interface: 'Interfață',
             feedback: 'Feedback Intrare',
+            ambiance: 'Ambianță',
+        },
+        mixerLabels: {
+            masterOutput: 'Ieșire Principală',
+            musicAppLevel: 'Nivel Aplicație Muzică',
+            sfxInterface: 'Efecte & Interfață',
+            backgroundLoop: 'Buclă Fundal',
         },
     },
 };

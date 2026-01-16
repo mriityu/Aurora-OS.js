@@ -9,6 +9,7 @@ import { CreditsModal } from '@/components/Game/CreditsModal';
 import { useI18n } from '@/i18n/index';
 import { useFileSystem } from '@/components/FileSystemContext';
 import { DevStatusWindow } from '@/components/Game/DevStatusWindow';
+import { soundManager } from '@/services/sound';
 
 interface MainMenuProps {
     onNewGame: () => void;
@@ -31,6 +32,7 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
     const [selected, setSelected] = useState(canContinue ? 0 : 1);
     const [showSettings, setShowSettings] = useState(false);
     const [showExitConfirm, setShowExitConfirm] = useState(false);
+    const [exitSelection, setExitSelection] = useState(0); // 0: Cancel, 1: Confirm
     const [showCredits, setShowCredits] = useState(false);
     const { saveFileSystem } = useFileSystem();
 
@@ -66,10 +68,18 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
             label: t('game.mainMenu.exit.label'),
             icon: Power,
             disabled: false,
-            action: () => setShowExitConfirm(true),
+            action: () => {
+                setShowExitConfirm(true);
+                setExitSelection(0); // Reset to Cancel by default
+            },
             desc: t('game.mainMenu.exit.desc')
         }
     ], [canContinue, onContinue, onNewGame, t]);
+
+    useEffect(() => {
+        // Start ambiance when entering Main Menu
+        soundManager.startAmbiance();
+    }, []);
 
     // Keyboard Navigation
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -79,6 +89,21 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
             if (e.key === 'Escape') {
                 e.preventDefault();
                 setShowExitConfirm(false);
+                setExitSelection(0); // Reset
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                setExitSelection(prev => prev === 0 ? 1 : 0);
+                feedback.hover();
+            } else if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                feedback.click();
+                if (exitSelection === 1) {
+                    saveFileSystem();
+                    window.close();
+                } else {
+                    setShowExitConfirm(false);
+                    setExitSelection(0);
+                }
             }
             return;
         }
@@ -119,7 +144,7 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
                 break;
             }
         }
-    }, [menuItems, selected, showSettings, showExitConfirm, showCredits]);
+    }, [menuItems, selected, showSettings, showExitConfirm, showCredits, exitSelection, saveFileSystem]);
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);
@@ -229,7 +254,7 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="fixed bottom-6 right-6 z-[50] hidden sm:block" // Hidden on mobile, valid for desktop design
+                    className="fixed bottom-6 right-6 z-50 hidden sm:block" // Hidden on mobile, valid for desktop design
                 >
                     <button
                         onClick={() => { feedback.click(); setShowCredits(true); }}
@@ -273,7 +298,7 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
             <AnimatePresence>
                 {
                     showExitConfirm && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
                             <motion.div
                                 initial={{ scale: 0.95, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
@@ -297,8 +322,14 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
                                             onClick={() => {
                                                 feedback.click();
                                                 setShowExitConfirm(false);
+                                                setExitSelection(0);
                                             }}
-                                            className="px-6 py-4 border-2 border-white/20 text-white hover:border-white hover:bg-white hover:text-black transition-all font-bold uppercase tracking-wide text-sm"
+                                            className={cn(
+                                                "px-6 py-4 border-2 transition-all font-bold uppercase tracking-wide text-sm",
+                                                exitSelection === 0
+                                                    ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                                                    : "border-white/20 text-white hover:border-white hover:bg-white hover:text-black"
+                                            )}
                                         >
                                             {t('game.mainMenu.exit.confirm.cancel')}
                                         </button>
@@ -308,7 +339,12 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
                                                 saveFileSystem();
                                                 window.close();
                                             }}
-                                            className="px-6 py-4 bg-red-600 text-white border-2 border-red-600 hover:bg-red-500 transition-all font-bold uppercase tracking-wide text-sm shadow-[4px_4px_0_0_rgba(0,0,0,0.5)]"
+                                            className={cn(
+                                                "px-6 py-4 border-2 transition-all font-bold uppercase tracking-wide text-sm shadow-[4px_4px_0_0_rgba(0,0,0,0.5)]",
+                                                exitSelection === 1
+                                                    ? "bg-red-500 text-white border-red-500 shadow-[0_0_20px_rgba(220,38,38,0.6)]"
+                                                    : "bg-red-600 text-white border-red-600 hover:bg-red-500"
+                                            )}
                                         >
                                             {t('game.mainMenu.exit.confirm.confirm')}
                                         </button>

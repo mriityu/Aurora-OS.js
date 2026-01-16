@@ -139,6 +139,8 @@ Or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
 - **Architecture**: Standardized internal imports to use absolute `@/` alias.
 - **Multi-User**: Enhanced app isolation (local providers) for `sudo`/`su` sessions.
 - **Localization**: Achieved 100% translation parity across all 7 supported languages (EN, DE, ES, FR, PT, RO, ZH).
+- **Audio**: Added dedicated Ambiance channel with independent volume control and hierarchical settings persistence.
+- **Boot Sequence**: Improved startup sounds with high-quality assets for Intro (`computerStart`) and BIOS (`biosStart`).
 - **DevCenter**: Complete UI overhaul with new Apps debugging section, enhanced File System explorer with detailed file properties, and unified glassmorphism aesthetic with system accent colors.
 - **Internationalization**: All DevCenter UI strings are now fully localized with synchronized translations across all supported languages.
 - **Calendar**: Added drag & drop support.
@@ -160,6 +162,7 @@ Or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
 ### Fixed
 
 - **System Stability**: Resolved "System Critical Error" caused by React Context duplication.
+- **Audio**: Fixed unwarranted "warning" sound during New Game initialization by silencing user-less system reset notifications.
 - **Login Screen**: Fixed password hint display bug where it would incorrectly default to "guest" for users with empty hints.
 - **Drag & Drop**: Fixed drag-and-drop support system-wide (Finder, Calendar, etc.) avoiding double-click triggers (browsers limitation).
 - **Finder**: Fixed double-click launch reliability and "Open Folder" case-sensitivity issues.

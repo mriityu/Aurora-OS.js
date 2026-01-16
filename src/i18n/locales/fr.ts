@@ -1284,6 +1284,13 @@ export const fr: TranslationDict = {
       system: 'Alertes système',
       interface: 'Interface',
       feedback: 'Retour de saisie',
+      ambiance: 'Ambiance',
+    },
+    mixerLabels: {
+      masterOutput: 'Sortie Principale',
+      musicAppLevel: 'Niveau Musique',
+      sfxInterface: 'Effets & Interface',
+      backgroundLoop: 'Boucle de Fond',
     },
   },
 };

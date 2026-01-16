@@ -1276,6 +1276,13 @@ export const de: TranslationDict = {
       system: 'Systemwarnungen',
       interface: 'Oberfläche',
       feedback: 'Eingabefeedback',
+      ambiance: 'Ambiente',
+    },
+    mixerLabels: {
+      masterOutput: 'Hauptausgang',
+      musicAppLevel: 'Musik-App Pegel',
+      sfxInterface: 'SFX & Oberfläche',
+      backgroundLoop: 'Hintergrund-Loop',
     },
   },
 };

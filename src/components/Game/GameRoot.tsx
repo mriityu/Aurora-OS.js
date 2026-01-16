@@ -9,6 +9,8 @@ import { STORAGE_KEYS } from '@/utils/memory';
 import { Onboarding } from "@/components/Game/Onboarding.tsx";
 
 import { StorageIndicator } from '@/components/ui/StorageIndicator';
+import { feedback } from '@/services/soundFeedback';
+import { useEffect } from 'react';
 
 // The "Actual Game" being played is passed as children (The OS Desktop)
 interface GameRootProps {
@@ -22,6 +24,15 @@ export function GameRoot({ children }: GameRootProps) {
     const { resetFileSystem } = useFileSystem();
     const { setIsLocked } = useAppContext();
 
+    // Global click sound (Persistent across all game states: Menu, Intro, Desktop, etc.)
+    useEffect(() => {
+        const handleGlobalClick = () => {
+            feedback.click();
+        };
+        window.addEventListener('click', handleGlobalClick);
+        return () => window.removeEventListener('click', handleGlobalClick);
+    }, []);
+
     // Check for save data
     const hasSave = useMemo(() => {
         return !!localStorage.getItem(STORAGE_KEYS.VERSION);
@@ -30,7 +41,7 @@ export function GameRoot({ children }: GameRootProps) {
     const handleNewGame = () => {
         // hardReset() is now handled internally by resetFileSystem()
         // which resets both localStorage and in-memory React state
-        resetFileSystem();
+        resetFileSystem(true);
 
         setIsLocked(false);
         setGameState('FIRST_BOOT');

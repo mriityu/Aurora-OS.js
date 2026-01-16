@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import pkg from '../../../package.json';
 import { validateIntegrity } from '../../utils/integrity';
 import { getHardwareInfo } from '../../utils/hardware';
+import { soundManager } from '../../services/sound';
 
 interface BootSequenceProps {
     onComplete: () => void;
@@ -28,6 +29,9 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
         // Preload the OS chunk
         const loadOS = async () => {
             try {
+                // Play BIOS start sound
+                soundManager.play('biosStart');
+                
                 await import('../OS'); // Trigger the dynamic import
                 setIsLoaded(true);
             } catch (e) {
@@ -161,12 +165,12 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
     }, [progress, isLoaded, onComplete]);
 
     return (
-        <div className="fixed inset-0 bg-black text-slate-300 font-mono p-10 text-sm cursor-none z-[45000] flex flex-col justify-between selection:bg-white selection:text-black">
+        <div className="fixed inset-0 bg-black text-slate-300 font-mono p-10 text-sm cursor-none z-45000 flex flex-col justify-between selection:bg-white selection:text-black">
             <div className="overflow-hidden flex-1 font-medium">
                 {logs.map((log, i) => {
                     if (!log) return null; // Defensive check
                     return (
-                        <div key={i} className="mb-[2px] break-words flex gap-3 opacity-90 hover:opacity-100 transition-opacity">
+                        <div key={i} className="mb-[2px] wrap-break-words flex gap-3 opacity-90 hover:opacity-100 transition-opacity">
                             <span className="text-zinc-500 min-w-[100px] shrink-0">[{log.time}]</span>
                             <div className="flex gap-2">
                                 <span className="text-pink-400 shrink-0">{log.source}:</span>

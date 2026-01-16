@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Command, Power } from 'lucide-react';
 import { Howler } from 'howler';
 import { useI18n } from '@/i18n/index';
-import { feedback } from '@/services/soundFeedback';
+import { soundManager } from '@/services/sound';
 
 interface IntroSequenceProps {
   onComplete: () => void;
@@ -24,7 +24,6 @@ export function IntroSequence({ onComplete }: IntroSequenceProps) {
   // Handle skip functionality (ESC, Space, or Click during logo)
   const handleSkip = useCallback(() => {
     if (!canSkip) return;
-    feedback.click();
     onComplete();
   }, [canSkip, onComplete]);
 
@@ -36,7 +35,7 @@ export function IntroSequence({ onComplete }: IntroSequenceProps) {
     }
 
     // Play startup sound effect
-    feedback.windowOpen();
+    soundManager.play('computerStart');
 
     // Start logo sequence
     setStep(IntroStep.LOGO);

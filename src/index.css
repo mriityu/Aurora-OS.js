@@ -210,8 +210,15 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground select-none;
   }
+}
+
+/* Re-enable selection for inputs and text areas */
+input,
+textarea,
+[contenteditable="true"] {
+  @apply select-text;
 }
 
 /* Global Selection Style - Outside layer for max specificity */

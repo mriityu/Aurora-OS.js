@@ -71,6 +71,9 @@ function AppContent() {
       };
   }, []);
 
+  // Global click sound (Persistent across all states)
+
+
   return (
     <PhotosProvider owner={currentUser || 'guest'}>
       <MusicProvider owner={currentUser || 'guest'}>

@@ -20,7 +20,6 @@ import { useFileSystem, type FileSystemContextType } from '@/components/FileSyst
 import { Toaster } from '@/components/ui/sonner';
 import { notify } from '@/services/notifications';
 import { getGridConfig, gridToPixel, pixelToGrid, findNextFreeCell, gridPosToKey, rearrangeGrid, type GridPosition } from '@/utils/gridSystem';
-import { feedback } from '@/services/soundFeedback';
 import { STORAGE_KEYS } from '@/utils/memory';
 import { useWindowManager } from '@/hooks/useWindowManager';
 import { useI18n } from '@/i18n/index';
@@ -72,14 +71,7 @@ export default function OS() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Global click sound
-    useEffect(() => {
-        const handleGlobalClick = () => {
-            feedback.click();
-        };
-        window.addEventListener('click', handleGlobalClick);
-        return () => window.removeEventListener('click', handleGlobalClick);
-    }, []);
+
 
     const { listDirectory, resolvePath, getNodeAtPath, moveNodeById } = useFileSystem() as unknown as FileSystemContextType;
 
