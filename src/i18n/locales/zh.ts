@@ -126,8 +126,8 @@ export const zh: TranslationDict = {
 		enterPasswordToUnlock: '输入密码以解锁',
 		restoringPreviousSession: '恢复上次会话',
 		passwordPlaceholder: '密码',
-		incorrectPasswordHintPrefix: '密码错误。提示：',
-
+		incorrectPassword: '密码错误',
+		hint: '提示',
 		enterSystem: '进入系统',
 		switchAccount: '切换账户',
 		back: '返回',
@@ -169,11 +169,11 @@ export const zh: TranslationDict = {
 			conversations: '对话',
 		},
 		items: {
-      newWindow: '新窗口',
-      newFolder: '新建文件夹',
-      open: '打开',
-      changeWallpaper: '更改壁纸',
-      closeWindow: '关闭窗口',
+			newWindow: '新窗口',
+			newFolder: '新建文件夹',
+			open: '打开',
+			changeWallpaper: '更改壁纸',
+			closeWindow: '关闭窗口',
 			undo: '撤销',
 			redo: '重做',
 			cut: '剪切',
@@ -185,12 +185,12 @@ export const zh: TranslationDict = {
 			minimize: '最小化',
 			bringAllToFront: '全部置于最前',
 			back: '后退',
-      forward: '前进',
-      enclosingFolder: '上级文件夹',
-      getInfo: '显示简介',
-      moveToTrash: '移到废纸篓',
-    },
-    help: {
+			forward: '前进',
+			enclosingFolder: '上级文件夹',
+			getInfo: '显示简介',
+			moveToTrash: '移到废纸篓',
+		},
+		help: {
 			appHelp: '{{appName}} 帮助',
 		},
 		default: {
@@ -402,10 +402,10 @@ export const zh: TranslationDict = {
 	},
 	terminal: {
 		menu: {
-      newTab: '新建标签页',
-      clearScrollback: '清除回滚',
-      killProcess: '结束进程',
-    },
+			newTab: '新建标签页',
+			clearScrollback: '清除回滚',
+			killProcess: '结束进程',
+		},
 		help: {
 			availableCommands: '可用命令：',
 			usage: '用法',
@@ -655,53 +655,53 @@ export const zh: TranslationDict = {
 			muteNotifications: '静音通知',
 		},
 	},
-    photos: {
-      sidebar: {
-        libraryTitle: '资料库',
-        albumsTitle: '相册',
-      },
-      library: {
-        allPhotos: '所有照片',
-        favorites: '收藏',
-        recent: '最近',
-        people: '人物',
-        places: '地点',
-      },
-      albums: {
-        vacation2024: '2024 假期',
-        family: '家庭',
-        nature: '自然',
-      },
-      menu: {
-        slideshow: '幻灯片',
-        rotateClockwise: '顺时针旋转',
-        rotateCounterClockwise: '逆时针旋转',
-      },
-      empty: {
-        recent: {
-          title: '没有最近查看的照片',
-          description: '你最近打开的照片将显示在这里。',
-        },
-        favorites: {
-          title: '尚无收藏',
-          description: '将照片标记为收藏即可在此处查看。',
-        },
-        library: {
-          title: '未找到照片',
-          description: '在你的图片文件夹中未找到照片文件。',
-          openFolder: '打开 {{folder}} 文件夹',
-        },
-        noFolder: {
-          title: "未找到 {{user}} 的资料库",
-          description: '找不到该用户的文件夹 {{path}}。',
-        },
-        openHome: '打开主目录',
-      },
-      folders: {
-        pictures: '图片',
-        home: '主目录',
-      },
-    },
+	photos: {
+		sidebar: {
+			libraryTitle: '资料库',
+			albumsTitle: '相册',
+		},
+		library: {
+			allPhotos: '所有照片',
+			favorites: '收藏',
+			recent: '最近',
+			people: '人物',
+			places: '地点',
+		},
+		albums: {
+			vacation2024: '2024 假期',
+			family: '家庭',
+			nature: '自然',
+		},
+		menu: {
+			slideshow: '幻灯片',
+			rotateClockwise: '顺时针旋转',
+			rotateCounterClockwise: '逆时针旋转',
+		},
+		empty: {
+			recent: {
+				title: '没有最近查看的照片',
+				description: '你最近打开的照片将显示在这里。',
+			},
+			favorites: {
+				title: '尚无收藏',
+				description: '将照片标记为收藏即可在此处查看。',
+			},
+			library: {
+				title: '未找到照片',
+				description: '在你的图片文件夹中未找到照片文件。',
+				openFolder: '打开 {{folder}} 文件夹',
+			},
+			noFolder: {
+				title: "未找到 {{user}} 的资料库",
+				description: '找不到该用户的文件夹 {{path}}。',
+			},
+			openHome: '打开主目录',
+		},
+		folders: {
+			pictures: '图片',
+			home: '主目录',
+		},
+	},
 	mail: {
 		login: {
 			title: '邮件',

@@ -8,6 +8,7 @@ import { SettingsModal } from '@/components/Game/SettingsModal';
 import { CreditsModal } from '@/components/Game/CreditsModal';
 import { useI18n } from '@/i18n/index';
 import { useFileSystem } from '@/components/FileSystemContext';
+import { DevStatusWindow } from '@/components/Game/DevStatusWindow';
 
 interface MainMenuProps {
     onNewGame: () => void;
@@ -72,7 +73,15 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
 
     // Keyboard Navigation
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        if (showSettings || showExitConfirm || showCredits) return;
+        if (showSettings || showCredits) return;
+
+        if (showExitConfirm) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                setShowExitConfirm(false);
+            }
+            return;
+        }
 
         switch (e.key) {
             case 'ArrowUp':
@@ -119,6 +128,7 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
 
     return (
         <GameScreenLayout zIndex={40000}>
+            <DevStatusWindow />
             {/* Menu Options Container - Fluid Sizing */}
             <div className="flex flex-col justify-center w-full max-w-[clamp(16rem,40vh,32rem)] shrink min-h-0 mx-auto">
                 <div
@@ -219,7 +229,7 @@ export function MainMenu({ onNewGame, onContinue, canContinue }: MainMenuProps) 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="fixed bottom-6 right-6 z-50 hidden sm:block" // Hidden on mobile, valid for desktop design
+                    className="fixed bottom-6 right-6 z-[50] hidden sm:block" // Hidden on mobile, valid for desktop design
                 >
                     <button
                         onClick={() => { feedback.click(); setShowCredits(true); }}

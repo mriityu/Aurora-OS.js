@@ -87,10 +87,12 @@ trigger: always_on
 
     - **State Machine**: 6-state flow handled by `GameRoot.tsx` (INTRO → MENU → FIRST_BOOT/BOOT → ONBOARDING → GAMEPLAY).
     - **Main Menu**: Video game-style interface with keyboard nav. Includes **Settings** (Tabbed: Display/Audio/System) and **Credits** modals.
+      - **Floating Window**: `DevStatusWindow.tsx` provides persistent system status and contribution CTAs.
     - **Save Detection**: Checks `localStorage.getItem(STORAGE_KEYS.VERSION)` to determine if save exists.
     - **New Game**: Calls `hardReset()` to wipe all `localStorage`, then `resetFileSystem()` for in-memory sync.
     - **Boot Sequence**: Realistic OS boot animation with dynamic log generation, pre-loads OS chunk.
     - **Onboarding**: Multi-step wizard (Language → Account → Theme → Finishing) for first-time setup.
+      - Supports `Escape` (back/abort) and `Enter` (next) navigation.
       - Creates user via `createUser()`, initializes home directory, sets system creation timestamp.
     - **GAMEPLAY State**: Unmounts/remounts OS Desktop to force app re-initialization after state changes.
     - **AudioContext**: Unlocked in IntroSequence via user interaction (browser requirement).

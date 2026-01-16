@@ -227,8 +227,13 @@ export function LoginScreen() {
                                 autoFocus
                             />
                             {error && (
-                                <p className="absolute -bottom-6 left-0 right-0 text-center text-red-300 text-xs animate-in fade-in slide-in-from-top-1">
-                                    {t('login.incorrectPasswordHintPrefix')} {selectedUser.passwordHint || (selectedUser.username === 'root' ? 'admin' : selectedUser.username === 'user' ? '1234' : 'guest')}
+                                <p className="absolute -bottom-6 left-0 right-0 text-center text-red-300 text-xs animate-in fade-in slide-in-from-top-1 whitespace-nowrap">
+                                    {t('login.incorrectPassword')}
+                                    {(selectedUser.passwordHint || selectedUser.username === 'root' || selectedUser.username === 'user' || selectedUser.username === 'guest') && (
+                                        <>
+                                            . {t('login.hint')}: {selectedUser.passwordHint || (selectedUser.username === 'root' ? 'admin' : selectedUser.username === 'user' ? '1234' : 'guest')}
+                                        </>
+                                    )}
                                 </p>
                             )}
                         </div>

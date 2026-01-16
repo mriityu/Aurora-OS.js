@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, Monitor, RefreshCw, Trash2, X, Speaker, Laptop, Settings, Check } from 'lucide-react';
 import pkg from '@/../package.json';
@@ -21,9 +21,38 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     const { t } = useI18n();
     const [activeTab, setActiveTab] = useState<Tab>('display');
     const { resetFileSystem } = useFileSystem();
-    
+
+    const tabs = useMemo(() => [
+        { id: 'display', icon: Monitor, label: 'Display' },
+        { id: 'audio', icon: Speaker, label: 'Audio' },
+        { id: 'system', icon: Laptop, label: 'System' },
+    ] as const, []);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                setActiveTab(prev => {
+                    const currentIndex = tabs.findIndex(t => t.id === prev);
+                    let nextIndex;
+                    if (e.key === 'ArrowUp') {
+                        nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+                    } else {
+                        nextIndex = (currentIndex + 1) % tabs.length;
+                    }
+                    feedback.hover();
+                    return tabs[nextIndex].id as Tab;
+                });
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose, tabs]);
+
     // Core state from AppContext
-    const { 
+    const {
         blurEnabled, setBlurEnabled,
         disableShadows, setDisableShadows,
         disableGradients, setDisableGradients,
@@ -91,14 +120,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         }
     };
 
-    const tabs = [
-        { id: 'display', icon: Monitor, label: 'Display' },
-        { id: 'audio', icon: Speaker, label: 'Audio' },
-        { id: 'system', icon: Laptop, label: 'System' },
-    ] as const;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -159,7 +182,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                     <>
                                         <div className="space-y-4">
                                             <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider border-b border-white/20 pb-2 flex items-center gap-2">
-                                                <span className="w-2 h-2 bg-white/40"/> {t('game.bios.fullScreen')}
+                                                <span className="w-2 h-2 bg-white/40" /> {t('game.bios.fullScreen')}
                                             </h3>
                                             <div className="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 hover:border-white/50 transition-colors">
                                                 <div className="flex items-center gap-3 text-white/80">
@@ -185,7 +208,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
                                         <div className="space-y-4">
                                             <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider border-b border-white/20 pb-2 flex items-center gap-2">
-                                                 <span className="w-2 h-2 bg-white/40"/> Graphics Quality
+                                                <span className="w-2 h-2 bg-white/40" /> Graphics Quality
                                             </h3>
                                             <div className="grid grid-cols-2 gap-3">
                                                 <button
@@ -214,7 +237,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                                             : "bg-black border-zinc-800 hover:border-white/50 text-zinc-500"
                                                     )}
                                                 >
-                                                     <div className="relative z-10">
+                                                    <div className="relative z-10">
                                                         <div className="flex justify-between items-center mb-2">
                                                             <div className="font-bold uppercase text-sm">Performance</div>
                                                             {getPreset() === 'performance' && <div className="w-2 h-2 bg-white animate-pulse" />}
@@ -223,18 +246,18 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                                     </div>
                                                 </button>
                                             </div>
-                                            
+
                                             {/* Advanced Toggles */}
                                             <div className="pt-2 grid grid-cols-2 gap-2">
-                                                <button 
+                                                <button
                                                     onClick={() => setReduceMotion(!reduceMotion)}
-                                                    className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5", reduceMotion ? "border-white text-white" : "border-zinc-800 text-zinc-600")}  
+                                                    className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5", reduceMotion ? "border-white text-white" : "border-zinc-800 text-zinc-600")}
                                                 >
                                                     [ {reduceMotion ? 'X' : ' '} ] Reduce Motion
                                                 </button>
-                                                <button 
-                                                   onClick={() => setDisableGradients(!disableGradients)}
-                                                   className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5", disableGradients ? "border-white text-white" : "border-zinc-800 text-zinc-600")}  
+                                                <button
+                                                    onClick={() => setDisableGradients(!disableGradients)}
+                                                    className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5", disableGradients ? "border-white text-white" : "border-zinc-800 text-zinc-600")}
                                                 >
                                                     [ {disableGradients ? 'X' : ' '} ] Simple Colors
                                                 </button>
@@ -249,14 +272,14 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                             {/* Master */}
                                             <div className="space-y-4">
                                                 <div className="flex justify-between text-white border-b border-zinc-800 pb-2">
-                                                     <span className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider">
+                                                    <span className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider">
                                                         <Volume2 className="w-4 h-4" /> Master Output
                                                     </span>
                                                     <span className="font-mono text-sm text-white">{volumes.master.toString().padStart(3, '0')}%</span>
                                                 </div>
                                                 <div className="relative h-4 bg-zinc-900 border border-zinc-700 w-full">
-                                                    <div 
-                                                        className="absolute top-0 left-0 h-full bg-white" 
+                                                    <div
+                                                        className="absolute top-0 left-0 h-full bg-white"
                                                         style={{ width: `${volumes.master}%` }}
                                                     />
                                                     <input
@@ -270,14 +293,14 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                             </div>
 
                                             {/* Music */}
-                                             <div className="space-y-2">
+                                            <div className="space-y-2">
                                                 <div className="flex justify-between text-zinc-400">
                                                     <span className="font-bold text-xs uppercase tracking-wider">Music Level</span>
                                                     <span className="font-mono text-xs">{volumes.music.toString().padStart(3, '0')}%</span>
                                                 </div>
-                                                 <div className="relative h-2 bg-zinc-900 border border-zinc-800 w-full group hover:border-white/50 transition-colors">
-                                                    <div 
-                                                        className="absolute top-0 left-0 h-full bg-zinc-400 group-hover:bg-white transition-colors" 
+                                                <div className="relative h-2 bg-zinc-900 border border-zinc-800 w-full group hover:border-white/50 transition-colors">
+                                                    <div
+                                                        className="absolute top-0 left-0 h-full bg-zinc-400 group-hover:bg-white transition-colors"
                                                         style={{ width: `${volumes.music}%` }}
                                                     />
                                                     <input
@@ -297,8 +320,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                                     <span className="font-mono text-xs">{volumes.sfx.toString().padStart(3, '0')}%</span>
                                                 </div>
                                                 <div className="relative h-2 bg-zinc-900 border border-zinc-800 w-full group hover:border-white/50 transition-colors">
-                                                    <div 
-                                                        className="absolute top-0 left-0 h-full bg-zinc-400 group-hover:bg-white transition-colors" 
+                                                    <div
+                                                        className="absolute top-0 left-0 h-full bg-zinc-400 group-hover:bg-white transition-colors"
                                                         style={{ width: `${volumes.sfx}%` }}
                                                     />
                                                     <input
@@ -318,7 +341,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                     <>
                                         <div className="space-y-4">
                                             <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider border-b border-white/20 pb-2 flex items-center gap-2">
-                                                 <span className="w-2 h-2 bg-white/40"/> {t('settings.appearance.languageTitle')}
+                                                <span className="w-2 h-2 bg-white/40" /> {t('settings.appearance.languageTitle')}
                                             </h3>
                                             <div className="grid grid-cols-2 gap-2">
                                                 {SUPPORTED_LOCALES.map((l) => (
@@ -341,7 +364,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
                                         <div className="pt-8 space-y-4">
                                             <h3 className="text-xs font-bold text-red-500 uppercase tracking-wider border-b border-red-900/50 pb-2 flex items-center gap-2">
-                                                 <span className="w-2 h-2 bg-red-500"/> Danger Zone
+                                                <span className="w-2 h-2 bg-red-500" /> Danger Zone
                                             </h3>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <button
@@ -369,7 +392,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                         </AnimatePresence>
                     </div>
                 </div>
-                
+
                 {/* Footer */}
                 <div className="p-2 border-t border-white bg-black text-center text-[10px] text-white/40 font-mono uppercase tracking-widest flex justify-between px-4">
                     <span>{pkg.build.productName} v{pkg.version}</span>

@@ -151,12 +151,16 @@ Or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
 - **Terminal performance**: by switching to memos, the terminal is now much faster and more responsive.
 - **Notifications**: Clear distinction between system notifications (debug notifications in bottom right) and app notifications (app events notifications in top right and the Notifications applet).
 - **App Store**: Improved UI and responsive design to match other Apps.
-- **Main Menu**: Refactored Credits modal to match system aesthetics and added "Contribute" tab.
+- **Main Menu**: Added "Contribute" tab and "Developer disclaimer" floating window.
+- **Modals**: Added `Escape` key close support and Arrow key navigation for tabs in `Settings` and `Credits` modals.
+- **Onboarding**: Improved user flow with `Escape` to cancel/go back and `Enter` to advance steps.
 - **BIOS Settings**: Complete overhaul with tabbed interface, graphics presets (Ultra/Performance), and granular audio controls.
+- **Pre-boot flow**: Improved support for keyboard navigation and user experience.
 
 ### Fixed
 
 - **System Stability**: Resolved "System Critical Error" caused by React Context duplication.
+- **Login Screen**: Fixed password hint display bug where it would incorrectly default to "guest" for users with empty hints.
 - **Drag & Drop**: Fixed drag-and-drop support system-wide (Finder, Calendar, etc.) avoiding double-click triggers (browsers limitation).
 - **Finder**: Fixed double-click launch reliability and "Open Folder" case-sensitivity issues.
 - **Mail App**: Fixed remembering opened tabs after app close, or relogin.

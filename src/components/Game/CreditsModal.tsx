@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Brain, Wrench, Palette, Book, FlaskConical, Sprout, Sparkles, Bug, Github } from 'lucide-react';
 import pkg from '@/../package.json';
@@ -52,9 +52,9 @@ const CREDITS_DATA: ContributorCategory[] = [
         contributors: [
             { name: "Oklyne", role: "Code, Translation, Testing", github: "https://github.com/oklyne" },
             { name: "dannie203", role: "Code, Translation, Testing", github: "https://github.com/dannie203" },
-            { 
-                name: "nirgranthi", 
-                role: "Code", 
+            {
+                name: "nirgranthi",
+                role: "Code",
                 github: "https://github.com/nirgranthi",
                 socials: [{ label: "IG/s.a.u.r.a.b_", url: "https://www.instagram.com/s.a.u.r.a.b_" }]
             },
@@ -69,19 +69,19 @@ const CREDITS_DATA: ContributorCategory[] = [
         type: 'text',
         content: "(Visual systems, interaction concepts, UI explorations)"
     },
-     {
+    {
         id: 'docs',
         title: "Docs",
         icon: Book,
         type: 'text',
         content: "(Guides, explanations, onboarding, clarifications)"
     },
-     {
+    {
         id: 'testing',
         title: "Testing",
         icon: FlaskConical,
         type: 'text',
-       content: "(Bug reports, edge cases, usability insights)"
+        content: "(Bug reports, edge cases, usability insights)"
     },
     {
         id: 'legacy',
@@ -90,41 +90,64 @@ const CREDITS_DATA: ContributorCategory[] = [
         type: 'text',
         content: "People who helped shape Aurora-OS.js in its early experimental phase — through feedback, discussion, or belief."
     },
-     {
-         id: 'special',
-         title: "Special Thanks",
-         icon: Sparkles,
-         type: 'special',
-         content: (
-             <div className="text-white/70 leading-relaxed text-sm">
-                 To BigD, <a href="https://github.com/hydroflame" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Hydroflame</a>, 
-                 and the active contributors of <a href="https://github.com/hydroflame/bitburner-src" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Bitburner</a>,{" "}
-                 <a href="https://github.com/viccano" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Victor Cano</a> and players like{" "}
-                 <a href="https://www.reddit.com/user/reditO" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Michael Ray / reditO</a> of{" "}
-                 <a href="https://store.steampowered.com/app/605230/Grey_Hack/" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Grey Hack</a>,{" "}
-                 <a href="https://github.com/andersevenrud" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Anders Evenrud</a> of{" "}
-                 <a href="https://github.com/os-js/OS.js" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">OS.js</a>,{" "}
-                 Sean Mann // Drizzly Bear of <a href="https://store.steampowered.com/app/469920/hackmud/" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Hackmud</a>,{" "}
-                 <a href="https://github.com/eriksvedang" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Erik Svedäng</a> of{" "}
-                 <a href="https://store.steampowered.com/app/400110/Else_HeartBreak/" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Else Heart.Break()</a>, 
-                 and many others for inspiring me to create Aurora OS.js, and for keeping the genre alive with inspiring work and innovation.
-             </div>
-         )
-     }
+    {
+        id: 'special',
+        title: "Special Thanks",
+        icon: Sparkles,
+        type: 'special',
+        content: (
+            <div className="text-white/70 leading-relaxed text-sm">
+                To BigD, <a href="https://github.com/hydroflame" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Hydroflame</a>,
+                and the active contributors of <a href="https://github.com/hydroflame/bitburner-src" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Bitburner</a>,{" "}
+                <a href="https://github.com/viccano" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Victor Cano</a> and players like{" "}
+                <a href="https://www.reddit.com/user/reditO" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Michael Ray / reditO</a> of{" "}
+                <a href="https://store.steampowered.com/app/605230/Grey_Hack/" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Grey Hack</a>,{" "}
+                <a href="https://github.com/andersevenrud" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Anders Evenrud</a> of{" "}
+                <a href="https://github.com/os-js/OS.js" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">OS.js</a>,{" "}
+                Sean Mann // Drizzly Bear of <a href="https://store.steampowered.com/app/469920/hackmud/" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Hackmud</a>,{" "}
+                <a href="https://github.com/eriksvedang" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Erik Svedäng</a> of{" "}
+                <a href="https://store.steampowered.com/app/400110/Else_HeartBreak/" target="_blank" rel="noreferrer" className="text-white hover:text-(--accent-user) underline decoration-white/30 hover:decoration-(--accent-user)">Else Heart.Break()</a>,
+                and many others for inspiring me to create Aurora OS.js, and for keeping the genre alive with inspiring work and innovation.
+            </div>
+        )
+    }
 ];
 
 export function CreditsModal({ onClose }: CreditsModalProps) {
     const [activeTab, setActiveTab] = useState<string>('core');
 
     // Add 'Contribute' as a virtual tab for the UI
-    const tabs = [
+    const tabs = useMemo(() => [
         ...CREDITS_DATA.map(c => ({ id: c.id, label: c.title, icon: c.icon })),
         { id: 'contribute', label: 'Contribute', icon: Bug }
-    ];
+    ], []);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                setActiveTab(prev => {
+                    const currentIndex = tabs.findIndex(t => t.id === prev);
+                    let nextIndex;
+                    if (e.key === 'ArrowUp') {
+                        nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+                    } else {
+                        nextIndex = (currentIndex + 1) % tabs.length;
+                    }
+                    feedback.hover();
+                    return tabs[nextIndex].id;
+                });
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose, tabs]);
 
     const activeCategory = CREDITS_DATA.find(c => c.id === activeTab);
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -192,9 +215,9 @@ export function CreditsModal({ onClose }: CreditsModalProps) {
                                                 Aurora OS.js is open source. Help us squash bugs, improve performance, or design the next big feature.
                                             </p>
                                         </div>
-                                        <a 
-                                            href="https://github.com/mental-os/Aurora-OS.js/issues" 
-                                            target="_blank" 
+                                        <a
+                                            href="https://github.com/mental-os/Aurora-OS.js/issues"
+                                            target="_blank"
                                             rel="noreferrer"
                                             onClick={() => feedback.click()}
                                             className="px-8 py-3 bg-white text-black font-bold uppercase tracking-widest hover:bg-white/90 transition-all border-2 border-transparent hover:border-white shadow-[4px_4px_0_0_rgba(0,0,0,0.5)]"
@@ -205,8 +228,8 @@ export function CreditsModal({ onClose }: CreditsModalProps) {
                                 ) : activeCategory ? (
                                     <div className="space-y-6">
                                         <div className="flex items-center gap-3 pb-4 border-b border-white/20">
-                                             <activeCategory.icon className="w-6 h-6 text-white/40" />
-                                             <h3 className="text-2xl font-bold uppercase tracking-widest text-white">{activeCategory.title}</h3>
+                                            <activeCategory.icon className="w-6 h-6 text-white/40" />
+                                            <h3 className="text-2xl font-bold uppercase tracking-widest text-white">{activeCategory.title}</h3>
                                         </div>
 
                                         {/* Variant: Special / Content */}
@@ -218,18 +241,18 @@ export function CreditsModal({ onClose }: CreditsModalProps) {
 
                                         {/* Variant: Text (Simple) */}
                                         {activeCategory.type === 'text' && activeCategory.content && (
-                                             <div className="px-1 py-8">
+                                            <div className="px-1 py-8">
                                                 <p className="text-white/60 italic leading-relaxed text-lg font-serif opacity-80 text-center border-l-2 border-white/20 pl-6">
                                                     {activeCategory.content}
                                                 </p>
-                                             </div>
+                                            </div>
                                         )}
-                                        
+
                                         {/* Variant: People (Grid) */}
                                         {(!activeCategory.type || activeCategory.type === 'people') && activeCategory.contributors && (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {activeCategory.contributors.map((contributor) => (
-                                                    <div 
+                                                    <div
                                                         key={contributor.name}
                                                         className="group relative p-5 bg-black border border-white/20 hover:border-white transition-all flex flex-col gap-3 shadow-none hover:shadow-[4px_4px_0_0_rgba(0,0,0,0.5)]"
                                                     >
@@ -245,7 +268,7 @@ export function CreditsModal({ onClose }: CreditsModalProps) {
                                                                 )}
                                                             </div>
                                                             {contributor.github && (
-                                                                <a 
+                                                                <a
                                                                     href={contributor.github}
                                                                     target="_blank"
                                                                     rel="noreferrer"
@@ -288,11 +311,11 @@ export function CreditsModal({ onClose }: CreditsModalProps) {
                         </AnimatePresence>
                     </div>
                 </div>
-                
+
                 {/* Footer */}
                 <div className="p-2 border-t border-white bg-black text-center text-[10px] text-white/40 font-mono uppercase tracking-widest flex justify-between px-4">
-                     <span>AURORA OS.js</span>
-                     <span>{activeTab === 'contribute' ? 'CONTRIBUTE' : 'CREDITS'}</span>
+                    <span>AURORA OS.js</span>
+                    <span>{activeTab === 'contribute' ? 'CONTRIBUTE' : 'CREDITS'}</span>
                 </div>
             </motion.div>
         </div>
