@@ -958,6 +958,7 @@ export const pt: TranslationDict = {
       gatewayNotInSubnet: 'O gateway não está na mesma sub-rede que o endereço IP',
       configSaved: 'Configuração de rede salva com sucesso',
       dhcpAttributionProgress: 'Recuperando um endereço IP via DHCP',
+    },
     "filesystem": {
       "title": "Debugger do sistema de arquivos"
     },

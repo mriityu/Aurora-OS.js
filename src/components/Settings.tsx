@@ -138,7 +138,6 @@ export function Settings({ owner }: { owner?: string }) {
     wifiNetwork,
     setWifiNetwork,
     bluetoothDevice,
-    setBluetoothDevice,
     networkConfigMode,
     setNetworkConfigMode,
     networkIP,
