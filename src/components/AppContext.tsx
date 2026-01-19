@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { STORAGE_KEYS } from '../utils/memory';
-import { SUPPORTED_LOCALES } from '../i18n/translations';
+import { SUPPORTED_LOCALES } from '@/i18n/types.ts';
 
 type ThemeMode = 'neutral' | 'shades' | 'contrast';
 
@@ -41,6 +41,16 @@ interface AppContextType {
   // User Context Switching
   switchUser: (username: string) => void;
   activeUser: string;
+
+  // Network
+  wifiEnabled: boolean;
+  setWifiEnabled: (enabled: boolean) => void;
+  bluetoothEnabled: boolean;
+  setBluetoothEnabled: (enabled: boolean) => void;
+  wifiNetwork: string;
+  setWifiNetwork: (network: string) => void;
+  bluetoothDevice: string;
+  setBluetoothDevice: (device: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -70,6 +80,10 @@ interface SystemConfig {
   reduceMotion: boolean;
   disableShadows: boolean;
   disableGradients: boolean;
+  wifiEnabled: boolean;
+  bluetoothEnabled: boolean;
+  wifiNetwork: string;
+  bluetoothDevice: string;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -120,6 +134,10 @@ const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
   reduceMotion: false,
   disableShadows: false,
   disableGradients: false,
+  wifiEnabled: false,
+  bluetoothEnabled: false,
+  wifiNetwork: 'FreeWifi-Secure',
+  bluetoothDevice: 'AirPods Pro',
 };
 
 // Helper: Get key for specific user
@@ -238,7 +256,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Destructure for easy access (User preferences take precedence/contain the effective value)
   const { accentColor, themeMode, wallpaper, blurEnabled, reduceMotion, disableShadows, disableGradients } = preferences;
-  const { devMode, exposeRoot, locale, onboardingComplete } = systemConfig;
+  const { devMode, exposeRoot, locale, onboardingComplete, wifiEnabled, bluetoothEnabled, wifiNetwork, bluetoothDevice } = systemConfig;
 
   // Function to switch context to a different user
   const switchUser = useCallback((username: string) => {
@@ -296,6 +314,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setExposeRoot = (enabled: boolean) => setSystemConfig(s => ({ ...s, exposeRoot: enabled }));
   const setLocale = useCallback((newLocale: AppLocale) => setSystemConfig(s => ({ ...s, locale: newLocale })), []);
   const setOnboardingComplete = (complete: boolean) => setSystemConfig(s => ({ ...s, onboardingComplete: complete }));
+  const setWifiEnabled = (enabled: boolean) => setSystemConfig(s => ({ ...s, wifiEnabled: enabled }));
+  const setBluetoothEnabled = (enabled: boolean) => setSystemConfig(s => ({ ...s, bluetoothEnabled: enabled }));
+  const setWifiNetwork = (network: string) => setSystemConfig(s => ({ ...s, wifiNetwork: network }));
+  const setBluetoothDevice = (device: string) => setSystemConfig(s => ({ ...s, bluetoothDevice: device }));
 
   // Sync locale from Electron if available and not explicitly stored
   useEffect(() => {
@@ -379,6 +401,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setLocale,
       onboardingComplete,
       setOnboardingComplete,
+      wifiEnabled,
+      setWifiEnabled,
+      bluetoothEnabled,
+      setBluetoothEnabled,
+      wifiNetwork,
+      setWifiNetwork,
+      bluetoothDevice,
+      setBluetoothDevice,
       switchUser,
       activeUser,
       isLocked,
