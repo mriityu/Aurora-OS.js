@@ -134,6 +134,7 @@ function WindowComponent({
         y: window.isMinimized ? minimizeTarget.y : y
       }}
       bounds={bounds}
+      cancel=".no-drag" // Add cancel prop to prevent dragging on specific elements
       onDragStart={(_e, d) => {
         // Don't set isDragging immediately to avoiding "lift" on click
         dragRef.current.startX = d.x;
@@ -215,7 +216,12 @@ function WindowComponent({
           )}
           style={{ background: titleBarBackground }}
         >
-          <div className="flex items-center gap-2 " onMouseDown={(e) => e.stopPropagation()}>
+          <div
+            className="flex items-center gap-2 no-drag" // Add no-drag class here
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()} // Add pointer event stop
+          >
             {/* stopPropagation on controls */}
             <button
               className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
