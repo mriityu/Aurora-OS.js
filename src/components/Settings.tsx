@@ -131,7 +131,7 @@ export function Settings({ owner }: { owner?: string }) {
     wallpaper,
     setWallpaper
   } = useAppContext();
-  const { users, addUser, updateUser, deleteUser, currentUser } = useFileSystem();
+  const { users, addUser, updateUser, deleteUser, currentUser, logout } = useFileSystem();
   const { activeUser: desktopUser } = useAppContext();
   const activeUser = owner || desktopUser;
   
@@ -697,7 +697,17 @@ export function Settings({ owner }: { owner?: string }) {
                             <button
                               onClick={() => {
                                 if (confirm(t('settings.users.confirmDeleteUser', { username: user.username }))) {
+                                  const isSelfDeletion = user.username === activeUser;
+
                                   deleteUser(user.username, activeUser);
+
+                                  if (isSelfDeletion) {
+                                    if (logout) {
+                                      logout();
+                                    } else {
+                                      window.location.reload(); 
+                                    }
+                                  }
                                 }
                               }}
                               className="p-2 text-white/40 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors"
