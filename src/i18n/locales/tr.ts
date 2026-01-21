@@ -45,6 +45,8 @@ export const tr: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "hardwareAcceleration": "Donanım Hızlandırma",
+
       "title": "BIOS Ayarları",
       "fullScreen": "Tam Ekran",
       "immersiveMode": "Sürükleyici Mod",
@@ -936,6 +938,7 @@ export const tr: TranslationDict = {
       "title": "Dosya Sistemi Hata Ayıklayıcı"
     },
     "performance": {
+
       "title": "Performans Monitörü"
     },
     "menu": {
@@ -1016,6 +1019,9 @@ export const tr: TranslationDict = {
       "wallpaperUse": "Kullan"
     },
     "performance": {
+      "gpuTitle": "Grafik hızlandırmayı kullan",
+      "gpuDescription": "Mümkün olduğunda donanım hızlandırmayı kullan (yeniden başlatma gerekir)",
+
       "blurTitle": "Bulanıklık ve Saydamlık",
       "blurDescription": "Cam bulanıklık efektini ve pencere saydamlığını etkinleştir",
       "reduceMotionTitle": "Hareketi Azalt",

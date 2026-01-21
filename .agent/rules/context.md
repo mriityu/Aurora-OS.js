@@ -19,7 +19,7 @@ trigger: always_on
 **Core**: React 19, TypeScript, Vite, Tailwind CSS (v4), Radix UI.
 **Platform**: Web (PWA) + Desktop (Electron).
 **State**: React Context + `localStorage` persistence (Hierarchical: System Defaults + User Overrides).
-**Config**: `src/config/systemConfig.ts` defines core limits (e.g., Default RAM) and **Brand Identity** (Name, Colors, Wallpapers).
+**Config**: `src/config/systemConfig.ts` defines core limits (e.g., Default RAM), **Graphics** (GPU, Blur, Shadows), and **Brand Identity** (Name, Colors, Wallpapers).
 
 </tech_stack>
 
@@ -86,7 +86,7 @@ trigger: always_on
     - **Main Menu**: Video game-style interface with keyboard nav. Includes **Settings** (Tabbed: Display/Audio/System) and **Credits** modals.
       - **Floating Window**: `DevStatusWindow.tsx` provides persistent system status and contribution CTAs.
     - **Save Detection**: Checks `localStorage.getItem(STORAGE_KEYS.VERSION)` to determine if save exists.
-    - **New Game**: Calls `hardReset()` to wipe all `localStorage`, then `resetFileSystem()` for in-memory sync.
+    - **New Game**: Calls `hardReset()` to wipe all `localStorage`, then `resetFileSystem()` for in-memory sync. **Preserves** BIOS settings (GPU/Blur/Motion) via `resetSystemConfig(overrides)`.
     - **Boot Sequence**: Realistic OS boot animation with dynamic log generation (real `APP_REGISTRY` iteration, authentic tech stack logs), pre-loads OS chunk.
     - **Onboarding**: Multi-step wizard (Language → Account → Theme → Finishing) for first-time setup.
       - Supports `Escape` (back/abort) and `Enter` (next) navigation.

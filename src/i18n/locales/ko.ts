@@ -45,6 +45,8 @@ export const ko: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "hardwareAcceleration": "하드웨어 가속",
+
       "title": "BIOS 설정",
       "fullScreen": "전체 화면",
       "immersiveMode": "몰입 모드",
@@ -936,6 +938,7 @@ export const ko: TranslationDict = {
       "title": "파일 시스템 디버거"
     },
     "performance": {
+
       "title": "성능 모니터"
     },
     "menu": {
@@ -1016,6 +1019,9 @@ export const ko: TranslationDict = {
       "wallpaperUse": "사용"
     },
     "performance": {
+      "gpuTitle": "그래픽 가속 사용",
+      "gpuDescription": "가능한 경우 하드웨어 가속 사용 (재시작 필요)",
+
       "blurTitle": "흐림 및 투명도",
       "blurDescription": "유리 흐림 효과 및 창 투명도 활성화",
       "reduceMotionTitle": "동작 줄이기",

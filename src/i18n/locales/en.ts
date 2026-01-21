@@ -52,20 +52,19 @@ export const en: TranslationDict = {
       credits: {},
     },
     bios: {
-      title: 'BIOS Settings',
 
+      title: 'BIOS Settings',
+      hardwareAcceleration: 'Hardware Acceleration',
       fullScreen: 'Full Screen',
       immersiveMode: 'Immersive mode',
-      fullScreenEnter: 'Enter',
-      fullScreenExit: 'Exit',
+      fullScreenEnter: 'Enter Full Screen',
+      fullScreenExit: 'Exit Full Screen',
       softReset: 'Soft Reset',
-      softResetHint: 'Reload Application',
-      softResetConfirm: 'Soft Reset: This will reload the application but keep your data. Continue?',
+      softResetHint: 'Reloads the current session (F5)',
+      softResetConfirm: 'Are you sure you want to reload the page? Unsaved changes will be lost.',
       factoryReset: 'Factory Reset',
-      factoryResetHint: 'Wipe All Data',
-      factoryResetConfirm:
-        'FACTORY RESET: This will wipe ALL data, users, and files appropriately. This cannot be undone. Are you sure?',
-
+      factoryResetHint: 'Wipes all data & saves',
+      factoryResetConfirm: 'WARNING: This will wipe all save data and reset the game to factory state. This action cannot be undone. Are you sure?',
     },
     footer: {
       originalDistribution: 'Original Distribution',
@@ -981,6 +980,8 @@ export const en: TranslationDict = {
 
 
     performance: {
+
+
       title: 'Performance Monitor',
 
     },
@@ -1066,6 +1067,7 @@ export const en: TranslationDict = {
       wallpaperUse: 'Use',
     },
     performance: {
+
       blurTitle: 'Blur & Transparency',
       blurDescription: 'Enable glass blur effect and window transparency',
       reduceMotionTitle: 'Reduce Motion',
@@ -1074,6 +1076,8 @@ export const en: TranslationDict = {
       disableShadowsDescription: 'Remove window shadows to improve rendering performance',
       disableGradientsTitle: 'Disable Gradients',
       disableGradientsDescription: 'Use solid colors instead of gradients for icons',
+      gpuTitle: 'Use graphics acceleration',
+      gpuDescription: 'Use hardware acceleration when available (restart required)',
     },
     placeholders: {
       displaysTitle: 'Display Settings',

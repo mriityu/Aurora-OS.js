@@ -45,6 +45,8 @@ export const zh: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "hardwareAcceleration": "硬件加速",
+
       "title": "BIOS 设置",
       "fullScreen": "全屏",
       "immersiveMode": "沉浸模式",
@@ -936,6 +938,7 @@ export const zh: TranslationDict = {
       "title": "文件系统调试器"
     },
     "performance": {
+
       "title": "性能监视器"
     },
     "menu": {
@@ -1016,6 +1019,9 @@ export const zh: TranslationDict = {
       "wallpaperUse": "使用"
     },
     "performance": {
+      "gpuTitle": "使用图形加速",
+      "gpuDescription": "可用时使用硬件加速（需要重启）",
+
       "blurTitle": "模糊与透明度",
       "blurDescription": "启用玻璃模糊效果和窗口透明度",
       "reduceMotionTitle": "减少动画",

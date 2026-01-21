@@ -111,7 +111,9 @@ export function Settings({ owner }: { owner?: string }) {
     locale,
     setLocale,
     wallpaper,
-    setWallpaper
+    setWallpaper,
+    gpuEnabled,
+    setGpuEnabled
   } = useAppContext();
   const { users, addUser, updateUser, deleteUser, currentUser, logout } = useFileSystem();
   const { activeUser: desktopUser } = useAppContext();
@@ -430,8 +432,32 @@ export function Settings({ owner }: { owner?: string }) {
         {activeSection === 'performance' && (
           <div>
             <h2 className="text-2xl text-white mb-6">{t('settings.sections.performance')}</h2>
+             {/* GPU Acceleration Toggle */}
+             <div className="bg-black/20 rounded-xl p-6 mb-6 border border-white/5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg text-white mb-1">{t('settings.performance.gpuTitle')}</h3>
+                  <p className="text-sm text-white/60">
+                    {t('settings.performance.gpuDescription')}
+                  </p>
+                </div>
+                <Checkbox
+                  checked={gpuEnabled}
+                  onCheckedChange={(checked) => {
+                    const enabled = checked === true;
+                    setGpuEnabled(enabled);
+                    if (!enabled) {
+                        setBlurEnabled(false);
+                        setDisableShadows(true);
+                        setReduceMotion(true); // Assuming we want this consistency check even if not explicitly requested for Settings app, but user asked for it in general.
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
             {/* Blur & Transparency Toggle */}
-            <div className="bg-black/20 rounded-xl p-6 mb-6 border border-white/5">
+            <div className={cn("bg-black/20 rounded-xl p-6 mb-6 border border-white/5 transition-opacity", !gpuEnabled && "opacity-50 pointer-events-none")}>
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h3 className="text-lg text-white mb-1">{t('settings.performance.blurTitle')}</h3>
@@ -442,6 +468,7 @@ export function Settings({ owner }: { owner?: string }) {
                 <Checkbox
                   checked={blurEnabled}
                   onCheckedChange={(checked) => setBlurEnabled(checked === true)}
+                  disabled={!gpuEnabled}
                 />
               </div>
             </div>
@@ -461,7 +488,7 @@ export function Settings({ owner }: { owner?: string }) {
               </div>
             </div>
             {/* Disable Shadows Toggle */}
-            <div className="bg-black/20 rounded-xl p-6 border border-white/5 mb-6">
+            <div className={cn("bg-black/20 rounded-xl p-6 border border-white/5 mb-6 transition-opacity", !gpuEnabled && "opacity-50 pointer-events-none")}>
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h3 className="text-lg text-white mb-1">{t('settings.performance.disableShadowsTitle')}</h3>
@@ -472,6 +499,7 @@ export function Settings({ owner }: { owner?: string }) {
                 <Checkbox
                   checked={disableShadows}
                   onCheckedChange={(checked) => setDisableShadows(checked === true)}
+                  disabled={!gpuEnabled}
                 />
               </div>
             </div>

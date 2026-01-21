@@ -45,6 +45,8 @@ export const ro: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "hardwareAcceleration": "Accelerare Hardware",
+
       "title": "Setări BIOS",
       "fullScreen": "Ecran Complet",
       "immersiveMode": "Mod Imersiv",
@@ -936,6 +938,7 @@ export const ro: TranslationDict = {
       "title": "Debugger Sistem Fișiere"
     },
     "performance": {
+
       "title": "Monitor Performanță"
     },
     "menu": {
@@ -1016,6 +1019,9 @@ export const ro: TranslationDict = {
       "wallpaperUse": "Folosește"
     },
     "performance": {
+      "gpuTitle": "Utilizează accelerarea grafică",
+      "gpuDescription": "Utilizează accelerarea hardware dacă este disponibilă (necesită restart)",
+
       "blurTitle": "Blur & Transparență",
       "blurDescription": "Activează efectul de blur sticlă și transparența ferestrelor",
       "reduceMotionTitle": "Redu Mișcarea",

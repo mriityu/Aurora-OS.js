@@ -45,6 +45,8 @@ export const de: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "hardwareAcceleration": "Hardwarebeschleunigung",
+
       "title": "BIOS-Einstellungen",
       "fullScreen": "Vollbild",
       "immersiveMode": "Immersiver Modus",
@@ -936,6 +938,7 @@ export const de: TranslationDict = {
       "title": "Dateisystem-Debugger"
     },
     "performance": {
+
       "title": "Leistungsmonitor"
     },
     "menu": {
@@ -1016,6 +1019,9 @@ export const de: TranslationDict = {
       "wallpaperUse": "Verwenden"
     },
     "performance": {
+      "gpuTitle": "Grafikbeschleunigung verwenden",
+      "gpuDescription": "Hardwarebeschleunigung verwenden, wenn verfügbar (Neustart erforderlich)",
+
       "blurTitle": "Unschärfe & Transparenz",
       "blurDescription": "Glas-Unschärfeeffekt und Fensttransparenz aktivieren",
       "reduceMotionTitle": "Bewegung reduzieren",

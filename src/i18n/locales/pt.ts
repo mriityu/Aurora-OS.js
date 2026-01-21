@@ -45,6 +45,8 @@ export const pt: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "hardwareAcceleration": "Aceleração de Hardware",
+
       "title": "Configurações da BIOS",
       "fullScreen": "Tela cheia",
       "immersiveMode": "Modo imersivo",
@@ -936,6 +938,7 @@ export const pt: TranslationDict = {
       "title": "Debugger do sistema de arquivos"
     },
     "performance": {
+
       "title": "Monitor de desempenho"
     },
     "menu": {
@@ -1016,6 +1019,9 @@ export const pt: TranslationDict = {
       "wallpaperUse": "Usar"
     },
     "performance": {
+      "gpuTitle": "Usar aceleração gráfica",
+      "gpuDescription": "Usar aceleração de hardware quando disponível (após reinício)",
+
       "blurTitle": "Desfoque e transparência",
       "blurDescription": "Ativar efeito de vidro e transparência das janelas",
       "reduceMotionTitle": "Reduzir movimento",

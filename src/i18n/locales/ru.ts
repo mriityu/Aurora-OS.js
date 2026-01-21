@@ -45,6 +45,8 @@ export const ru: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "hardwareAcceleration": "Аппаратное ускорение",
+
       "title": "Настройки BIOS",
       "fullScreen": "Полноэкранный режим",
       "immersiveMode": "Иммерсивный режим",
@@ -936,6 +938,7 @@ export const ru: TranslationDict = {
       "title": "Отладчик файловой системы"
     },
     "performance": {
+
       "title": "Монитор производительности"
     },
     "menu": {
@@ -1016,6 +1019,9 @@ export const ru: TranslationDict = {
       "wallpaperUse": "Использовать"
     },
     "performance": {
+      "gpuTitle": "Использовать графическое ускорение",
+      "gpuDescription": "Использовать аппаратное ускорение, если доступно (требуется перезагрузка)",
+
       "blurTitle": "Размытие и Прозрачность",
       "blurDescription": "Включить эффект размытия стекла и прозрачность окон",
       "reduceMotionTitle": "Уменьшить движение",

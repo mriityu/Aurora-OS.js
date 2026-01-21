@@ -45,6 +45,8 @@ export const fr: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "hardwareAcceleration": "Accélération matérielle",
+
       "title": "Réglages BIOS",
       "fullScreen": "Plein écran",
       "immersiveMode": "Mode immersif",
@@ -936,6 +938,7 @@ export const fr: TranslationDict = {
       "title": "Débogueur du système de fichiers"
     },
     "performance": {
+
       "title": "Moniteur de performance"
     },
     "menu": {
@@ -1016,6 +1019,9 @@ export const fr: TranslationDict = {
       "wallpaperUse": "Utiliser"
     },
     "performance": {
+      "gpuTitle": "Utiliser l'accélération graphique",
+      "gpuDescription": "Utiliser l'accélération matérielle si disponible (redémarrage requis)",
+
       "blurTitle": "Flou et transparence",
       "blurDescription": "Active l’effet de verre et la transparence des fenêtres",
       "reduceMotionTitle": "Réduire les animations",

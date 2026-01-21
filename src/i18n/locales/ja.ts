@@ -45,6 +45,8 @@ export const ja: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "hardwareAcceleration": "ハードウェアアクセラレーション",
+
       "title": "BIOS設定",
       "fullScreen": "フルスクリーン",
       "immersiveMode": "没入モード",
@@ -936,6 +938,7 @@ export const ja: TranslationDict = {
       "title": "ファイルシステムデバッガ"
     },
     "performance": {
+
       "title": "パフォーマンスモニター"
     },
     "menu": {
@@ -1016,6 +1019,9 @@ export const ja: TranslationDict = {
       "wallpaperUse": "使用"
     },
     "performance": {
+      "gpuTitle": "グラフィックスアクセラレーションを使用",
+      "gpuDescription": "利用可能な場合はハードウェアアクセラレーションを使用（再起動が必要）",
+
       "blurTitle": "ぼかしと透明度",
       "blurDescription": "すりガラス効果とウィンドウの透明化を有効にする",
       "reduceMotionTitle": "視差効果を減らす",
