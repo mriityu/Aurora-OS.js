@@ -108,6 +108,20 @@ trigger: always_on
       - **State**: Custom crash-proof history persistence (HTML-preserving).
       - **UI**: "Ghost Text" autocomplete overlay.
 
+9.  **Build & Distribution (Electron)**:
+    - **Config**: Enhanced `package.json` build config (`NSIS` for Win, `DMG` for Mac, `AppImage` for Linux).
+    - **Signing**: Explicitly disabled (`identity: null`) for first release; Gatekeeper warnings expected.
+    - **Assets**: Requires `public/icon.png` (Linux), `.ico` (Win), and `.icns` (Mac).
+    - **Security**: `asar: true` enabled to package source code. `contextIsolation: true` enforced.
+
+10. **Display & Input Constraints**:
+    - **Resolution**:
+      - **Target**: 1920x1080 (Default launch size).
+      - **Minimum**: 1366x768 (Strictly enforced via Electron `minWidth/Height` and Web `ScreenGuard`).
+    - **Orientation**: Landscape ONLY.
+    - **PWA**: `public/manifest.json` enforces `standalone` and `landscape` for Chromium OS/Tablets.
+    - **ScreenGuard**: React component (`src/components/ui/ScreenGuard.tsx`) blocks execution on unsupported viewports (Phones/Portrait).
+
 </architecture_mechanics>
 
 <critical_rules>

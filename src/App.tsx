@@ -98,14 +98,18 @@ function AppContent() {
   );
 }
 
+import { ScreenGuard } from '@/components/ui/ScreenGuard';
+
 export default function App() {
   return (
-    <AppProvider>
-      <FileSystemProvider>
-        <GameRoot>
-          <AppContent />
-        </GameRoot>
-      </FileSystemProvider>
-    </AppProvider>
+    <ScreenGuard>
+      <AppProvider>
+        <FileSystemProvider>
+          <GameRoot>
+            <AppContent />
+          </GameRoot>
+        </FileSystemProvider>
+      </AppProvider>
+    </ScreenGuard>
   );
 }
