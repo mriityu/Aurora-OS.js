@@ -34,8 +34,10 @@ function createWindow() {
 
     // Create the browser window.
     const mainWindow = new BrowserWindow({
-        width: 1366,
-        height: 768,
+        width: 1920,
+        height: 1080,
+        minWidth: 1366,
+        minHeight: 768,
         show: false, // Start hidden for smoother transition
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
@@ -72,6 +74,24 @@ function createWindow() {
         }
         return { action: 'deny' };
     });
+
+    // --- SECURITY HARDENING (Game Mode) ---
+    if (!process.env.VITE_DEV_SERVER_URL) {
+        // Disable DevTools in production
+        mainWindow.webContents.on('devtools-opened', () => {
+            mainWindow.webContents.closeDevTools();
+        });
+
+        // Block all keyboard shortcuts for DevTools
+        mainWindow.webContents.on('before-input-event', (event, input) => {
+            if (input.control && input.shift && input.key.toLowerCase() === 'i') {
+                event.preventDefault();
+            }
+            if (input.key === 'F12') {
+                event.preventDefault();
+            }
+        });
+    }
 }
 
 // OS specific behaviors

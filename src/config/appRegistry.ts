@@ -54,7 +54,7 @@ export const APP_REGISTRY: Record<string, AppMetadata> = {
         menu: finderMenuConfig,
         contextMenu: finderContextMenuConfig,
         size: 50,
-        ramUsage: 110,
+        ramUsage: 300,
     },
     browser: {
         id: 'browser',
@@ -86,7 +86,7 @@ export const APP_REGISTRY: Record<string, AppMetadata> = {
         dockOrder: 3,
         menu: mailMenuConfig,
         size: 120,
-        ramUsage: 180,
+        ramUsage: 250,
     },
     appstore: {
         id: 'appstore',
@@ -102,7 +102,7 @@ export const APP_REGISTRY: Record<string, AppMetadata> = {
         dockOrder: 4,
         menu: appStoreMenuConfig,
         size: 90,
-        ramUsage: 140,
+        ramUsage: 200,
     },
     terminal: {
         id: 'terminal',
@@ -119,7 +119,7 @@ export const APP_REGISTRY: Record<string, AppMetadata> = {
         menu: terminalMenuConfig,
         contextMenu: terminalContextMenuConfig,
         size: 15,
-        ramUsage: 60,
+        ramUsage: 100,
     },
     settings: {
         id: 'settings',
@@ -135,7 +135,7 @@ export const APP_REGISTRY: Record<string, AppMetadata> = {
         dockOrder: 10,
         menu: settingsMenuConfig,
         size: 85,
-        ramUsage: 120,
+        ramUsage: 150,
     },
 
     // Optional Apps (can be installed/uninstalled)
@@ -153,7 +153,7 @@ export const APP_REGISTRY: Record<string, AppMetadata> = {
         dockOrder: 4,
         menu: notepadMenuConfig,
         size: 35,
-        ramUsage: 70,
+        ramUsage: 150,
     },
     messages: {
         id: 'messages',
@@ -169,7 +169,7 @@ export const APP_REGISTRY: Record<string, AppMetadata> = {
         dockOrder: 5,
         menu: messagesMenuConfig,
         size: 140,
-        ramUsage: 220,
+        ramUsage: 250,
     },
     calendar: {
         id: 'calendar',
@@ -185,7 +185,7 @@ export const APP_REGISTRY: Record<string, AppMetadata> = {
         dockOrder: 6,
         menu: calendarMenuConfig,
         size: 50,
-        ramUsage: 90,
+        ramUsage: 250,
     },
     photos: {
         id: 'photos',
@@ -217,7 +217,7 @@ export const APP_REGISTRY: Record<string, AppMetadata> = {
         dockOrder: 8,
         menu: musicMenuConfig,
         size: 210,
-        ramUsage: 280,
+        ramUsage: 300,
     },
 
     'dev-center': {
@@ -234,7 +234,7 @@ export const APP_REGISTRY: Record<string, AppMetadata> = {
         dockOrder: 12,
         menu: devCenterMenuConfig,
         size: 550,
-        ramUsage: 800,
+        ramUsage: 1000,
     },
 };
 

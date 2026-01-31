@@ -1,4 +1,7 @@
 import pkg from '../../package.json';
+import { getCoreApps } from '../config/appRegistry';
+
+/**
 import startupSound from '../assets/sounds/Runway Electric.mp3';
 import startupSound2 from '../assets/sounds/Lo-Fi Girl.mp3';
 import photo1 from '../assets/images/image-1.png';
@@ -8,7 +11,7 @@ import photo4 from '../assets/images/wallpaper-orbit.png';
 import photo5 from '../assets/images/wallpaper-dunes.png';
 import photo6 from '../assets/images/wallpaper-mesh.png';
 import photo7 from '../assets/images/background.png';
-import { getCoreApps } from '../config/appRegistry';
+*/
 
 export interface FileNode {
     id: string;
@@ -198,6 +201,9 @@ export function createUserHome(username: string, permissions: string = 'drwxr-x-
     };
 
     if (withMockFiles) {
+
+        /**
+
         // Populate Desktop
         const desktop = home.children.find((c: any) => c.name === 'Desktop');
         if (desktop) {
@@ -218,8 +224,8 @@ export function createUserHome(username: string, permissions: string = 'drwxr-x-
         const music = home.children.find((c: any) => c.name === 'Music');
         if (music) {
             music.children.push(
-                { name: 'Runway Electric.mp3', type: 'file', content: startupSound, size: 2048, owner: username, permissions: '-rw-r--r--' },
-                { name: 'Lo-Fi Girl.mp3', type: 'file', content: startupSound2, size: 2048, owner: username, permissions: '-rw-r--r--' }
+                //{ name: 'Runway Electric.mp3', type: 'file', content: startupSound, size: 2048, owner: username, permissions: '-rw-r--r--' },
+                //{ name: 'Lo-Fi Girl.mp3', type: 'file', content: startupSound2, size: 2048, owner: username, permissions: '-rw-r--r--' }
             );
         }
 
@@ -236,6 +242,8 @@ export function createUserHome(username: string, permissions: string = 'drwxr-x-
                 { name: 'System Background.png', type: 'file', content: photo7, size: 5071833, owner: username, permissions: '-rw-r--r--' }
             );
         }
+
+        */
     }
 
     return home;

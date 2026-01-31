@@ -46,6 +46,7 @@ export const pl: TranslationDict = {
     },
     "bios": {
       "title": "Ustawienia BIOS",
+      "hardwareAcceleration": "Akceleracja sprzętowa",
       "fullScreen": "Pełny ekran",
       "immersiveMode": "Tryb immersyjny",
       "fullScreenEnter": "Włącz",
@@ -232,7 +233,8 @@ export const pl: TranslationDict = {
       "fileError": "Błąd pliku"
     },
     "empty": "Brak powiadomień",
-    "clearApp": "Wyczyść wszystkie dla tej aplikacji"
+    "clearApp": "Wyczyść wszystkie dla tej aplikacji",
+    "messageFrom": "Message from {{sender}}"
   },
   "memory": {
     "title": "Pamięć",
@@ -298,6 +300,8 @@ export const pl: TranslationDict = {
       "closeTab": "Zamknij kartę"
     },
     "welcome": {
+      "title": "Browser",
+      "description": "Search for information or enter a URL to start browsing.",
       "searchPlaceholder": "Szukaj stron lub wpisz adres...",
       "favorites": "Ulubione",
       "recentActivity": "Ostatnia aktywność"
@@ -619,7 +623,8 @@ export const pl: TranslationDict = {
     "library": {
       "allPhotos": "Wszystkie zdjęcia",
       "favorites": "Ulubione",
-      "recent": "Ostatnie"
+      "recent": "Ostatnie",
+      "userLibrary": "{{user}}'s Library"
     },
     "menu": {
       "slideshow": "Pokaz slajdów",
@@ -647,7 +652,9 @@ export const pl: TranslationDict = {
       "openHome": "Otwórz katalog domowy"
     },
     "folders": {
-      "pictures": "Obrazy"
+      "pictures": "Obrazy",
+      "recent": "Recent",
+      "misc": "Misc"
     }
   },
   "mail": {
@@ -1023,7 +1030,9 @@ export const pl: TranslationDict = {
       "disableShadowsTitle": "Wyłącz cienie",
       "disableShadowsDescription": "Usuń cienie okien, aby poprawić wydajność renderowania",
       "disableGradientsTitle": "Wyłącz gradienty",
-      "disableGradientsDescription": "Używaj jednolitych kolorów zamiast gradientów dla ikon"
+      "disableGradientsDescription": "Używaj jednolitych kolorów zamiast gradientów dla ikon",
+      "gpuTitle": "Użyj akceleracji graficznej",
+      "gpuDescription": "Użyj akceleracji sprzętowej, jeśli dostępna (wymagane ponowne uruchomienie)"
     },
     "placeholders": {
       "displaysTitle": "Ustawienia Ekranu",

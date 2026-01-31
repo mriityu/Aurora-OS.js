@@ -1,9 +1,9 @@
 {
       "name": "aurora-os-js",
-      "version": "0.8.4-alpha5",
+      "version": "0.8.5",
       "private": true,
       "type": "module",
-      "author": "Cătălin-Robert Drăgoiu",
+      "author": "Cătălin-Robert Drăgoiu aka. mental.os() // Dope Pixels",
       "nickname": "mental.os()",
       "license": "AGPL-3.0",
       "description": "A browser-based OS hacking simulator powered by web technology.",
@@ -35,7 +35,7 @@
       "contributors": [
             {
                   "name": "Cătălin-Robert Drăgoiu aka. mental.os()",
-                  "email": "mental.os@proton.me",
+                  "email": "mentalos@proton.me",
                   "url": "https://github.com/mental-os"
             }
       ],
@@ -76,22 +76,22 @@
             "embla-carousel-react": "^8.6.0",
             "howler": "^2.2.4",
             "input-otp": "^1.4.2",
-            "lucide-react": "^0.562.0",
-            "motion": "^12.26.1",
+            "lucide-react": "^0.563.0",
+            "motion": "^12.27.5",
             "next-themes": "^0.4.6",
             "prismjs": "^1.30.0",
             "react": "^19.2.1",
             "react-day-picker": "8.10.1",
             "react-dom": "^19.2.1",
-            "react-hook-form": "7.71.0",
+            "react-hook-form": "7.71.1",
             "react-markdown": "^10.1.0",
             "react-resizable-panels": "^4.4.1",
             "react-rnd": "^10.5.2",
             "react-simple-code-editor": "^0.14.1",
-            "recharts": "^3.6.0",
+            "recharts": "^3.7.0",
             "remark-gfm": "^4.0.1",
             "sonner": "^2.0.3",
-            "systeminformation": "^5.30.5",
+            "systeminformation": "^5.30.6",
             "tailwind-merge": "*",
             "vaul": "^1.1.2"
       },
@@ -101,28 +101,28 @@
             "@testing-library/jest-dom": "^6.9.1",
             "@testing-library/react": "^16.3.2",
             "@types/howler": "^2.2.12",
-            "@types/node": "^25.0.7",
+            "@types/node": "^25.1.0",
             "@types/prismjs": "^1.26.5",
-            "@types/react": "^19.2.8",
+            "@types/react": "^19.2.9",
             "@types/react-dom": "^19.2.3",
             "@vitejs/plugin-react-swc": "^4.2.2",
             "concurrently": "^9.2.1",
             "cross-env": "^10.1.0",
-            "electron": "^40.0.0",
+            "electron": "^40.1.0",
             "electron-builder": "^26.4.0",
             "eslint": "^9.39.1",
             "eslint-plugin-react-hooks": "^7.0.1",
             "eslint-plugin-react-refresh": "^0.4.26",
-            "globals": "^17.0.0",
+            "globals": "^17.2.0",
             "jsdom": "^27.4.0",
             "postcss": "^8.5.6",
             "tailwindcss": "^4.1.17",
             "tailwindcss-animate": "^1.0.7",
             "tsx": "^4.21.0",
             "typescript": "^5.9.3",
-            "typescript-eslint": "^8.53.1",
+            "typescript-eslint": "^8.54.0",
             "vite": "^7.3.1",
-            "vitest": "^4.0.17",
+            "vitest": "^4.0.18",
             "wait-on": "^9.0.3"
       },
       "main": "dist-electron/main.js",
@@ -143,6 +143,23 @@
       "build": {
             "appId": "com.auroraos.app",
             "productName": "Aurora OS.js",
+            "asar": true,
+            "compression": "maximum",
+            "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+            "copyright": "Copyright ©2026 Drăgoiu Cătălin-Robert aka. mental.os() // Dope Pixels",
+            "electronFuses": {
+                  "runAsNode": false,
+                  "enableCookieEncryption": true,
+                  "enableNodeOptionsEnvironmentVariable": false,
+                  "enableNodeCliInspectArguments": false,
+                  "enableEmbeddedAsarIntegrityValidation": true,
+                  "onlyLoadAppFromAsar": true
+            },
+            "publish": {
+                  "provider": "github",
+                  "owner": "mental-os",
+                  "repo": "Aurora-OS.js"
+            },
             "directories": {
                   "output": "release"
             },
@@ -151,17 +168,61 @@
                   "dist-electron/**/*"
             ],
             "win": {
-                  "target": [
-                        "nsis",
-                        "portable"
-                  ],
-                  "icon": "public/vite.svg"
+                  "target": "nsis",
+                  "icon": "public/icon.ico",
+                  "verifyUpdateCodeSignature": false
+            },
+            "nsis": {
+                  "menuCategory": "Dope Pixels",
+                  "oneClick": false,
+                  "allowToChangeInstallationDirectory": true,
+                  "perMachine": false,
+                  "deleteAppDataOnUninstall": true,
+                  "displayLanguageSelector": true,
+                  "installerIcon": "public/icon.ico",
+                  "uninstallerIcon": "public/icon.ico",
+                  "uninstallDisplayName": "Aurora OS.js",
+                  "createDesktopShortcut": true,
+                  "createStartMenuShortcut": true
             },
             "mac": {
                   "target": "dmg",
-                  "icon": "public/vite.svg",
+                  "icon": "public/icon.icns",
                   "hardenedRuntime": true,
-                  "gatekeeperAssess": false
+                  "gatekeeperAssess": false,
+                  "identity": null,
+                  "darkModeSupport": true,
+                  "category": "public.app-category.simulation-games"
+            },
+            "dmg": {
+                  "background": null,
+                  "backgroundColor": "#202020",
+                  "window": {
+                        "width": 540,
+                        "height": 380
+                  },
+                  "contents": [
+                        {
+                              "x": 130,
+                              "y": 220
+                        },
+                        {
+                              "x": 410,
+                              "y": 220,
+                              "type": "link",
+                              "path": "/Applications"
+                        }
+                  ]
+            },
+            "linux": {
+                  "target": [
+                        "AppImage",
+                        "deb"
+                  ],
+                  "icon": "public/icon.png",
+                  "category": "Game",
+                  "synopsis": "Hacking simulator game",
+                  "description": "A high-fidelity OS hacking simulator."
             },
             "electronLanguages": [
                   "en",
@@ -183,11 +244,6 @@
                   "react": "^19.0.0",
                   "react-dom": "^19.0.0"
             },
-            "node-gyp": {
-                  "tar": "^7.5.3"
-            },
-            "cacache": {
-                  "tar": "^7.5.3"
-            }
+            "tar": "^7.5.6"
       }
 }

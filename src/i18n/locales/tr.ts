@@ -46,6 +46,7 @@ export const tr: TranslationDict = {
     },
     "bios": {
       "title": "BIOS Ayarları",
+      "hardwareAcceleration": "Donanım Hızlandırma",
       "fullScreen": "Tam Ekran",
       "immersiveMode": "Sürükleyici Mod",
       "fullScreenEnter": "Giriş",
@@ -232,7 +233,8 @@ export const tr: TranslationDict = {
       "fileError": "Dosya Hatası"
     },
     "empty": "Bildirim Yok",
-    "clearApp": "Bu uygulamadan gelenlerin hepsini temizle"
+    "clearApp": "Bu uygulamadan gelenlerin hepsini temizle",
+    "messageFrom": "Message from {{sender}}"
   },
   "memory": {
     "title": "Bellek",
@@ -298,6 +300,8 @@ export const tr: TranslationDict = {
       "closeTab": "Sekmeyi Kapat"
     },
     "welcome": {
+      "title": "Browser",
+      "description": "Search for information or enter a URL to start browsing.",
       "searchPlaceholder": "Web sitelerini ara veya adres gir...",
       "favorites": "Sık Kullanılanlar",
       "recentActivity": "Son Etkinlik"
@@ -619,7 +623,8 @@ export const tr: TranslationDict = {
     "library": {
       "allPhotos": "Tüm Fotoğraflar",
       "favorites": "Sık Kullanılanlar",
-      "recent": "En Son"
+      "recent": "En Son",
+      "userLibrary": "{{user}}'s Library"
     },
     "menu": {
       "slideshow": "Slayt Gösterisi",
@@ -647,7 +652,9 @@ export const tr: TranslationDict = {
       "openHome": "Ana dizini aç"
     },
     "folders": {
-      "pictures": "Resimler"
+      "pictures": "Resimler",
+      "recent": "Recent",
+      "misc": "Misc"
     }
   },
   "mail": {
@@ -1023,7 +1030,9 @@ export const tr: TranslationDict = {
       "disableShadowsTitle": "Gölgeleri Devre Dışı Bırak",
       "disableShadowsDescription": "Oluşturma performansını artırmak için pencere gölgelerini kaldır",
       "disableGradientsTitle": "Gradyanları Devre Dışı Bırak",
-      "disableGradientsDescription": "Simgeler için gradyanlar yerine düz renkler kullan"
+      "disableGradientsDescription": "Simgeler için gradyanlar yerine düz renkler kullan",
+      "gpuTitle": "Grafik hızlandırmayı kullan",
+      "gpuDescription": "Mümkün olduğunda donanım hızlandırmayı kullan (yeniden başlatma gerekir)"
     },
     "placeholders": {
       "displaysTitle": "Ekran Ayarları",

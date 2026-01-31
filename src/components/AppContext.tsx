@@ -20,6 +20,8 @@ interface AppContextType {
   setDisableShadows: (enabled: boolean) => void;
   disableGradients: boolean;
   setDisableGradients: (enabled: boolean) => void;
+  gpuEnabled: boolean;
+  setGpuEnabled: (enabled: boolean) => void;
   wallpaper: string;
   setWallpaper: (id: string) => void;
   timeMode: 'server' | 'local';
@@ -40,7 +42,7 @@ interface AppContextType {
   setOnboardingComplete: (complete: boolean) => void;
 
   // System Reset
-  resetSystemConfig: () => void;
+  resetSystemConfig: (overrides?: Partial<SystemConfig>) => void;
 
   // Lock user session without logging out
   isLocked: boolean;
@@ -87,14 +89,16 @@ interface UserPreferences {
   reduceMotion?: boolean;
   disableShadows?: boolean;
   disableGradients?: boolean;
+  gpuEnabled?: boolean;
 }
 
-interface SystemConfig {
+export interface SystemConfig {
   devMode: boolean;
   exposeRoot: boolean;
-  totalMemoryGB: number;
   locale: AppLocale;
   onboardingComplete: boolean;
+  totalMemoryGB: number;
+  // Global defaults that can be overridden by users
   blurEnabled: boolean;
   reduceMotion: boolean;
   disableShadows: boolean;
@@ -108,6 +112,7 @@ interface SystemConfig {
   networkGateway: string;
   networkSubnetMask: string;
   networkDNS: string;
+  gpuEnabled: boolean;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
@@ -168,6 +173,7 @@ const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
   networkGateway: '192.168.1.1',
   networkSubnetMask: '255.255.255.0',
   networkDNS: '8.8.8.8',
+  gpuEnabled: true,
 };
 
 // Helper: Get key for specific user
@@ -189,6 +195,7 @@ function loadUserPreferences(username: string, systemDefaults: SystemConfig): Us
         reduceMotion: systemDefaults.reduceMotion,
         disableShadows: systemDefaults.disableShadows,
         disableGradients: systemDefaults.disableGradients,
+        gpuEnabled: systemDefaults.gpuEnabled,
         ...parsed 
       };
     }
@@ -213,6 +220,7 @@ function loadUserPreferences(username: string, systemDefaults: SystemConfig): Us
             reduceMotion: systemDefaults.reduceMotion,
             disableShadows: systemDefaults.disableShadows,
             disableGradients: systemDefaults.disableGradients,
+            gpuEnabled: systemDefaults.gpuEnabled,
             ...migratedProps 
         };
         // Save immediately to new key
@@ -256,6 +264,7 @@ function loadSystemConfig(): SystemConfig {
       if ('reduceMotion' in legacyParsed) { migrated.reduceMotion = legacyParsed.reduceMotion; hasMigration = true; }
       if ('disableShadows' in legacyParsed) { migrated.disableShadows = legacyParsed.disableShadows; hasMigration = true; }
       if ('disableGradients' in legacyParsed) { migrated.disableGradients = legacyParsed.disableGradients; hasMigration = true; }
+      if ('gpuEnabled' in legacyParsed) { migrated.gpuEnabled = legacyParsed.gpuEnabled; hasMigration = true; }
       if ('totalMemoryGB' in legacyParsed) { migrated.totalMemoryGB = legacyParsed.totalMemoryGB; hasMigration = true; }
 
       if (hasMigration) {
@@ -286,7 +295,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState<UserPreferences>(() => loadUserPreferences('root', systemConfig));
 
   // Destructure for easy access (User preferences take precedence/contain the effective value)
-  const { accentColor, themeMode, wallpaper, blurEnabled, reduceMotion, disableShadows, disableGradients } = preferences;
+  const { accentColor, themeMode, wallpaper, blurEnabled, reduceMotion, disableShadows, disableGradients, gpuEnabled } = preferences;
   const { devMode, exposeRoot, locale, onboardingComplete, totalMemoryGB, wifiEnabled, bluetoothEnabled, wifiNetwork, bluetoothDevice, networkConfigMode, networkIP, networkGateway, networkSubnetMask, networkDNS } = systemConfig;
 
   // Function to switch context to a different user
@@ -337,6 +346,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setPreferences(s => ({ ...s, disableGradients: enabled }));
       if (activeUser === 'root') setSystemConfig(s => ({ ...s, disableGradients: enabled }));
   };
+  const setGpuEnabled = (enabled: boolean) => {
+      setPreferences(s => ({ ...s, gpuEnabled: enabled }));
+      if (activeUser === 'root') setSystemConfig(s => ({ ...s, gpuEnabled: enabled }));
+  };
   const setWallpaper = (id: string) => setPreferences(s => ({ ...s, wallpaper: id }));
   const setTimeMode = (mode: 'server' | 'local') => setPreferences(s => ({ ...s, timeMode: mode }));
 
@@ -356,8 +369,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setNetworkSubnetMask = (mask: string) => setSystemConfig(s => ({ ...s, networkSubnetMask: mask }));
   const setNetworkDNS = (dns: string) => setSystemConfig(s => ({ ...s, networkDNS: dns }));
 
-  const resetSystemConfig = useCallback(() => {
-    setSystemConfig(DEFAULT_SYSTEM_CONFIG);
+  const resetSystemConfig = useCallback((overrides?: Partial<SystemConfig>) => {
+    setSystemConfig({ ...DEFAULT_SYSTEM_CONFIG, ...overrides });
     localStorage.removeItem(SYSTEM_CONFIG_KEY);
     // Also clear all user preferences by resetting active user to root and clearing keys
     // Implementation detail: The GameRoot handles hard FS reset, here we just handle config
@@ -419,6 +432,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [devMode]);
 
+  // Sync GPU Enabled state
+  useEffect(() => {
+    document.documentElement.dataset.gpuEnabled = gpuEnabled ? 'true' : 'false';
+  }, [gpuEnabled]);
+
   return (
     <AppContext.Provider value={{
       accentColor,
@@ -433,6 +451,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setDisableShadows,
       disableGradients: disableGradients ?? systemConfig.disableGradients,
       setDisableGradients,
+      gpuEnabled: gpuEnabled ?? systemConfig.gpuEnabled,
+      setGpuEnabled,
       wallpaper,
       setWallpaper,
       timeMode: preferences.timeMode,

@@ -3,7 +3,7 @@ import { IntroSequence } from '@/components/Game/IntroSequence';
 import { MainMenu } from '@/components/Game/MainMenu';
 import { BootSequence } from '@/components/Game/BootSequence';
 import { useFileSystem } from '@/components/FileSystemContext';
-import { useAppContext } from '@/components/AppContext';
+import { useAppContext, SystemConfig } from '@/components/AppContext';
 
 import { STORAGE_KEYS } from '@/utils/memory';
 import { Onboarding } from "@/components/Game/Onboarding.tsx";
@@ -22,7 +22,7 @@ type GameState = 'INTRO' | 'MENU' | 'FIRST_BOOT' | 'BOOT' | 'ONBOARDING' | 'GAME
 export function GameRoot({ children }: GameRootProps) {
     const [gameState, setGameState] = useState<GameState>('INTRO'); // Default to INTRO
     const { resetFileSystem } = useFileSystem();
-    const { setIsLocked, resetSystemConfig } = useAppContext();
+    const { setIsLocked, resetSystemConfig, blurEnabled, reduceMotion, disableShadows, disableGradients, gpuEnabled } = useAppContext();
 
     // Global click sound (Persistent across all game states: Menu, Intro, Desktop, etc.)
     useEffect(() => {
@@ -42,7 +42,17 @@ export function GameRoot({ children }: GameRootProps) {
         // hardReset() is now handled internally by resetFileSystem()
         // which resets both localStorage and in-memory React state
         resetFileSystem(true);
-        resetSystemConfig();
+        
+        // Preserve "BIOS" settings (Graphics/Hardware configuration)
+        // These simulate physical hardware switches/bios settings that survive an OS reinstall
+        const biosSettings: Partial<SystemConfig> = {
+            gpuEnabled,
+            blurEnabled,
+            reduceMotion,
+            disableShadows,
+            disableGradients
+        };
+        resetSystemConfig(biosSettings);
 
         setIsLocked(false);
         setGameState('FIRST_BOOT');

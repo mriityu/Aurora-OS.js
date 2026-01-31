@@ -53,10 +53,11 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
     // Core state from AppContext
     const {
+        reduceMotion, setReduceMotion,
+        disableGradients, setDisableGradients,
         blurEnabled, setBlurEnabled,
         disableShadows, setDisableShadows,
-        disableGradients, setDisableGradients,
-        reduceMotion, setReduceMotion,
+        gpuEnabled, setGpuEnabled,
         locale, setLocale
     } = useAppContext();
 
@@ -77,19 +78,21 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
     // Determine current graphics preset
     const getPreset = () => {
-        if (blurEnabled && !disableShadows && !disableGradients && !reduceMotion) return 'ultra';
-        if (!blurEnabled && disableShadows && disableGradients && reduceMotion) return 'performance';
+        if (gpuEnabled && blurEnabled && !disableShadows && !disableGradients && !reduceMotion) return 'ultra';
+        if (!gpuEnabled && !blurEnabled && disableShadows && disableGradients && reduceMotion) return 'performance';
         return 'custom';
     };
 
     const applyPreset = (preset: 'ultra' | 'performance') => {
         feedback.click();
         if (preset === 'ultra') {
+            setGpuEnabled(true);
             setBlurEnabled(true);
             setDisableShadows(false);
             setDisableGradients(false);
             setReduceMotion(false);
         } else {
+            setGpuEnabled(false);
             setBlurEnabled(false);
             setDisableShadows(true);
             setDisableGradients(true);
@@ -254,6 +257,20 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                             {/* Advanced Toggles */}
                                             <div className="pt-2 grid grid-cols-2 gap-2">
                                                 <button
+                                                    onClick={() => {
+                                                        const newState = !gpuEnabled;
+                                                        setGpuEnabled(newState);
+                                                        if (!newState) {
+                                                            setBlurEnabled(false);
+                                                            setDisableShadows(true);
+                                                            setReduceMotion(true);
+                                                        }
+                                                    }}
+                                                    className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5 col-span-2", gpuEnabled ? "border-white text-white" : "border-zinc-800 text-zinc-600")}
+                                                >
+                                                    [ {gpuEnabled ? 'X' : ' '} ] {t('game.bios.hardwareAcceleration')}
+                                                </button>
+                                                <button
                                                     onClick={() => setReduceMotion(!reduceMotion)}
                                                     className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5", reduceMotion ? "border-white text-white" : "border-zinc-800 text-zinc-600")}
                                                 >
@@ -267,13 +284,21 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                                                 </button>
                                                 <button
                                                     onClick={() => setBlurEnabled(!blurEnabled)}
-                                                    className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5", !blurEnabled ? "border-white text-white" : "border-zinc-800 text-zinc-600")}
+                                                    disabled={!gpuEnabled}
+                                                    className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5", 
+                                                        !gpuEnabled && "opacity-50 cursor-not-allowed",
+                                                        !blurEnabled ? "border-white text-white" : "border-zinc-800 text-zinc-600"
+                                                    )}
                                                 >
                                                     [ {!blurEnabled ? 'X' : ' '} ] Solid Backgrounds
                                                 </button>
                                                 <button
                                                     onClick={() => setDisableShadows(!disableShadows)}
-                                                    className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5", disableShadows ? "border-white text-white" : "border-zinc-800 text-zinc-600")}
+                                                    disabled={!gpuEnabled}
+                                                    className={cn("text-[10px] uppercase font-bold p-2 border transition-all hover:bg-white/5", 
+                                                        !gpuEnabled && "opacity-50 cursor-not-allowed", 
+                                                        disableShadows ? "border-white text-white" : "border-zinc-800 text-zinc-600"
+                                                    )}
                                                 >
                                                     [ {disableShadows ? 'X' : ' '} ] No Shadows
                                                 </button>

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { isValidElement, cloneElement } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Desktop, DesktopIcon } from '@/components/Desktop';
 import { MenuBar } from '@/components/MenuBar';
 import { Dock } from '@/components/Dock';
@@ -54,7 +54,7 @@ function loadIconPositions(): Record<string, GridPosition> {
 }
 
 export default function OS() {
-    const { activeUser } = useAppContext();
+    const { activeUser, reduceMotion } = useAppContext();
     const { t } = useI18n();
 
     // Track window size for responsive icon positioning
@@ -406,28 +406,36 @@ export default function OS() {
                 windows={windows}
             />
 
-            {windows.map(window => {
-                const contentWithProps = isValidElement(window.content)
-                    ? cloneElement(window.content as React.ReactElement, {
-                        // @ts-expect-error - Intentionally ignored for now - Dynamic prop injection
-                        onClose: () => closeWindow(window.id)
-                    })
-                    : window.content;
-
-                return (
-                    <Window
+            <AnimatePresence>
+                {windows.map(window => {
+                    // Memoization Fix: We pass the Window object directly.
+                    // The 'content' property inside 'window' is stable from useWindowManager.
+                    // We DO NOT cloneElement here anymore, avoiding new object creation on every render.
+                    // This allows React.memo(Window) to actually prevent re-renders of unfocused windows.
+                    return (
+                    <motion.div
                         key={window.id}
-                        window={{ ...window, content: contentWithProps }}
-                        onClose={() => closeWindow(window.id)}
-                        onMinimize={() => minimizeWindow(window.id)}
-                        onMaximize={() => maximizeWindow(window.id)}
-                        onFocus={() => focusWindow(window.id)}
-                        onUpdateState={(updates) => updateWindowState(window.id, updates)}
-                        isFocused={window.id === focusedWindowId}
-                        bounds=".window-drag-boundary"
-                    />
+                        initial={reduceMotion ? undefined : { opacity: 0, scale: 0.95 }}
+                        animate={reduceMotion ? undefined : { opacity: 1, scale: 1 }}
+                        exit={reduceMotion ? undefined : { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute inset-0 pointer-events-none"
+                        style={{ zIndex: window.zIndex }}
+                    >
+                        <Window
+                            window={window} // Pass the stable state object directly
+                            onClose={() => closeWindow(window.id)}
+                            onMinimize={() => minimizeWindow(window.id)}
+                            onMaximize={() => maximizeWindow(window.id)}
+                            onFocus={() => focusWindow(window.id)}
+                            onUpdateState={(updates: any) => updateWindowState(window.id, updates)}
+                            isFocused={window.id === focusedWindowId}
+                            bounds=".window-drag-boundary"
+                        />
+                    </motion.div>
                 );
-            })}
+                })}
+            </AnimatePresence>
 
             <Toaster />
         </div>

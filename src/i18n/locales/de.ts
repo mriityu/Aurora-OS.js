@@ -46,6 +46,7 @@ export const de: TranslationDict = {
     },
     "bios": {
       "title": "BIOS-Einstellungen",
+      "hardwareAcceleration": "Hardwarebeschleunigung",
       "fullScreen": "Vollbild",
       "immersiveMode": "Immersiver Modus",
       "fullScreenEnter": "Aktivieren",
@@ -232,7 +233,8 @@ export const de: TranslationDict = {
       "fileError": "Dateifehler"
     },
     "empty": "Keine Benachrichtigungen",
-    "clearApp": "Alle von dieser App löschen"
+    "clearApp": "Alle von dieser App löschen",
+    "messageFrom": "Nachricht von {{sender}}"
   },
   "memory": {
     "title": "Speicher",
@@ -298,6 +300,8 @@ export const de: TranslationDict = {
       "closeTab": "Tab schließen"
     },
     "welcome": {
+      "title": "Browser",
+      "description": "Suchen Sie nach Informationen oder geben Sie eine URL ein, um mit dem Surfen zu beginnen.",
       "searchPlaceholder": "Websites suchen oder Adresse eingeben...",
       "favorites": "Favoriten",
       "recentActivity": "Letzte Aktivitäten"
@@ -619,7 +623,8 @@ export const de: TranslationDict = {
     "library": {
       "allPhotos": "Alle Fotos",
       "favorites": "Favoriten",
-      "recent": "Zuletzt"
+      "recent": "Zuletzt",
+      "userLibrary": "Bibliothek von {{user}}"
     },
     "menu": {
       "slideshow": "Diashow",
@@ -647,7 +652,9 @@ export const de: TranslationDict = {
       "openHome": "Home-Verzeichnis öffnen"
     },
     "folders": {
-      "pictures": "Bilder"
+      "pictures": "Bilder",
+      "recent": "Zuletzt",
+      "misc": "Verschiedenes"
     }
   },
   "mail": {
@@ -1054,7 +1061,9 @@ export const de: TranslationDict = {
       "disableShadowsTitle": "Schatten deaktivieren",
       "disableShadowsDescription": "Fensterschatten entfernen, um die Rendering-Leistung zu verbessern",
       "disableGradientsTitle": "Verläufe deaktivieren",
-      "disableGradientsDescription": "Für Icons Volltonfarben statt Verläufe verwenden"
+      "disableGradientsDescription": "Für Icons Volltonfarben statt Verläufe verwenden",
+      "gpuTitle": "Grafikbeschleunigung verwenden",
+      "gpuDescription": "Hardwarebeschleunigung verwenden, wenn verfügbar (Neustart erforderlich)"
     },
     "placeholders": {
       "displaysTitle": "Anzeigeeinstellungen",

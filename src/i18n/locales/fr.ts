@@ -46,6 +46,7 @@ export const fr: TranslationDict = {
     },
     "bios": {
       "title": "Réglages BIOS",
+      "hardwareAcceleration": "Accélération matérielle",
       "fullScreen": "Plein écran",
       "immersiveMode": "Mode immersif",
       "fullScreenEnter": "Entrer",
@@ -232,7 +233,8 @@ export const fr: TranslationDict = {
       "fileError": "Erreur de fichier"
     },
     "empty": "Aucune notification",
-    "clearApp": "Tout effacer de cette application"
+    "clearApp": "Tout effacer de cette application",
+    "messageFrom": "Message de {{sender}}"
   },
   "memory": {
     "title": "Mémoire",
@@ -298,6 +300,8 @@ export const fr: TranslationDict = {
       "closeTab": "Fermer l’onglet"
     },
     "welcome": {
+      "title": "Navigateur",
+      "description": "Recherchez des informations ou saisissez une URL pour commencer à naviguer.",
       "searchPlaceholder": "Rechercher des sites web ou saisir une adresse...",
       "favorites": "Favoris",
       "recentActivity": "Activité récente"
@@ -619,7 +623,8 @@ export const fr: TranslationDict = {
     "library": {
       "allPhotos": "Toutes les photos",
       "favorites": "Favoris",
-      "recent": "Récents"
+      "recent": "Récents",
+      "userLibrary": "Bibliothèque de {{user}}"
     },
     "menu": {
       "slideshow": "Diaporama",
@@ -647,7 +652,9 @@ export const fr: TranslationDict = {
       "openHome": "Ouvrir le dossier personnel"
     },
     "folders": {
-      "pictures": "Images"
+      "pictures": "Images",
+      "recent": "Récents",
+      "misc": "Divers"
     }
   },
   "mail": {
@@ -1015,58 +1022,60 @@ export const fr: TranslationDict = {
       "wallpaperActive": "Actif",
       "wallpaperUse": "Utiliser"
     },
-    performance: {
-      blurTitle: 'Flou et transparence',
-      blurDescription: 'Active l\'effet de verre et la transparence des fenêtres',
-      reduceMotionTitle: 'Réduire les animations',
-      reduceMotionDescription: 'Désactive les animations pour de meilleures performances et l\'accessibilité',
-      disableShadowsTitle: 'Désactiver les ombres',
-      disableShadowsDescription: 'Supprime les ombres des fenêtres pour améliorer les performances',
-      disableGradientsTitle: 'Désactiver les dégradés',
-      disableGradientsDescription: 'Utilise des couleurs unies à la place des dégradés pour les icônes',
+    "performance": {
+      "blurTitle": "Flou et transparence",
+      "blurDescription": "Active l’effet de verre et la transparence des fenêtres",
+      "reduceMotionTitle": "Réduire les animations",
+      "reduceMotionDescription": "Désactive les animations pour de meilleures performances et l’accessibilité",
+      "disableShadowsTitle": "Désactiver les ombres",
+      "disableShadowsDescription": "Supprime les ombres des fenêtres pour améliorer les performances",
+      "disableGradientsTitle": "Désactiver les dégradés",
+      "disableGradientsDescription": "Utilise des couleurs unies à la place des dégradés pour les icônes",
+      "gpuTitle": "Utiliser l'accélération graphique",
+      "gpuDescription": "Utiliser l'accélération matérielle si disponible (redémarrage requis)"
     },
-    network: {
-      wifiTitle: 'Wi-Fi',
-      wifiConnected: 'Connecté à {{network}}',
-      wifiDisabled: 'Wi-Fi désactivé',
-      bluetoothTitle: 'Bluetooth',
-      bluetoothConnected: 'Connecté à {{device}}',
-      bluetoothDisabled: 'Bluetooth désactivé',
-      wifiNetworks: 'Réseaux disponibles',
-      scanning: 'Recherche en cours...',
-      enterPassword: 'Entrer le mot de passe',
-      passwordPlaceholder: 'Mot de passe',
-      connect: 'Connecter',
-      disconnect: 'Se déconnecter',
-      configurationMode: 'Mode de configuration',
-      automatic: 'Automatique (DHCP)',
-      manual: 'Manuel',
-      autoConfigTitle: 'Configuration automatique',
-      manualConfigTitle: 'Configuration manuelle',
-      ipAddress: 'Adresse IP',
-      subnetMask: 'Masque de sous-réseau',
-      gateway: 'Passerelle',
-      dns: 'Serveur DNS',
-      validateConfig: 'Valider la configuration',
-      invalidIP: 'Adresse IP invalide',
-      invalidGateway: 'Passerelle invalide',
-      invalidSubnetMask: 'Masque de sous-réseau invalide',
-      invalidDNS: 'Serveur DNS invalide',
-      gatewayNotInSubnet: 'La passerelle n\'est pas dans le même sous-réseau que l\'adresse IP',
-      configSaved: 'Configuration réseau enregistrée avec succès',
-      dhcpAttributionProgress: 'Récupération d\'une adresse IP via DHCP',
+    "network": {
+      "wifiTitle": "Wi-Fi",
+      "wifiConnected": "Connecté à {{network}}",
+      "wifiDisabled": "Wi-Fi désactivé",
+      "bluetoothTitle": "Bluetooth",
+      "bluetoothConnected": "Connecté à {{device}}",
+      "bluetoothDisabled": "Bluetooth désactivé",
+      "wifiNetworks": "Réseaux disponibles",
+      "scanning": "Recherche en cours...",
+      "enterPassword": "Entrer le mot de passe",
+      "passwordPlaceholder": "Mot de passe",
+      "connect": "Connecter",
+      "disconnect": "Se déconnecter",
+      "configurationMode": "Mode de configuration",
+      "automatic": "Automatique (DHCP)",
+      "manual": "Manuel",
+      "autoConfigTitle": "Configuration automatique",
+      "manualConfigTitle": "Configuration manuelle",
+      "ipAddress": "Adresse IP",
+      "subnetMask": "Masque de sous-réseau",
+      "gateway": "Passerelle",
+      "dns": "Serveur DNS",
+      "validateConfig": "Valider la configuration",
+      "invalidIP": "Adresse IP invalide",
+      "invalidGateway": "Passerelle invalide",
+      "invalidSubnetMask": "Masque de sous-réseau invalide",
+      "invalidDNS": "Serveur DNS invalide",
+      "gatewayNotInSubnet": "La passerelle n'est pas dans le même sous-réseau que l'adresse IP",
+      "configSaved": "Configuration réseau enregistrée avec succès",
+      "dhcpAttributionProgress": "Récupération d'une adresse IP via DHCP"
     },
-    placeholders: {
-      displaysTitle: 'Paramètres d’affichage',
-      displaysDescription: 'Résolution, mise à l’échelle et luminosité bientôt disponibles.',
-      notificationsTitle: 'Notifications',
-      notificationsDescription: 'Préférences du centre de notifications bientôt disponibles.',
-      networkTitle: 'Réseau',
-      networkDescription: 'Configuration Wi‑Fi et Bluetooth bientôt disponible.',
-      securityTitle: 'Sécurité et confidentialité',
-      securityDescription: 'Pare-feu, permissions et confidentialité bientôt disponibles.',
-      storageTitle: 'Stockage',
-      storageDescription: 'Analyse et gestion de l’espace disque bientôt disponibles.',
+    "placeholders": {
+      "displaysTitle": "Paramètres d’affichage",
+      "displaysDescription": "Résolution, mise à l’échelle et luminosité bientôt disponibles.",
+      "notificationsTitle": "Notifications",
+      "notificationsDescription": "Préférences du centre de notifications bientôt disponibles.",
+      "networkTitle": "Réseau",
+      "networkDescription": "Configuration Wi‑Fi et Bluetooth bientôt disponible.",
+      "securityTitle": "Sécurité et confidentialité",
+      "securityDescription": "Pare-feu, permissions et confidentialité bientôt disponibles.",
+      "storageTitle": "Stockage",
+      "storageDescription": "Analyse et gestion de l’espace disque bientôt disponibles."
     },
     "users": {
       "currentUsersTitle": "Utilisateurs actuels",

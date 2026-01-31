@@ -46,6 +46,7 @@ export const ko: TranslationDict = {
     },
     "bios": {
       "title": "BIOS 설정",
+      "hardwareAcceleration": "하드웨어 가속",
       "fullScreen": "전체 화면",
       "immersiveMode": "몰입 모드",
       "fullScreenEnter": "진입",
@@ -232,7 +233,8 @@ export const ko: TranslationDict = {
       "fileError": "파일 오류"
     },
     "empty": "알림 없음",
-    "clearApp": "이 앱의 모든 알림 지우기"
+    "clearApp": "이 앱의 모든 알림 지우기",
+    "messageFrom": "Message from {{sender}}"
   },
   "memory": {
     "title": "메모리",
@@ -298,6 +300,8 @@ export const ko: TranslationDict = {
       "closeTab": "탭 닫기"
     },
     "welcome": {
+      "title": "Browser",
+      "description": "Search for information or enter a URL to start browsing.",
       "searchPlaceholder": "웹사이트 검색 또는 주소 입력...",
       "favorites": "즐겨찾기",
       "recentActivity": "최근 활동"
@@ -619,7 +623,8 @@ export const ko: TranslationDict = {
     "library": {
       "allPhotos": "모든 사진",
       "favorites": "즐겨찾기",
-      "recent": "최근 항목"
+      "recent": "최근 항목",
+      "userLibrary": "{{user}}'s Library"
     },
     "menu": {
       "slideshow": "슬라이드쇼",
@@ -647,7 +652,9 @@ export const ko: TranslationDict = {
       "openHome": "홈 디렉토리 열기"
     },
     "folders": {
-      "pictures": "사진"
+      "pictures": "사진",
+      "recent": "Recent",
+      "misc": "Misc"
     }
   },
   "mail": {
@@ -1023,7 +1030,9 @@ export const ko: TranslationDict = {
       "disableShadowsTitle": "그림자 비활성화",
       "disableShadowsDescription": "렌더링 성능 향상을 위해 창 그림자 제거",
       "disableGradientsTitle": "그라디언트 비활성화",
-      "disableGradientsDescription": "아이콘에 그라디언트 대신 단색 사용"
+      "disableGradientsDescription": "아이콘에 그라디언트 대신 단색 사용",
+      "gpuTitle": "그래픽 가속 사용",
+      "gpuDescription": "가능한 경우 하드웨어 가속 사용 (재시작 필요)"
     },
     "placeholders": {
       "displaysTitle": "디스플레이 설정",

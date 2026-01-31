@@ -4,8 +4,10 @@ import { AppTemplate } from './AppTemplate';
 import { useAppStorage } from '../../hooks/useAppStorage';
 import { cn } from '../ui/utils';
 import { useI18n } from '../../i18n/index';
+import { useThemeColors } from '../../hooks/useThemeColors';
 import { getWebsiteByDomain } from '../websites/registry';
 import type { HistoryEntry } from '../websites/types';
+import { useAppContext } from '../../components/AppContext';
 
 interface Tab {
   id: string;
@@ -36,6 +38,8 @@ const FALLBACK_TAB: Tab = {
 
 export function Browser({ owner }: { owner?: string }) {
   const { t } = useI18n();
+  const { accentColor } = useAppContext();
+  const { titleBarBackground, blurStyle } = useThemeColors();
 
   // Persisted state
   const [appState, setAppState] = useAppStorage('browser', {
@@ -299,29 +303,37 @@ export function Browser({ owner }: { owner?: string }) {
   };
 
   const TabBar = (
-    <div className="flex items-center w-full gap-1 overflow-x-auto no-scrollbar pl-1">
+    <div className="flex items-center w-full gap-1 overflow-x-auto no-scrollbar pt-2 px-2">
       {tabs.map((tab) => (
         <div
           key={tab.id}
           onClick={() => setActiveTabId(tab.id)}
+          style={{
+            borderColor: tab.id === activeTabId ? accentColor : "transparent",
+            background: tab.id === activeTabId 
+              ? `linear-gradient(to top, ${accentColor}15, transparent)` 
+              : "transparent"
+          }}
           className={cn(
-            "group h-8 px-3 rounded-t-md flex items-center gap-2 min-w-[120px] max-w-[200px] transition-all cursor-pointer select-none border-b-2 relative",
-            tab.id === activeTabId 
-              ? "bg-white/10 border-blue-500" 
-              : "hover:bg-white/5 border-transparent opacity-70 hover:opacity-100"
+            "group flex items-center gap-2 px-4 py-2 text-xs font-medium cursor-pointer transition-all min-w-[140px] max-w-[220px] border-b-2",
+            tab.id === activeTabId
+              ? "text-white"
+              : "text-white/40 hover:text-white/80 hover:bg-white/5"
           )}
         >
           {tab.isLoading ? (
-             <RotateCw className="w-3 h-3 animate-spin text-blue-400" />
+             <RotateCw className="w-3.5 h-3.5 animate-spin text-blue-400" />
           ) : (
-             <span className="w-2 h-2 rounded-full bg-white/20 group-hover:bg-blue-400/50" />
+             <div className={cn("w-3.5 h-3.5 flex items-center justify-center")}>
+                <span className={cn("w-1.5 h-1.5 rounded-full", tab.id === activeTabId ? "bg-white" : "bg-white/40 group-hover:bg-white/60")} style={{ backgroundColor: tab.id === activeTabId ? accentColor : undefined }} />
+             </div>
           )}
-          <span className="text-white/90 text-xs truncate flex-1 font-medium">{tab.title}</span>
+          <span className="truncate flex-1">{tab.title}</span>
           <button 
             onClick={(e) => closeTab(e, tab.id)}
-            className="text-white/20 hover:text-white/90 hover:bg-red-500/20 rounded p-0.5 transition-colors opacity-0 group-hover:opacity-100"
+            className="opacity-0 group-hover:opacity-100 hover:bg-white/10 rounded-full p-0.5 transition-all"
           >
-            <X className="w-3 h-3" />
+            <X className="w-3 h-3 text-white/70 hover:text-white" />
           </button>
         </div>
       ))}
@@ -335,9 +347,12 @@ export function Browser({ owner }: { owner?: string }) {
   );
 
   const content = (
-    <div className="flex flex-col min-h-full bg-gray-900 relative">
+    <div className="flex flex-col min-h-full relative">
       {/* Navbar Container */}
-      <div className="sticky top-0 z-20 bg-gray-900/95 backdrop-blur-md border-b border-white/10 shadow-sm flex flex-col">
+      <div 
+        className="sticky top-0 z-20 border-b border-white/10 shadow-sm flex flex-col"
+        style={{ background: titleBarBackground, ...blurStyle }}
+      >
         {/* Top Row: Navigation & URL */}
         <div className="flex items-center px-3 py-2 gap-2">
           <div className="flex items-center gap-1">
@@ -422,7 +437,7 @@ export function Browser({ owner }: { owner?: string }) {
       )}
 
       {/* Website Content */}
-      <div className="flex-1 overflow-y-auto relative bg-white h-full">
+      <div className={cn("flex-1 overflow-y-auto relative h-full", activeTab.renderedUrl === 'browser://welcome' ? "bg-transparent" : "bg-white")}>
         {currentWebsite && WebsiteComponent ? (
           <WebsiteComponent
             domain={currentWebsite.domain}

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo } 
 import { useFileSystem } from '@/components/FileSystemContext';
 import { useAppContext } from '@/components/AppContext';
 import { useSessionStorage } from '@/hooks/useSessionStorage';
+import { useI18n } from '@/i18n/index';
 
 export interface Photo {
     id: string;
@@ -36,6 +37,7 @@ export function usePhotos() {
 }
 
 export function PhotosProvider({ children, owner }: { children: React.ReactNode, owner?: string }) {
+    const { t } = useI18n();
     const { fileSystem, readFile, getNodeAtPath, resolvePath, listDirectory } = useFileSystem();
     const { activeUser: desktopUser } = useAppContext();
     const activeUser = owner || desktopUser;
@@ -131,7 +133,7 @@ export function PhotosProvider({ children, owner }: { children: React.ReactNode,
                         path: `${prefix}${node.name}`,
                         url: node.content || '',
                         name: node.name,
-                        album: path.split('/').pop() || 'Misc',
+                        album: path.split('/').pop() || t('photos.folders.misc'),
                         isFavorite: favoriteIds.includes(node.id),
                         modified: node.modified?.getTime() || Date.now()
                     });
@@ -142,7 +144,7 @@ export function PhotosProvider({ children, owner }: { children: React.ReactNode,
 
         const photos = scanRecursive(picturesPath, pathPrefix);
         setTimeout(() => setLibraryPhotos(photos), 0);
-    }, [isPhotosOpen, activeUser, fileSystem, favoriteIds, resolvePath, getNodeAtPath, listDirectory]);
+    }, [isPhotosOpen, activeUser, fileSystem, favoriteIds, resolvePath, getNodeAtPath, listDirectory, t]);
 
     const favorites = libraryPhotos.filter(p => favoriteIds.includes(p.id));
 
@@ -155,9 +157,9 @@ export function PhotosProvider({ children, owner }: { children: React.ReactNode,
     }, [storedRecentPhotos, favoriteIds]);
 
     const toggleFavorite = useCallback((photoId: string) => {
-        setFavoriteIds(prev => 
-            prev.includes(photoId) 
-                ? prev.filter(id => id !== photoId) 
+        setFavoriteIds(prev =>
+            prev.includes(photoId)
+                ? prev.filter(id => id !== photoId)
                 : [...prev, photoId]
         );
     }, [setFavoriteIds]);
@@ -181,7 +183,7 @@ export function PhotosProvider({ children, owner }: { children: React.ReactNode,
                 path: path,
                 url: content || '',
                 name: node.name,
-                album: path.startsWith('~/Pictures/') ? (path.split('/').slice(-2, -1)[0] || 'Pictures') : 'Recent',
+                album: path.startsWith('~/Pictures/') ? (path.split('/').slice(-2, -1)[0] || t('photos.folders.pictures')) : t('photos.folders.recent'),
                 isFavorite: favoriteIds.includes(node.id),
                 modified: node.modified?.getTime() || Date.now()
             };
@@ -195,7 +197,7 @@ export function PhotosProvider({ children, owner }: { children: React.ReactNode,
             setStoredRecentPhotos(prev => prev.filter(p => p.path !== path));
         }
         return null;
-    }, [getNodeAtPath, activeUser, readFile, favoriteIds, addToRecent, setActiveCategory]);
+    }, [getNodeAtPath, activeUser, readFile, favoriteIds, addToRecent, setActiveCategory, t]);
 
     return (
         <PhotosContext.Provider value={{

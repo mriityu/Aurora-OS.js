@@ -19,7 +19,7 @@ trigger: always_on
 **Core**: React 19, TypeScript, Vite, Tailwind CSS (v4), Radix UI.
 **Platform**: Web (PWA) + Desktop (Electron).
 **State**: React Context + `localStorage` persistence (Hierarchical: System Defaults + User Overrides).
-**Config**: `src/config/systemConfig.ts` defines core limits (e.g., Default RAM) and **Brand Identity** (Name, Colors, Wallpapers).
+**Config**: `src/config/systemConfig.ts` defines core limits (e.g., Default RAM), **Graphics** (GPU, Blur, Shadows), and **Brand Identity** (Name, Colors, Wallpapers).
 
 </tech_stack>
 
@@ -86,7 +86,7 @@ trigger: always_on
     - **Main Menu**: Video game-style interface with keyboard nav. Includes **Settings** (Tabbed: Display/Audio/System) and **Credits** modals.
       - **Floating Window**: `DevStatusWindow.tsx` provides persistent system status and contribution CTAs.
     - **Save Detection**: Checks `localStorage.getItem(STORAGE_KEYS.VERSION)` to determine if save exists.
-    - **New Game**: Calls `hardReset()` to wipe all `localStorage`, then `resetFileSystem()` for in-memory sync.
+    - **New Game**: Calls `hardReset()` to wipe all `localStorage`, then `resetFileSystem()` for in-memory sync. **Preserves** BIOS settings (GPU/Blur/Motion) via `resetSystemConfig(overrides)`.
     - **Boot Sequence**: Realistic OS boot animation with dynamic log generation (real `APP_REGISTRY` iteration, authentic tech stack logs), pre-loads OS chunk.
     - **Onboarding**: Multi-step wizard (Language → Account → Theme → Finishing) for first-time setup.
       - Supports `Escape` (back/abort) and `Enter` (next) navigation.
@@ -107,6 +107,23 @@ trigger: always_on
       - **Pattern**: Command Pattern Registry (`registry.ts`).
       - **State**: Custom crash-proof history persistence (HTML-preserving).
       - **UI**: "Ghost Text" autocomplete overlay.
+
+9.  **Build & Distribution (Electron)**:
+    - **Config**: Enhanced `package.json` build config (`NSIS` for Win, `DMG` for Mac, `AppImage` for Linux).
+    - **Branding**: Derived from `productName` ("Aurora OS.js"), `copyright`, and `nsis.menuCategory` ("Dope Pixels").
+    - **Hardening**:
+      - **Electron Fuses**: Disabled `runAsNode`, enforced `enableEmbeddedAsarIntegrityValidation` and `onlyLoadAppFromAsar`.
+      - **Source Map**: Explicitly disabled for production (`tsconfig.electron.json`) to prevent code reversal.
+      - **DevTools**: Production lockout in `main.ts` (shortcuts blocked, auto-close on open).
+    - **Signing**: Explicitly disabled (`identity: null`) for first release; Gatekeeper warnings expected.
+
+10. **Display & Input Constraints**:
+    - **Resolution**:
+      - **Target**: 1920x1080 (Default launch size).
+      - **Minimum**: 1366x768 (Strictly enforced via Electron `minWidth/Height` and Web `ScreenGuard`).
+    - **Orientation**: Landscape ONLY.
+    - **PWA**: `public/manifest.json` enforces `standalone` and `landscape` for Chromium OS/Tablets.
+    - **ScreenGuard**: React component (`src/components/ui/ScreenGuard.tsx`) blocks execution on unsupported viewports (Phones/Portrait).
 
 </architecture_mechanics>
 
@@ -168,3 +185,4 @@ trigger: always_on
 - `search_Aurora_OS_js_code(query)`: Search code via GitHub API.
 
 </mcp_usage>
+

@@ -46,6 +46,7 @@ export const pt: TranslationDict = {
     },
     "bios": {
       "title": "Configurações da BIOS",
+      "hardwareAcceleration": "Aceleração de Hardware",
       "fullScreen": "Tela cheia",
       "immersiveMode": "Modo imersivo",
       "fullScreenEnter": "Entrar",
@@ -232,7 +233,8 @@ export const pt: TranslationDict = {
       "fileError": "Erro de Arquivo"
     },
     "empty": "Sem notificações",
-    "clearApp": "Limpar tudo deste app"
+    "clearApp": "Limpar tudo deste app",
+    "messageFrom": "Message from {{sender}}"
   },
   "memory": {
     "title": "Memória",
@@ -298,6 +300,8 @@ export const pt: TranslationDict = {
       "closeTab": "Fechar Aba"
     },
     "welcome": {
+      "title": "Browser",
+      "description": "Search for information or enter a URL to start browsing.",
       "searchPlaceholder": "Buscar sites ou digitar endereço...",
       "favorites": "Favoritos",
       "recentActivity": "Atividade Recente"
@@ -619,7 +623,8 @@ export const pt: TranslationDict = {
     "library": {
       "allPhotos": "Todas as fotos",
       "favorites": "Favoritas",
-      "recent": "Recentes"
+      "recent": "Recentes",
+      "userLibrary": "{{user}}'s Library"
     },
     "menu": {
       "slideshow": "Apresentação",
@@ -647,7 +652,9 @@ export const pt: TranslationDict = {
       "openHome": "Abrir pasta pessoal"
     },
     "folders": {
-      "pictures": "Imagens"
+      "pictures": "Imagens",
+      "recent": "Recent",
+      "misc": "Misc"
     }
   },
   "mail": {
@@ -1054,7 +1061,9 @@ export const pt: TranslationDict = {
       "disableShadowsTitle": "Desativar sombras",
       "disableShadowsDescription": "Remover sombras das janelas para melhorar desempenho",
       "disableGradientsTitle": "Desativar gradientes",
-      "disableGradientsDescription": "Usar cores sólidas em vez de gradientes nos ícones"
+      "disableGradientsDescription": "Usar cores sólidas em vez de gradientes nos ícones",
+      "gpuTitle": "Usar aceleração gráfica",
+      "gpuDescription": "Usar aceleração de hardware quando disponível (após reinício)"
     },
     "placeholders": {
       "displaysTitle": "Configurações de exibição",
