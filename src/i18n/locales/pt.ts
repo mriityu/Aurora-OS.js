@@ -939,7 +939,6 @@ export const pt: TranslationDict = {
       "keysCount": "{{count}} chaves",
       "localStorageKeys": "Chaves do Local Storage"
     },
-
     "filesystem": {
       "title": "Debugger do sistema de arquivos"
     },

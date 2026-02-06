@@ -939,7 +939,6 @@ export const de: TranslationDict = {
       "keysCount": "{{count}} Schlüssel",
       "localStorageKeys": "Local Storage Schlüssel"
     },
-
     "filesystem": {
       "title": "Dateisystem-Debugger"
     },
