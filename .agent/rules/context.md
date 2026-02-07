@@ -136,6 +136,20 @@ trigger: always_on
     - **Persistence**: Managed via simulated Scan/Connect logic, but network list regenerates on reload (stateless simulation).
     - **UI**: `InternetApplet` (Tray), `NetworkSettings` (App), and `AppStore` (Download Speed) all consume this context.
 
+12. **Display & Window Management (Electron)**:
+    - **Modes**:
+      - **Fullscreen**: Native OS fullscreen (Default).
+      - **Borderless**: Maximized window without chrome/borders.
+      - **Windowed**: Standard window with optional `frame` (title bar) and custom resolution.
+    - **Backend**: `electron/main.ts` manages state via `display-settings.json`.
+      - **Optimization**: Window Recreation logic only triggers when `frame` property changes. Resolution/Mode switches are instant.
+      - **Frameless Resize**: Uses `setBounds` for robust resizing of borderless windows.
+    - **Resolution**:
+      - **Filtering**: `SettingsModal` filters options based on current `window.screen` dimensions.
+      - **Persistence**: Remembers last used settings per mode.
+    - **Bridge**: `useFullscreen` hook unifies Browser (DOM API) and Electron (IPC) logic.
+      - **Detection**: "Bulletproof" multi-check (`window.electron` + UA + process) prevents race conditions.
+
 </architecture_mechanics>
 
 <critical_rules>
@@ -146,11 +160,12 @@ trigger: always_on
 - **Security**: Check permissions via `checkPermissions(node, user, 'read'|'write'|'execute')`.
 - **UI Integrity**: Use `forwardRef` for any component used with `<ContextMenuTrigger asChild>` to ensure Radix UI ref handling works.
 - **I18n**: All UI strings MUST use `useI18n()`. definition: `src/i18n/locales/en.ts`.
-- **I18n Sync**: Maintain strict sync across all 12 locales (`en`, `de`, `es`, `fr`, `pt`, `ro`, `zh`, `ru`, `ja`, `pl`, `ko`, `tr`). Run `/update-translations` and `.scripts/sync-i18n.js` after changes.
+- **I18n Sync**: Maintain strict sync across all 13 locales (`en`, `de`, `es`, `fr`, `pt`, `ro`, `zh`, `ru`, `ja`, `pl`, 'ko', 'tr', 'hi'). Run `/update-translations` and `.scripts/sync-i18n.js` after changes.
 - **Accessibility**: All `Dialog` or `AlertDialog` components MUST include a `Title` and `Description`. Use `sr-only` class to hide them if they clash with visual design but are required for A11y.
 - **Standards**: All imports should user the @ alias for the /src folder and ALL FEATURES added should have a matching debug way in Dev Center.
 - **Docs Sync**: On architecture changes, update `.agent/rules/context.md` & `public/llms-full.txt`.
 - **URL Security**: User-provided URLs (images, media) MUST be sanitized via `getSafeImageUrl(url)` to prevent XSS and satisfy CodeQL taint tracking.
+- **Window Management**: `isElectron` detection MUST use the robust multi-check pattern (`window.electron` + userAgent + process.versions) found in `useFullscreen.ts` to prevent race conditions.
 
 </critical_rules>
 
@@ -170,7 +185,10 @@ trigger: always_on
 | `src/components/apps/AppStore/`        | **App Store**      | App Store components (AppCard, etc).                     |
 | `src/hooks/useWindowManager.ts`        | **Window Manager** | Handles window state and memory usage gates.             |
 | `src/components/NetworkContext.tsx`    | **Network**        | Global network state and simulation logic.               |
+| `src/hooks/useFullscreen.ts`           | **Display Utils**  | Shared hook for Electron/Browser fullscreen logic.       |
+| `electron/main.ts`                     | **Electron Main**  | Native window management and backend logic.              |
 | `src/test/`                            | **Tests**          | Unit tests for utilities and logic.                      |
+
 
 </codebase_map>
 

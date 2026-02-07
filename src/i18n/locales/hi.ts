@@ -45,8 +45,39 @@ export const hi: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "configurationUtility": "कॉन्फ़िगरेशन उपयोगिता",
+      "tabs": {
+        "display": "प्रदर्शन",
+        "audio": "ऑडियो",
+        "system": "सिस्टम"
+      },
+      "graphicsQuality": "ग्राफ़िक्स गुणवत्ता",
+      "presets": {
+        "highFidelity": {
+          "label": "उच्च निष्ठा",
+          "desc": "ब्लर, छाया, कंपन सक्षम। दृश्य++"
+        },
+        "performance": {
+          "label": "प्रदर्शन",
+          "desc": "अधिकतम एफपीएस। न्यूनतम प्रभाव। गति++"
+        }
+      },
+      "reduceMotion": "गति कम करें",
+      "simpleColors": "साधारण रंग",
+      "solidBackgrounds": "ठोस पृष्ठभूमि",
+      "noShadows": "कोई छाया नहीं",
+      "dangerZone": "खतरा क्षेत्र",
+      "configFooter": "कॉन्फ़िगरेशन",
       "title": "BIOS सेटिंग्स",
       "hardwareAcceleration": "हार्डवेयर एक्सेलेरेशन",
+      "displayMode": "डिस्प्ले मोड",
+      "fullscreen": "पूर्ण स्क्रीन",
+      "borderless": "सीमा रहित",
+      "windowed": "विंडो",
+      "resolution": "रिज़ॉल्यूशन",
+      "windowSettings": "विंडो सेटिंग्स",
+      "windowFrame": "विंडो फ़्रेम",
+      "windowFrameHint": "शीर्षक पट्टी और सीमाएँ (पुनः आरंभ आवश्यक)",
       "fullScreen": "पूर्ण स्क्रीन",
       "immersiveMode": "इमर्सिव मोड",
       "fullScreenEnter": "प्रवेश करना",

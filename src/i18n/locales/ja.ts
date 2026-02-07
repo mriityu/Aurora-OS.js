@@ -45,8 +45,39 @@ export const ja: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "configurationUtility": "設定ユーティリティ",
+      "tabs": {
+        "display": "ディスプレイ",
+        "audio": "オーディオ",
+        "system": "システム"
+      },
+      "graphicsQuality": "グラフィック品質",
+      "presets": {
+        "highFidelity": {
+          "label": "高忠実度",
+          "desc": "ブラー、影、鮮やかさを有効化。見た目++"
+        },
+        "performance": {
+          "label": "パフォーマンス",
+          "desc": "最大FPS。最小限のエフェクト。速度++"
+        }
+      },
+      "reduceMotion": "視差効果を減らす",
+      "simpleColors": "シンプルカラー",
+      "solidBackgrounds": "単色背景",
+      "noShadows": "影なし",
+      "dangerZone": "危険地帯",
+      "configFooter": "設定",
       "title": "BIOS設定",
       "hardwareAcceleration": "ハードウェアアクセラレーション",
+      "displayMode": "ディスプレイモード",
+      "fullscreen": "フルスクリーン",
+      "borderless": "ボーダーレス",
+      "windowed": "ウィンドウ",
+      "resolution": "解像度",
+      "windowSettings": "ウィンドウ設定",
+      "windowFrame": "ウィンドウ枠",
+      "windowFrameHint": "タイトルバーと枠 (再起動が必要)",
       "fullScreen": "フルスクリーン",
       "immersiveMode": "没入モード",
       "fullScreenEnter": "入る",

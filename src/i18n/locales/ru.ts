@@ -45,8 +45,39 @@ export const ru: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "configurationUtility": "Утилита настройки",
+      "tabs": {
+        "display": "Экран",
+        "audio": "Аудио",
+        "system": "Система"
+      },
+      "graphicsQuality": "Качество графики",
+      "presets": {
+        "highFidelity": {
+          "label": "Высокое качество",
+          "desc": "Размытие, Тени, Насыщенность включены. визуал++"
+        },
+        "performance": {
+          "label": "Производительность",
+          "desc": "Макс. FPS. Мин. эффектов. скорость++"
+        }
+      },
+      "reduceMotion": "Уменьшение движения",
+      "simpleColors": "Простые цвета",
+      "solidBackgrounds": "Сплошной фон",
+      "noShadows": "Без теней",
+      "dangerZone": "Опасная зона",
+      "configFooter": "КОНФИГ",
       "title": "Настройки BIOS",
       "hardwareAcceleration": "Аппаратное ускорение",
+      "displayMode": "Режим экрана",
+      "fullscreen": "Полноэкранный",
+      "borderless": "Без полей",
+      "windowed": "В окне",
+      "resolution": "Разрешение",
+      "windowSettings": "Настройки окна",
+      "windowFrame": "Рамка окна",
+      "windowFrameHint": "Заголовок и границы (Требуется перезапуск)",
       "fullScreen": "Полноэкранный режим",
       "immersiveMode": "Иммерсивный режим",
       "fullScreenEnter": "Войти",

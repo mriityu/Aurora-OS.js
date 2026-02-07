@@ -45,8 +45,39 @@ export const ro: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "configurationUtility": "Utilitar de Configurare",
+      "tabs": {
+        "display": "Ecran",
+        "audio": "Audio",
+        "system": "Sistem"
+      },
+      "graphicsQuality": "Calitate Grafică",
+      "presets": {
+        "highFidelity": {
+          "label": "Înaltă Fidelitate",
+          "desc": "Neclaritate, Umbre, Vibranță activate. vizual++"
+        },
+        "performance": {
+          "label": "Performanță",
+          "desc": "Max FPS. Efecte minime. viteză++"
+        }
+      },
+      "reduceMotion": "Reducere Mișcare",
+      "simpleColors": "Culori Simple",
+      "solidBackgrounds": "Fundaluri Solide",
+      "noShadows": "Fără Umbre",
+      "dangerZone": "Zonă Periculoasă",
+      "configFooter": "CONFIG",
       "title": "Setări BIOS",
       "hardwareAcceleration": "Accelerare Hardware",
+      "displayMode": "Mod Afișare",
+      "fullscreen": "Ecran Complet",
+      "borderless": "Fără Margini",
+      "windowed": "Fereastră",
+      "resolution": "Rezoluție",
+      "windowSettings": "Setări Fereastră",
+      "windowFrame": "Cadru Fereastră",
+      "windowFrameHint": "Bară de titlu și margini (Repornire necesară)",
       "fullScreen": "Ecran Complet",
       "immersiveMode": "Mod Imersiv",
       "fullScreenEnter": "Intră",

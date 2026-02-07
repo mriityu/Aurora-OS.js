@@ -5,7 +5,7 @@ const pkg = _pkg as any;
 // Modifying these values in package.json without a dev key will trigger Safe Mode.
 const EXPECTED_IDENTITY = {
     name: 1069744709, // Hash of 'aurora-os-js'
-    author: 841478810, // Hash of 'Cătălin-Robert Drăgoiu aka. mental.os() // Dope Pixels'
+    author: 2907722783, // Hash of 'Dope Pixels'
     license: 555217376, // Hash of 'AGPL-3.0'
 };
 

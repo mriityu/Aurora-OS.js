@@ -45,8 +45,39 @@ export const es: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "configurationUtility": "Utilidad de Configuración",
+      "tabs": {
+        "display": "Pantalla",
+        "audio": "Audio",
+        "system": "Sistema"
+      },
+      "graphicsQuality": "Calidad Gráfica",
+      "presets": {
+        "highFidelity": {
+          "label": "Alta Fidelidad",
+          "desc": "Desenfoque, Sombras, Intensidad activados. visual++"
+        },
+        "performance": {
+          "label": "Rendimiento",
+          "desc": "Max FPS. Efectos mínimos. velocidad++"
+        }
+      },
+      "reduceMotion": "Reducir Movimiento",
+      "simpleColors": "Colores Simples",
+      "solidBackgrounds": "Fondos Sólidos",
+      "noShadows": "Sin Sombras",
+      "dangerZone": "Zona de Peligro",
+      "configFooter": "CONFIG",
       "title": "Ajustes de BIOS",
       "hardwareAcceleration": "Aceleración de hardware",
+      "displayMode": "Modo de Pantalla",
+      "fullscreen": "Pantalla Completa",
+      "borderless": "Sin Bordes",
+      "windowed": "Ventana",
+      "resolution": "Resolución",
+      "windowSettings": "Configuración de Ventana",
+      "windowFrame": "Marco de Ventana",
+      "windowFrameHint": "Barra de título y bordes (Requiere reinicio)",
       "fullScreen": "Pantalla completa",
       "immersiveMode": "Modo inmersivo",
       "fullScreenEnter": "Entrar",

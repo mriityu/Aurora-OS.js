@@ -45,8 +45,39 @@ export const de: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "configurationUtility": "Konfigurationsprogramm",
+      "tabs": {
+        "display": "Anzeige",
+        "audio": "Audio",
+        "system": "System"
+      },
+      "graphicsQuality": "Grafikqualität",
+      "presets": {
+        "highFidelity": {
+          "label": "Hohe Wiedergabetreue",
+          "desc": "Unschärfe, Schatten, Lebendigkeit aktiviert. Optik++"
+        },
+        "performance": {
+          "label": "Leistung",
+          "desc": "Max FPS. Minimale Effekte. Geschwindigkeit++"
+        }
+      },
+      "reduceMotion": "Bewegung reduzieren",
+      "simpleColors": "Einfache Farben",
+      "solidBackgrounds": "Feste Hintergründe",
+      "noShadows": "Keine Schatten",
+      "dangerZone": "Gefahrenzone",
+      "configFooter": "KONFIG",
       "title": "BIOS-Einstellungen",
       "hardwareAcceleration": "Hardwarebeschleunigung",
+      "displayMode": "Anzeigemodus",
+      "fullscreen": "Vollbild",
+      "borderless": "Randlos",
+      "windowed": "Fenster",
+      "resolution": "Auflösung",
+      "windowSettings": "Fenstereinstellungen",
+      "windowFrame": "Fensterrahmen",
+      "windowFrameHint": "Titelleiste & Ränder (Neustart erforderlich)",
       "fullScreen": "Vollbild",
       "immersiveMode": "Immersiver Modus",
       "fullScreenEnter": "Aktivieren",

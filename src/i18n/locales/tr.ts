@@ -45,8 +45,39 @@ export const tr: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "configurationUtility": "Yapılandırma Aracı",
+      "tabs": {
+        "display": "Ekran",
+        "audio": "Ses",
+        "system": "Sistem"
+      },
+      "graphicsQuality": "Grafik Kalitesi",
+      "presets": {
+        "highFidelity": {
+          "label": "Yüksek Kalite",
+          "desc": "Bulanıklık, Gölgeler, Canlılık etkin. görsel++"
+        },
+        "performance": {
+          "label": "Performans",
+          "desc": "Maks FPS. Minimum efekt. hız++"
+        }
+      },
+      "reduceMotion": "Hareketleri Azalt",
+      "simpleColors": "Basit Renkler",
+      "solidBackgrounds": "Düz Arkaplanlar",
+      "noShadows": "Gölge Yok",
+      "dangerZone": "Tehlike Bölgesi",
+      "configFooter": "YAPILANDIRMA",
       "title": "BIOS Ayarları",
       "hardwareAcceleration": "Donanım Hızlandırma",
+      "displayMode": "Görüntü Modu",
+      "fullscreen": "Tam Ekran",
+      "borderless": "Çerçevesiz",
+      "windowed": "Pencere",
+      "resolution": "Çözünürlük",
+      "windowSettings": "Pencere Ayarları",
+      "windowFrame": "Pencere Çerçevesi",
+      "windowFrameHint": "Başlık çubuğu ve Kenarlıklar (Yeniden başlatma gerekir)",
       "fullScreen": "Tam Ekran",
       "immersiveMode": "Sürükleyici Mod",
       "fullScreenEnter": "Giriş",

@@ -1,7 +1,24 @@
 ## 0.8.5
 
+### Added
+
+- **GPU Capabilities**: Added hardware acceleration toggle in BIOS and Settings (High Fidelity vs Performance presets).
+- **Network Simulation**: with functional connection applet and password input. OS is responsive to the network state and react to the connection specifications (speed, signal, etc.): open/WEP/WPA/WPA2/WPA3 security that reflects the max. download speed of the network, signal strength that sets the percentage of the max. download speed, and more to come.
+- **Localization**: Full native translations for 12 languages (EN, DE, ES, FR, PT, RO, RU, JA, PL, KO, TR, ZH) and added Hindi language WIP.
+- **Persistence**: Graphics settings (BioS) now strictly survive "New Game" resets.
+
+### Improved
+
+- **Window Performance**: Implemented "Safe" closing animations and optimized z-index handling to reduce layout thrashing.
+- **Browser UI**: to match the OS theme and dynamic colors.
+- **Browser's websites**: Improved layout and responsiveness for all the available websites.
+- **Context Awareness**: Updated AI agent documentation (`context.md`) to reflect the latest architecture mechanics.
+- **App Center**: Improved with network connection check and progress the install of apps based on the effective speed of the network (first 50% of the progress bar is network, second 50% is based on system performance - random for now, not yet implemented).
+
 ### Fixed
 
+- **Translation Gaps**: Resolved missing keys and placeholders in non-English locales.
+- **Settings Sync**: Fixed issues where BIOS settings weren't correctly applying to the `SystemConfig`.
 - **Security**: Resolved high-severity vulnerabilities (GHSA-8qq5-rm4j-mr97) in the `node-tar` package by implementing a global dependency override to `tar@^7.5.6`.
 
 ## 0.8.4

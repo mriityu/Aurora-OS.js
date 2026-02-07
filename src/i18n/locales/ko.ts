@@ -45,8 +45,39 @@ export const ko: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "configurationUtility": "구성 유틸리티",
+      "tabs": {
+        "display": "디스플레이",
+        "audio": "오디오",
+        "system": "시스템"
+      },
+      "graphicsQuality": "그래픽 품질",
+      "presets": {
+        "highFidelity": {
+          "label": "고화질",
+          "desc": "블러, 그림자, 생동감 활성화. 비주얼++"
+        },
+        "performance": {
+          "label": "성능",
+          "desc": "최대 FPS. 최소 효과. 속도++"
+        }
+      },
+      "reduceMotion": "동작 줄이기",
+      "simpleColors": "단순한 색상",
+      "solidBackgrounds": "단색 배경",
+      "noShadows": "그림자 없음",
+      "dangerZone": "위험 구역",
+      "configFooter": "설정",
       "title": "BIOS 설정",
       "hardwareAcceleration": "하드웨어 가속",
+      "displayMode": "디스플레이 모드",
+      "fullscreen": "전체 화면",
+      "borderless": "테두리 없음",
+      "windowed": "창 모드",
+      "resolution": "해상도",
+      "windowSettings": "창 설정",
+      "windowFrame": "창 테두리",
+      "windowFrameHint": "제목 표시줄 및 테두리 (재시작 필요)",
       "fullScreen": "전체 화면",
       "immersiveMode": "몰입 모드",
       "fullScreenEnter": "진입",

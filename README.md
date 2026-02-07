@@ -1,6 +1,6 @@
 # Aurora OS.js
 
-[![Version](https://img.shields.io/badge/Version-v0.8.5-blue)](https://github.com/mental-os/Aurora-OS.js) [![Discord](https://img.shields.io/discord/1455762640595980452?label=Discord&logo=discord&logoColor=white)](https://discord.gg/G4WktdX7eE) ![Roadmap Status](<https://img.shields.io/badge/Roadmap-Stage%200%20(OS%20Foundation)-blue>) [![Build (Main)](<https://img.shields.io/github/actions/workflow/status/mental-os/Aurora-OS.js/ci.yml?branch=main&label=Build%20(Main)&logo=github>)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml) [![Build (Nightly)](<https://img.shields.io/github/actions/workflow/status/mental-os/Aurora-OS.js/ci.yml?branch=nightly&label=Build%20(Nightly)&logo=github>)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml) [![GitHub Pages](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml)
+[![Version](https://img.shields.io/badge/Version-v0.8.5-blue)](https://github.com/mental-os/Aurora-OS.js) [![Discord](https://img.shields.io/discord/1455762640595980452?label=Discord&logo=discord&logoColor=white)](https://discord.gg/G4WktdX7eE) ![Roadmap Status](<https://img.shields.io/badge/Roadmap-Stage%200%20(OS%20Foundation)-blue>) [![Build (Main)](<https://img.shields.io/github/actions/workflow/status/mental-os/Aurora-OS.js/ci.yml?branch=main&label=Build%20(Main)&logo=github>)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/ci.yml) [![GitHub Pages](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml/badge.svg)](https://github.com/mental-os/Aurora-OS.js/actions/workflows/deploy.yml)
 
 ![Social media image for Aurora OS.js hacking simulator game project](.github/openGraph.png)
 
@@ -108,12 +108,18 @@ If anything feels unclear, open a [discussion](https://github.com/mental-os/Auro
 > Node.js 24.0.0+ is required.  
 > Chromium-based browsers (Chrome, Edge, Brave, etc.)
 
+In-browser live-version:
 ```bash
 npm install
 npm run dev
 ```
 
-Or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
+or build it for your native OS:
+```
+npm run electron:build
+```
+
+or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
 
 ## Release Notes (v0.8.5)
 
@@ -131,11 +137,13 @@ Or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
 - **Browser's websites**: Improved layout and responsiveness for all the available websites.
 - **Context Awareness**: Updated AI agent documentation (`context.md`) to reflect the latest architecture mechanics.
 - **App Center**: Improved with network connection check and progress the install of apps based on the effective speed of the network (first 50% of the progress bar is network, second 50% is based on system performance - random for now, not yet implemented).
+- **Native full-screen**: Implemented native full-screen mode for host-OS (Windows, Linux, macOS) and added a the necesarry code to enable it in BIOS (Settings menu).
 
 ### Fixed
 
 - **Translation Gaps**: Resolved missing keys and placeholders in non-English locales.
 - **Settings Sync**: Fixed issues where BIOS settings weren't correctly applying to the `SystemConfig`.
+- **Security**: Resolved high-severity vulnerabilities (GHSA-8qq5-rm4j-mr97) in the `node-tar` package by implementing a global dependency override to `tar@^7.5.6`.
 
 ### [View full version history](HISTORY.md)
 

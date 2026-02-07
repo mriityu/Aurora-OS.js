@@ -45,8 +45,39 @@ export const zh: TranslationDict = {
       "credits": {}
     },
     "bios": {
+      "configurationUtility": "配置实用程序",
+      "tabs": {
+        "display": "显示",
+        "audio": "音频",
+        "system": "系统"
+      },
+      "graphicsQuality": "图形质量",
+      "presets": {
+        "highFidelity": {
+          "label": "高保真",
+          "desc": "启用模糊、阴影、活力。视觉++"
+        },
+        "performance": {
+          "label": "性能",
+          "desc": "最大帧率。最小特效。速度++"
+        }
+      },
+      "reduceMotion": "减弱动态效果",
+      "simpleColors": "简单色彩",
+      "solidBackgrounds": "纯色背景",
+      "noShadows": "无阴影",
+      "dangerZone": "危险区域",
+      "configFooter": "配置",
       "title": "BIOS 设置",
       "hardwareAcceleration": "硬件加速",
+      "displayMode": "显示模式",
+      "fullscreen": "全屏",
+      "borderless": "无边框",
+      "windowed": "窗口化",
+      "resolution": "分辨率",
+      "windowSettings": "窗口设置",
+      "windowFrame": "窗口边框",
+      "windowFrameHint": "标题栏和边框 (需要重启)",
       "fullScreen": "全屏",
       "immersiveMode": "沉浸模式",
       "fullScreenEnter": "进入",

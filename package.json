@@ -3,11 +3,11 @@
       "version": "0.8.5",
       "private": true,
       "type": "module",
-      "author": "Cătălin-Robert Drăgoiu aka. mental.os() // Dope Pixels",
-      "nickname": "mental.os()",
+      "author": "Dope Pixels",
+      "nickname": "Cătălin-Robert Drăgoiu",
       "license": "AGPL-3.0",
-      "description": "A browser-based OS hacking simulator powered by web technology.",
-      "homepage": "https://mental-os.github.io/Aurora-OS.js/",
+      "description": "A high-fidelity OS hacking simulator set in the mental.os() universe.",
+      "homepage": "https://github.com/mental-os/Aurora-OS.js",
       "keywords": [
             "browser-os",
             "hacking-simulator",
@@ -222,7 +222,7 @@
                   "icon": "public/icon.png",
                   "category": "Game",
                   "synopsis": "Hacking simulator game",
-                  "description": "A high-fidelity OS hacking simulator."
+                  "description": "A high-fidelity OS hacking simulator set in the mental.os() universe."
             },
             "electronLanguages": [
                   "en",
