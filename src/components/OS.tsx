@@ -22,6 +22,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { notify } from '@/services/notifications';
 import { getGridConfig, gridToPixel, pixelToGrid, findNextFreeCell, gridPosToKey, rearrangeGrid, type GridPosition } from '@/utils/gridSystem';
 import { STORAGE_KEYS } from '@/utils/memory';
+import { safeParseLocal } from '@/utils/safeStorage';
 import { useWindowManager } from '@/hooks/useWindowManager';
 import { useI18n } from '@/i18n/index';
 import { AppNotificationsProvider } from '@/components/AppNotificationsContext';
@@ -30,9 +31,8 @@ import { Mail } from "@/components/apps/Mail.tsx";
 // Load icon positions (supports both pixel and grid formats with migration)
 function loadIconPositions(): Record<string, GridPosition> {
     try {
-        const stored = localStorage.getItem(STORAGE_KEYS.DESKTOP_ICONS);
-        if (stored) {
-            const data = JSON.parse(stored);
+        const data = safeParseLocal<Record<string, any>>(STORAGE_KEYS.DESKTOP_ICONS);
+        if (data && typeof data === 'object') {
             const firstKey = Object.keys(data)[0];
 
             // Check if data is in old pixel format and convert
@@ -45,7 +45,7 @@ function loadIconPositions(): Record<string, GridPosition> {
                 });
                 return gridPositions;
             }
-            return data;
+            return data as Record<string, GridPosition>;
         }
     } catch (e) {
         console.warn('Failed to load desktop positions:', e);

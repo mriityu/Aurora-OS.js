@@ -1,5 +1,6 @@
 import { getApp } from '../config/appRegistry';
 import { STORAGE_KEYS, getAppStateKey, getWindowKey } from './memory';
+import { safeParseLocal } from './safeStorage';
 
 /**
  * Constants for Gamified RAM Calculation
@@ -82,8 +83,10 @@ export function calculateTotalRamUsage(activeUser: string): RamUsageReport {
 
         // --- Process Windows ---
         const windowsKey = getWindowKey(user);
-        const windowsJson = localStorage.getItem(windowsKey);
-        const windows: WindowSessionStub[] = windowsJson ? JSON.parse(windowsJson) : [];
+        const windowsParsed = safeParseLocal<WindowSessionStub[]>(windowsKey);
+        const windows: WindowSessionStub[] = Array.isArray(windowsParsed)
+            ? windowsParsed.filter(w => w && typeof w.id === 'string' && typeof w.type === 'string' && typeof w.owner === 'string')
+            : [];
 
         // Track seen apps to distinguish Main vs Additional windows per user
         const openAppIds = new Set<string>();
