@@ -27,21 +27,22 @@ trigger: always_on
 
 1.  **Virtual File System (VFS)**:
     - **Structure**: In-memory recursive JSON tree (`FileNode`).
-    - **Storage**: Serialized to `localStorage` key `aurora-filesystem`.
+    - **Storage**: Serialized to `localStorage` key `STORAGE_KEYS.FILESYSTEM` (`os_filesystem`).
     - **Sync**: Unidirectional State -> File sync (e.g., `users` state updates `/etc/passwd`).
     - **Access**: MUST use `useFileSystem()` hook. NEVER mutate JSON directly.
 
 2.  **User System**:
     - **Ids**: `root` (0), `guest` (1001), `activeUser` (physical), `currentUser` (logical).
     - **Auth**: `useAuth()` hook. Logic synced to `/etc/passwd` & `/etc/group`.
-    - **Persistent**: `useAppStorage` uses `activeUser` to scope keys (e.g., `aurora-os-settings-user`).
+    - **Persistent**: `useAppStorage` uses `activeUser` to scope keys (e.g., `os_app_data_<app>-<user>`).
     - **Home**: `/home/<user>` created via `createUserHome()`.
+    - **Fast User Switching**: `suspendSession()` preserves RAM (open windows, terminal history) while switching users. Exposed via `FileSystemContext` and used by `MenuBar.tsx` "Switch User" action.
 
 3.  **App Engine**:
     - **Registry**: `src/config/appRegistry.ts` (Definition source of truth).
     - **Runtime**: Apps render in `WindowContext`.
     - **ContextMenu**: Can be global (registry `contextMenu`) or localized (wrapping specific UI areas with `ContextMenuTrigger` in the app component).
-    - **Persistence**: Per-app storage via `useAppStorage` (key: `app-user`) or manual `localStorage` with `getAppStateKey`.
+    - **Persistence**: Per-app storage via `useAppStorage` (key: `os_app_data_<app>-<user>`) or manual `localStorage` with `getAppStateKey`.
     - **Installer**: `useAppInstaller` hook.
       - **Gates**: Requires **Active Network Connection** for installs. Checks active user permissions (`/usr/bin` write access).
       - **Simulation**: Phased progress. **0-50% (Download)**: Speed depends on Network Bandwidth. **50-100% (Install)**: Jitter simulation.
@@ -154,7 +155,13 @@ trigger: always_on
     - **Core Utility**: `src/utils/safeStorage.ts` -> `safeParseLocal<T>(key)`.
     - **Security**: **ALWAYS** use `safeParseLocal` instead of `JSON.parse` for reading `localStorage`. Automatically strips `__proto__`, `constructor`, and `prototype` to prevent prototype pollution.
     - **Performance**: Writes to `localStorage` (e.g., Window moves, Notepad typing) MUST be debounced via `useDebounce` hook (default 500ms) to prevent main-thread freezing and I/O thrashing.
-    - **Keys**: Managed via `STORAGE_KEYS` in `src/utils/memory.ts`. Hierarchical structure (`soft` vs `hard` memory) determines reset behavior.
+    - **Keys**: Managed via `STORAGE_KEYS` in `src/utils/memory.ts`. 3-tier architecture:
+      - **BIOS (`sys_` prefix)**: System hardware settings (language, display, sound). Survives ALL resets.
+      - **HDD (`os_` prefix)**: OS data (filesystem, users, app data, mail). Wiped on Hard Reset (New Game).
+      - **RAM (`session_` prefix)**: Session state (windows, terminal history). Wiped on Soft Reset (Logout).
+    - **Reset Functions**: `softReset()` wipes RAM only. `hardReset()` wipes HDD + RAM, keeps BIOS. `factoryReset()` wipes everything.
+    - **Helper Functions**: `getAppStateKey(appId, user)` and `getWindowKey(user)` generate correctly-prefixed keys.
+    - **Tests**: Test assertions MUST use `STORAGE_KEYS.*` constants, never hardcoded key strings.
 
 </architecture_mechanics>
 

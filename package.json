@@ -4,7 +4,7 @@
       "private": true,
       "type": "module",
       "author": "Dope Pixels",
-      "nickname": "Cătălin-Robert Drăgoiu",
+      "nickname": "mental.os()",
       "license": "AGPL-3.0",
       "description": "A high-fidelity OS hacking simulator set in the mental.os() universe.",
       "homepage": "https://github.com/mental-os/Aurora-OS.js",

@@ -32,8 +32,10 @@ export function useAppNotifications() {
   return ctx;
 }
 
+import { STORAGE_KEYS } from '@/utils/memory';
+
 function storageKeyFor(user: string) {
-  return `aurora-app-notifications-${user}`;
+  return `${STORAGE_KEYS.APP_DATA_PREFIX}notifications-${user}`;
 }
 
 const TOAST_DURATION = 4000;

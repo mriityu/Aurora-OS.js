@@ -235,7 +235,7 @@ export function Calendar({ owner }: CalendarProps) {
   const userHome = activeUser === 'root' ? '/root' : `/home/${activeUser}`;
   const configDir = `${userHome}/.Config`;
   const configFile = `${configDir}/calendar.json`;
-  const softStateKey = `${STORAGE_KEYS.APP_PREFIX}calendar-state-${activeUser}`;
+  const softStateKey = `${STORAGE_KEYS.APP_DATA_PREFIX}calendar-state-${activeUser}`;
 
   // --- State ---
 

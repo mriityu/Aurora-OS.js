@@ -5,7 +5,6 @@ import pkg from '@/../package.json';
 import { cn } from '@/components/ui/utils';
 import { feedback } from '@/services/soundFeedback';
 import { soundManager } from '@/services/sound';
-import { useFileSystem } from '@/components/FileSystemContext';
 import { useI18n } from '@/i18n/index';
 import { useFullscreen } from '@/hooks/useFullscreen';
 import { useAppContext } from '@/components/AppContext';
@@ -20,7 +19,6 @@ type Tab = 'display' | 'audio' | 'system';
 export function SettingsModal({ onClose }: SettingsModalProps) {
     const { t } = useI18n();
     const [activeTab, setActiveTab] = useState<Tab>('display');
-    const { resetFileSystem } = useFileSystem();
 
     const tabs = useMemo(() => [
         { id: 'display', icon: Monitor, label: t('game.bios.tabs.display') },
@@ -188,8 +186,11 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     const handleFactoryReset = () => {
         if (confirm(t('game.bios.factoryResetConfirm'))) {
             feedback.click();
-            resetFileSystem();
-            setTimeout(() => window.location.reload(), 500);
+            // True Factory Reset: Wipe everything (incl. BIOS)
+            import('@/utils/memory').then(({ factoryReset }) => {
+                factoryReset();
+                setTimeout(() => window.location.reload(), 500);
+            });
         }
     };
 

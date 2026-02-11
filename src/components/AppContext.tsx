@@ -73,10 +73,8 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// Legacy Global Key for Migration
-const LEGACY_STORAGE_KEY = 'aurora-os-settings';
-
-const SYSTEM_CONFIG_KEY = 'aurora-system-config';
+// Helper: Get key for specific user
+const getUserKey = (username: string) => `${STORAGE_KEYS.SETTINGS}_${username}`;
 
 interface UserPreferences {
   accentColor: string;
@@ -163,7 +161,7 @@ const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
   disableGradients: false,
   wifiEnabled: false,
 
-  wifiNetwork: 'FreeWifi-Secure',
+  wifiNetwork: '',
   networkConfigMode: 'auto',
   networkIP: '192.168.1.100',
   networkGateway: '192.168.1.1',
@@ -172,8 +170,7 @@ const DEFAULT_SYSTEM_CONFIG: SystemConfig = {
   gpuEnabled: true,
 };
 
-// Helper: Get key for specific user
-const getUserKey = (username: string) => `aurora-os-settings-${username}`;
+
 
 function loadUserPreferences(username: string, systemDefaults: SystemConfig): UserPreferences {
   try {
@@ -195,34 +192,7 @@ function loadUserPreferences(username: string, systemDefaults: SystemConfig): Us
       };
     }
 
-    // Migration Check: If loading for 'root' (system default) and no root settings exist,
-    // check for legacy global settings to migrate them.
-    if (username === 'root') {
-      const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-      if (legacy) {
-        console.log('Migrating legacy settings to root');
-        const legacyParsed = JSON.parse(legacy);
 
-        // Extract preferences
-        const migratedProps: Partial<UserPreferences> = {};
-        (Object.keys(DEFAULT_PREFERENCES) as Array<keyof UserPreferences>).forEach(k => {
-          if (k in legacyParsed) migratedProps[k] = legacyParsed[k];
-        });
-
-        const migrated = {
-          ...DEFAULT_PREFERENCES,
-          blurEnabled: systemDefaults.blurEnabled,
-          reduceMotion: systemDefaults.reduceMotion,
-          disableShadows: systemDefaults.disableShadows,
-          disableGradients: systemDefaults.disableGradients,
-          gpuEnabled: systemDefaults.gpuEnabled,
-          ...migratedProps
-        };
-        // Save immediately to new key
-        localStorage.setItem(key, JSON.stringify(migrated));
-        return migrated;
-      }
-    }
   } catch (e) {
     console.warn(`Failed to load settings for ${username}:`, e);
   }
@@ -239,35 +209,12 @@ function loadUserPreferences(username: string, systemDefaults: SystemConfig): Us
 
 function loadSystemConfig(): SystemConfig {
   try {
-    const stored = safeParseLocal<SystemConfig>(SYSTEM_CONFIG_KEY);
+    const stored = safeParseLocal<SystemConfig>(STORAGE_KEYS.SYSTEM_CONFIG);
     if (stored) {
       return { ...DEFAULT_SYSTEM_CONFIG, ...stored };
     }
 
-    // Migration: Check legacy global storage for devMode stuff if not found in new key
-    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacy) {
-      const legacyParsed = JSON.parse(legacy);
 
-      // Only migrate if they actually exist in legacy
-      const migrated: SystemConfig = { ...DEFAULT_SYSTEM_CONFIG };
-      let hasMigration = false;
-
-      if ('devMode' in legacyParsed) { migrated.devMode = legacyParsed.devMode; hasMigration = true; }
-      if ('exposeRoot' in legacyParsed) { migrated.exposeRoot = legacyParsed.exposeRoot; hasMigration = true; }
-      if ('blurEnabled' in legacyParsed) { migrated.blurEnabled = legacyParsed.blurEnabled; hasMigration = true; }
-      if ('reduceMotion' in legacyParsed) { migrated.reduceMotion = legacyParsed.reduceMotion; hasMigration = true; }
-      if ('disableShadows' in legacyParsed) { migrated.disableShadows = legacyParsed.disableShadows; hasMigration = true; }
-      if ('disableGradients' in legacyParsed) { migrated.disableGradients = legacyParsed.disableGradients; hasMigration = true; }
-      if ('gpuEnabled' in legacyParsed) { migrated.gpuEnabled = legacyParsed.gpuEnabled; hasMigration = true; }
-      if ('totalMemoryGB' in legacyParsed) { migrated.totalMemoryGB = legacyParsed.totalMemoryGB; hasMigration = true; }
-
-      if (hasMigration) {
-        console.log('Migrated system config from legacy storage');
-        localStorage.setItem(SYSTEM_CONFIG_KEY, JSON.stringify(migrated));
-        return migrated;
-      }
-    }
 
   } catch (e) {
     console.warn('Failed to load system config:', e);
@@ -316,7 +263,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Persistence: System Config
   useEffect(() => {
     try {
-      localStorage.setItem(SYSTEM_CONFIG_KEY, JSON.stringify(systemConfig));
+      localStorage.setItem(STORAGE_KEYS.SYSTEM_CONFIG, JSON.stringify(systemConfig));
     } catch (e) {
       console.warn('Failed to save system config:', e);
     }
@@ -366,7 +313,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const resetSystemConfig = useCallback((overrides?: Partial<SystemConfig>) => {
     setSystemConfig({ ...DEFAULT_SYSTEM_CONFIG, ...overrides });
-    localStorage.removeItem(SYSTEM_CONFIG_KEY);
+    localStorage.removeItem(STORAGE_KEYS.SYSTEM_CONFIG);
     // Also clear all user preferences by resetting active user to root and clearing keys
     // Implementation detail: The GameRoot handles hard FS reset, here we just handle config
   }, []);
@@ -392,7 +339,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     };
     syncElectronLocale();
-  }, [locale, setLocale]);
+  }, [setLocale, locale]);
 
   // Sync accent color to CSS variable for global theming
   useEffect(() => {

@@ -637,13 +637,13 @@ export function DevCenter() {
                         <div className="grid grid-cols-2 gap-4 mb-8">
                             <div className="bg-black/20 p-4 rounded-lg border border-white/10">
                                 <div className="text-sm text-white/50 mb-1">{t('devCenter.storage.softMemory')}</div>
-                                <div className="text-2xl text-white font-mono">{formatBytes(stats.softMemory.bytes)}</div>
-                                <div className="text-xs text-white/30">{t('devCenter.storage.keysCount', { count: stats.softMemory.keys })}</div>
+                                <div className="text-2xl text-white font-mono">{formatBytes(stats.ramMemory.bytes)}</div>
+                                <div className="text-xs text-white/30">{t('devCenter.storage.keysCount', { count: stats.ramMemory.keys })}</div>
                             </div>
                             <div className="bg-black/20 p-4 rounded-lg border border-white/10">
                                 <div className="text-sm text-white/50 mb-1">{t('devCenter.storage.hardMemory')}</div>
-                                <div className="text-2xl text-white font-mono">{formatBytes(stats.hardMemory.bytes)}</div>
-                                <div className="text-xs text-white/30">{t('devCenter.storage.keysCount', { count: stats.hardMemory.keys })}</div>
+                                <div className="text-2xl text-white font-mono">{formatBytes(stats.hddMemory.bytes)}</div>
+                                <div className="text-xs text-white/30">{t('devCenter.storage.keysCount', { count: stats.hddMemory.keys })}</div>
                             </div>
                         </div>
 

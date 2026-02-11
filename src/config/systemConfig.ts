@@ -33,3 +33,13 @@ export const BRAND = {
 // Type exports for consumers
 export type AccentColor = (typeof BRAND.accentPalette)[number];
 export type Wallpaper = (typeof BRAND.wallpapers)[number];
+
+// Keys in SystemConfig that should survive a "New Game" reset (BIOS settings)
+export const PERSISTENT_CONFIG_KEYS = [
+  'locale',
+  'gpuEnabled',
+  'blurEnabled',
+  'reduceMotion',
+  'disableShadows',
+  'disableGradients'
+] as const;

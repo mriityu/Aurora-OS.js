@@ -3,6 +3,7 @@ import { useFileSystem } from '@/components/FileSystemContext';
 import { useAppContext } from '@/components/AppContext';
 import { useSessionStorage } from '@/hooks/useSessionStorage';
 import { useI18n } from '@/i18n/index';
+import { STORAGE_KEYS } from '@/utils/memory';
 
 export interface Photo {
     id: string;
@@ -46,7 +47,7 @@ export function PhotosProvider({ children, owner }: { children: React.ReactNode,
     const [libraryPhotos, setLibraryPhotos] = useState<Photo[]>([]);
     const [storedRecentPhotos, setStoredRecentPhotos] = useState<Photo[]>(() => {
         try {
-            const key = `photos-recent-${activeUser}`;
+            const key = `${STORAGE_KEYS.APP_DATA_PREFIX}photos-recent-${activeUser}`;
             const saved = localStorage.getItem(key);
             if (saved) {
                 const parsed = JSON.parse(saved) as Photo[];
@@ -62,14 +63,14 @@ export function PhotosProvider({ children, owner }: { children: React.ReactNode,
         } catch (e) { console.warn('Failed to load photos recents', e); }
         return [];
     });
-    const [favoriteIds, setFavoriteIds] = useSessionStorage<string[]>(`photos-favorites-${activeUser}`, [], activeUser);
-    const [activeCategory, setActiveCategory] = useSessionStorage<string>('photos-active-category', 'all', activeUser);
+    const [favoriteIds, setFavoriteIds] = useSessionStorage<string[]>(`${STORAGE_KEYS.APP_DATA_PREFIX}photos-favorites-${activeUser}`, [], activeUser);
+    const [activeCategory, setActiveCategory] = useSessionStorage<string>(`${STORAGE_KEYS.APP_DATA_PREFIX}photos-active-category`, 'all', activeUser);
     const [hasValidatedRecent, setHasValidatedRecent] = useState(false);
 
     // Persistence for recentPhotos
     useEffect(() => {
         if (!isPhotosOpen) return;
-        const key = `photos-recent-${activeUser}`;
+        const key = `${STORAGE_KEYS.APP_DATA_PREFIX}photos-recent-${activeUser}`;
         if (storedRecentPhotos.length > 0) {
             localStorage.setItem(key, JSON.stringify(storedRecentPhotos));
         } else {

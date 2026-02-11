@@ -36,7 +36,7 @@ interface MenuBarProps {
 function MenuBarComponent({ focusedApp, onOpenApp }: MenuBarProps) {
   const { menuBarBackground, blurStyle, getBackgroundColor } = useThemeColors();
   const { devMode, disableShadows, setIsLocked, locale, timeMode, setTimeMode } = useAppContext();
-  const { logout, currentUser } = useFileSystem();
+  const { logout, suspendSession, currentUser } = useFileSystem();
   const { t } = useI18n();
 
   const [currentTime, setCurrentTime] = useState('');
@@ -254,26 +254,26 @@ function MenuBarComponent({ focusedApp, onOpenApp }: MenuBarProps) {
                     window.dispatchEvent(new CustomEvent('aurora-open-settings-section', { detail: 'about' }));
                     onOpenApp?.('settings');
                   }}>
-                      {t('menubar.system.aboutThisComputer')}
+                    {t('menubar.system.aboutThisComputer')}
                   </MenubarItem>
                 </TooltipTrigger>
                 <TooltipContent side="right" sideOffset={10}>
-                    <p>{t('menubar.system.viewSystemInfo')}</p>
+                  <p>{t('menubar.system.viewSystemInfo')}</p>
                 </TooltipContent>
               </Tooltip>
               <MenubarSeparator className="bg-white/10" />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <MenubarItem onClick={() => onOpenApp?.('settings')}>
-                      {t('menubar.system.systemSettings')}
+                    {t('menubar.system.systemSettings')}
                   </MenubarItem>
                 </TooltipTrigger>
                 <TooltipContent side="right" sideOffset={10}>
-                    <p>{t('menubar.system.viewSystemSettings')}</p>
+                  <p>{t('menubar.system.viewSystemSettings')}</p>
                 </TooltipContent>
               </Tooltip>
               <MenubarItem onClick={() => onOpenApp?.('appstore')}>
-                  {t('menubar.system.appStore')}
+                {t('menubar.system.appStore')}
               </MenubarItem>
               <MenubarSeparator className="bg-white/10" />
               <Tooltip>
@@ -292,8 +292,8 @@ function MenuBarComponent({ focusedApp, onOpenApp }: MenuBarProps) {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <MenubarItem onClick={() => {
-                    // Switch User -> Logout to suspend, keep storage
-                    logout();
+                    // Switch User -> Suspend session (keep RAM/Storage)
+                    suspendSession();
                   }}>
                     {t('menubar.system.switchUser')}
                   </MenubarItem>
@@ -409,7 +409,7 @@ function MenuBarComponent({ focusedApp, onOpenApp }: MenuBarProps) {
         <AudioApplet />
         <NotificationsApplet onOpenApp={onOpenApp} />
 
-        <button 
+        <button
           onClick={() => setTimeMode(timeMode === 'server' ? 'local' : 'server')}
           className="text-white/90 text-xs font-medium flex items-center gap-2 hover:bg-white/10 px-2 py-1 rounded transition-colors"
           title={timeMode === 'server' ? t('menubar.system.serverTime') : t('menubar.system.localTime')}

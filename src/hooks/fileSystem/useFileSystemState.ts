@@ -10,12 +10,11 @@ import {
     migrateFileSystem
 } from '../../utils/migrations';
 import { validateIntegrity } from '../../utils/integrity';
-import { hardReset } from '../../utils/memory';
-
+import { hardReset, STORAGE_KEYS } from '../../utils/memory';
 import { safeParseLocal } from '../../utils/safeStorage';
 import { useDebounce } from '../useDebounce';
 
-const STORAGE_KEY = 'aurora-filesystem';
+const STORAGE_KEY = STORAGE_KEYS.FILESYSTEM;
 
 function loadFileSystem(): FileNode {
     try {

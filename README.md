@@ -139,6 +139,7 @@ or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
 - **App Center**: Improved with network connection check and progress the install of apps based on the effective speed of the network (first 50% of the progress bar is network, second 50% is based on system performance - random for now, not yet implemented).
 - **Native full-screen**: Implemented native full-screen mode for host-OS (Windows, Linux, macOS) and added a the necesarry code to enable it in BIOS (Settings menu).
 - **Debouncing & Sanitization**: for localStorage to prevent prototype pollution and other security issues across various APPs and systems.
+- **Memory**: Optimized to use standardized keys and a tiered priority related to various system functions (user logout, new game, close > continue game, etc.)
 
 ### Fixed
 

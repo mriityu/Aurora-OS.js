@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDebounce } from './useDebounce';
 import { safeParseLocal } from '../utils/safeStorage';
+import { STORAGE_KEYS } from '../utils/memory';
 
 /**
  * A hook for persisting app-specific state to localStorage.
@@ -17,7 +18,10 @@ import { safeParseLocal } from '../utils/safeStorage';
  * });
  */
 export function useAppStorage<T>(appId: string, initialState: T, owner?: string): [T, (value: T | ((prev: T) => T)) => void, () => void] {
-    const storageKey = owner ? `aurora-os-app-${appId}-${owner}` : `aurora-os-app-${appId}`;
+    // Legacy: `aurora-os-app-${appId}`
+    // New: `os_app_data_${appId}`
+    const prefix = STORAGE_KEYS.APP_DATA_PREFIX;
+    const storageKey = owner ? `${prefix}${appId}-${owner}` : `${prefix}${appId}`;
 
     // Load initial state safely
     const [state, setStateInternal] = useState<T>(() => {
@@ -68,7 +72,7 @@ export function useAppStorage<T>(appId: string, initialState: T, owner?: string)
 export function clearAllAppStorage() {
     const keys = Object.keys(localStorage);
     keys.forEach(key => {
-        if (key.startsWith('aurora-os-app-')) {
+        if (key.startsWith(STORAGE_KEYS.APP_DATA_PREFIX)) {
             localStorage.removeItem(key);
         }
     });

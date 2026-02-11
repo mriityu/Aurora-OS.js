@@ -89,6 +89,7 @@ function createWindow() {
 
     // Development or Production
     if (process.env.VITE_DEV_SERVER_URL) {
+        process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'; // Suppress "Insecure CSP" warning in dev
         mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
         mainWindow.webContents.openDevTools();
     } else {

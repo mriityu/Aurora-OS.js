@@ -10,7 +10,6 @@ export function safeParseLocal<T = any>(key: string): T | null {
     } catch (e) {
         // Malformed JSON or other issue
         // Keep behavior resilient: return null so callers can fallback
-        // eslint-disable-next-line no-console
         console.warn(`safeParseLocal: failed to parse key ${key}`, e);
         return null;
     }
