@@ -259,7 +259,11 @@ function applyDisplaySettings(settings: DisplaySettings) {
     mainWindow.setResizable(true);
 
     if (settings.mode === 'fullscreen') {
-        mainWindow.setFullScreen(true);
+        if (process.platform === 'darwin') {
+            mainWindow.setSimpleFullScreen(true);
+        } else {
+            mainWindow.setFullScreen(true);
+        }
     } else if (settings.mode === 'borderless') {
         if (mainWindow.isFullScreen()) mainWindow.setFullScreen(false);
         mainWindow.setMenuBarVisibility(false);
