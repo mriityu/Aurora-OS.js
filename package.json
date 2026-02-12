@@ -136,6 +136,7 @@
             "copy:electron-assets": "node -e \"require('fs').cpSync('electron/splash.html','dist-electron/splash.html')\"",
             "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev\" \"wait-on http://localhost:3000 && npm run ts:electron && cross-env VITE_DEV_SERVER_URL=http://localhost:3000 electron .\"",
             "electron:build": "npm run build && npm run ts:electron && electron-builder",
+            "electron:build:all": "npm run build && npm run ts:electron && electron-builder -mwl",
             "test": "vitest",
             "translations:generate": "tsx scripts/ts-to-json.ts",
             "translations:validate": "tsx scripts/validate-translations.ts",
@@ -197,12 +198,15 @@
                   "category": "public.app-category.simulation-games"
             },
             "dmg": {
-                  "background": null,
-                  "backgroundColor": "#202020",
+                  "background": "public/dmg-background.png",
                   "window": {
                         "width": 540,
                         "height": 380
                   },
+                  "icon": "public/icon.icns",
+                  "iconSize": 80,
+                  "title": "${productName} ${version}",
+                  "format": "ULFO",
                   "contents": [
                         {
                               "x": 130,
