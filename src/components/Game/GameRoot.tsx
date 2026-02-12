@@ -34,6 +34,12 @@ export function GameRoot({ children }: GameRootProps) {
         return () => window.removeEventListener('click', handleGlobalClick);
     }, []);
 
+    // Signal Electron that the React app is ready (closes splash screen)
+    useEffect(() => {
+        // @ts-expect-error - window.electron is only available in Electron runtime
+        window.electron?.signalReady?.();
+    }, []);
+
     // Check for save data
     const { onboardingComplete } = appContext;
     const hasSave = useMemo(() => {

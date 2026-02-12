@@ -131,6 +131,7 @@ or use the [GitHub Pages](https://mental-os.github.io/Aurora-OS.js) (LIVE DEMO)
 - **Persistence**: Graphics settings (BioS) now strictly survive "New Game" resets.
 - **Browser**: is now aware of the `/etc/hosts` file and can resolve domain names to IP addresses.
 - **Display settings**: for the System Settings APP in a simmilar way as the Main Menu > BIOS.
+- **Splash screen**: for the native build, that preloads the game in the background.
 
 ### Improved
 

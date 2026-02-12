@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld('electron', {
         const subscription = (_event: any, value: any) => callback(value);
         ipcRenderer.on('display-change', subscription);
         return () => ipcRenderer.removeListener('display-change', subscription);
-    }
+    },
+    // Splash Screen: Signal that the React app is ready
+    signalReady: () => ipcRenderer.invoke('app-ready'),
 });
-
-

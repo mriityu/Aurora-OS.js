@@ -121,6 +121,12 @@ trigger: always_on
       - **Source Map**: Explicitly disabled for production (`tsconfig.electron.json`) to prevent code reversal.
       - **DevTools**: Production lockout in `main.ts` (shortcuts blocked, auto-close on open).
     - **Signing**: Explicitly disabled (`identity: null`) for first release; Gatekeeper warnings expected.
+    - **Splash Screen** (Electron-only):
+      - **Architecture**: Separate lightweight `BrowserWindow` loading `electron/splash.html` (static HTML, no React).
+      - **Dual-Condition Close**: Splash stays visible until BOTH `SPLASH_MIN_DURATION_MS` (10s) timer elapses AND React app sends `app-ready` IPC.
+      - **Real Progress**: Milestones tracked via `splashProgress()` at actual Electron/Chromium events (window creation, `dom-ready`, `did-finish-load`, React mount). Idle crawl fills gaps between milestones.
+      - **Logo**: Inline ASCII art matching `GameScreenLayout.tsx` terminal mode logo.
+      - **Build**: `copy:electron-assets` script copies `splash.html` to `dist-electron/` (HTML not handled by `tsc`).
 
 10. **Display & Input Constraints**:
     - **Resolution**:
@@ -200,7 +206,8 @@ trigger: always_on
 | `src/hooks/useWindowManager.ts`        | **Window Manager** | Handles window state and memory usage gates.             |
 | `src/components/NetworkContext.tsx`    | **Network**        | Global network state and simulation logic.               |
 | `src/hooks/useFullscreen.ts`           | **Display Utils**  | Shared hook for Electron/Browser fullscreen logic.       |
-| `electron/main.ts`                     | **Electron Main**  | Native window management and backend logic.              |
+| `electron/main.ts`                     | **Electron Main**  | Native window management, splash screen, and backend logic. |
+| `electron/splash.html`                 | **Splash Screen**  | Electron-only splash with real progress milestones.     |
 | `src/test/`                            | **Tests**          | Unit tests for utilities and logic.                      |
 
 

@@ -59,16 +59,118 @@ process.on('uncaughtException', (error) => {
 let isRecreatingWindow = false;
 
 let mainWindow: BrowserWindow | null = null;
+let splashWindow: BrowserWindow | null = null;
 let currentSettings = loadSettings();
 
+// --- Splash Screen Dual-Condition Close Logic ---
+let splashTimerDone = false;
+let appReady = false;
+
+const SPLASH_MIN_DURATION_MS = 10000;
+
+/**
+ * Send a real progress update to the splash window.
+ * @param percent  Current progress (0-100)
+ * @param status   Human-readable status text
+ * @param idleTarget  The progress % to slowly crawl towards while waiting for next milestone
+ */
+function splashProgress(percent: number, status: string, idleTarget?: number) {
+    if (!splashWindow || splashWindow.isDestroyed()) return;
+    const payload = JSON.stringify({ type: 'progress', percent, status, idleTarget: idleTarget ?? null });
+    splashWindow.webContents.executeJavaScript(
+        `window.postMessage(${payload}, '*');`
+    ).catch(() => { });
+}
+
+function tryCloseSplash() {
+    // Only close when BOTH conditions are met
+    if (!splashTimerDone || !appReady) return;
+    if (!splashWindow || splashWindow.isDestroyed()) return;
+
+    // Signal the splash HTML to play its fade-out animation
+    splashWindow.webContents.executeJavaScript(`
+        window.postMessage({ type: 'close' }, '*');
+    `).catch(() => { });
+
+    // Wait for the CSS fade-out animation (300ms) then destroy
+    setTimeout(() => {
+        if (splashWindow && !splashWindow.isDestroyed()) {
+            splashWindow.destroy();
+            splashWindow = null;
+        }
+
+        // Show the main window
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.show();
+        }
+    }, 450);
+}
+
+function createSplashWindow() {
+    splashWindow = new BrowserWindow({
+        width: 480,
+        height: 350,
+        frame: false,
+        transparent: true,
+        resizable: false,
+        movable: false,
+        alwaysOnTop: true,
+        skipTaskbar: true,
+        center: true,
+        backgroundColor: '#00000000',
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+        },
+    });
+
+    // Load the static splash HTML
+    const splashPath = path.join(__dirname, 'splash.html');
+
+    if (fs.existsSync(splashPath)) {
+        splashWindow.loadFile(splashPath);
+    } else {
+        const devSplashPath = path.join(__dirname, '../electron/splash.html');
+        splashWindow.loadFile(devSplashPath);
+    }
+
+    // Send version once the splash HTML is loaded
+    splashWindow.webContents.on('did-finish-load', () => {
+        // Version
+        try {
+            const pkgPath = path.join(__dirname, '../package.json');
+            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+            splashWindow?.webContents.executeJavaScript(`
+                window.postMessage({ type: 'version', version: '${pkg.version}' }, '*');
+            `).catch(() => { });
+        } catch {
+            // Ignore
+        }
+
+        // --- Stage 1: Electron is ready, splash is visible ---
+        splashProgress(5, 'Electron ready', 14);
+    });
+
+    // Start the minimum duration timer
+    splashTimerDone = false;
+    appReady = false;
+
+    setTimeout(() => {
+        splashTimerDone = true;
+        tryCloseSplash();
+    }, SPLASH_MIN_DURATION_MS);
+}
+
 function createWindow() {
-    // Create the browser window with initial settings
+    // --- Stage 2: Creating main window ---
+    splashProgress(15, 'Creating main window...', 24);
+
     mainWindow = new BrowserWindow({
         width: currentSettings.width,
         height: currentSettings.height,
         minWidth: 1024,
         minHeight: 768,
-        show: false,
+        show: false, // Hidden until splash is done
         frame: currentSettings.mode === 'windowed' ? currentSettings.frame : false,
         transparent: currentSettings.mode !== 'windowed' || !currentSettings.frame,
         useContentSize: currentSettings.mode === 'windowed',
@@ -77,24 +179,39 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
             nodeIntegration: false,
-            sandbox: false, // Required for ESM preload to work with imports
+            sandbox: false,
         },
     });
 
     applyDisplaySettings(currentSettings);
 
-    mainWindow.once('ready-to-show', () => {
-        mainWindow?.show();
-    });
+    // If there's no splash (e.g. window recreation), show immediately on ready
+    if (!splashWindow || splashWindow.isDestroyed()) {
+        mainWindow.once('ready-to-show', () => {
+            mainWindow?.show();
+        });
+    }
 
-    // Development or Production
+    // --- Stage 3: Loading application URL ---
+    splashProgress(25, 'Loading application...', 44);
+
     if (process.env.VITE_DEV_SERVER_URL) {
-        process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'; // Suppress "Insecure CSP" warning in dev
+        process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
         mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
         mainWindow.webContents.openDevTools();
     } else {
         mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
     }
+
+    // --- Stage 4: DOM parsed ---
+    mainWindow.webContents.on('dom-ready', () => {
+        splashProgress(45, 'Parsing DOM...', 64);
+    });
+
+    // --- Stage 5: All resources loaded ---
+    mainWindow.webContents.on('did-finish-load', () => {
+        splashProgress(65, 'Resources loaded', 84);
+    });
 
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         if (url.startsWith('https:')) {
@@ -121,9 +238,6 @@ function createWindow() {
     });
 
     mainWindow.on('leave-full-screen', () => {
-        // When leaving native fullscreen (e.g. Esc key), sync the state
-        // We use a small delay to ensure isMaximized() is accurate and 
-        // doesn't fight with explicit applyDisplaySettings calls.
         setTimeout(() => {
             if (mainWindow && currentSettings.mode === 'fullscreen') {
                 const isMax = mainWindow.isMaximized();
@@ -141,7 +255,6 @@ function applyDisplaySettings(settings: DisplaySettings) {
     currentSettings = settings;
     saveSettings(settings);
 
-    // Reset properties to avoid conflicts
     mainWindow.setMovable(true);
     mainWindow.setResizable(true);
 
@@ -155,21 +268,17 @@ function applyDisplaySettings(settings: DisplaySettings) {
         if (mainWindow.isFullScreen()) mainWindow.setFullScreen(false);
         if (mainWindow.isMaximized()) mainWindow.unmaximize();
 
-        // setContentSize/setSize might be unreliable for frameless windows on some platforms
         if (settings.frame) {
             mainWindow.setContentSize(settings.width, settings.height);
             mainWindow.center();
         } else {
-            // Force update with setBounds to ensure it resizes correctly even if it was full width
             const display = screen.getDisplayMatching(mainWindow.getBounds());
             const x = display.bounds.x + Math.round((display.bounds.width - settings.width) / 2);
             const y = display.bounds.y + Math.round((display.bounds.height - settings.height) / 2);
-
             mainWindow.setBounds({ x, y, width: settings.width, height: settings.height });
         }
     }
 
-    // Notify renderer
     mainWindow.webContents.send('display-change', currentSettings);
 }
 
@@ -179,7 +288,7 @@ ipcMain.handle('get-locale', () => app.getLocale());
 ipcMain.handle('get-battery', async () => {
     try {
         return await si.battery();
-    } catch (error) {
+    } catch {
         return null;
     }
 });
@@ -187,13 +296,7 @@ ipcMain.handle('get-battery', async () => {
 ipcMain.handle('get-display-settings', () => currentSettings);
 
 ipcMain.handle('set-display-settings', (event, settings: DisplaySettings) => {
-    // If frame change is requested, we might need a restart or complex logic.
-    // For now, let's focus on mode and resolution.
     if (mainWindow) {
-        // If changing frame, we reload the app/window for simplicity (typical for BIOS)
-        // We only need to rebuild if the 'frame' property actually changes.
-        // Fullscreen, Borderless, and Windowed (No Frame) all effectively have frame: false.
-        // Only Windowed (Frame) has frame: true.
         const willBeFrame = settings.mode === 'windowed' ? settings.frame : false;
         const wasFrame = currentSettings.mode === 'windowed' ? currentSettings.frame : false;
 
@@ -203,11 +306,8 @@ ipcMain.handle('set-display-settings', (event, settings: DisplaySettings) => {
             currentSettings = settings;
             saveSettings(settings);
 
-            // Set flag to prevent app quit
             isRecreatingWindow = true;
 
-            // In dev mode, app.relaunch() kills the process monitored by 'concurrently',
-            // causing the whole dev server to exit. We should just recreate the window instead.
             if (mainWindow) {
                 mainWindow.removeAllListeners();
                 mainWindow.destroy();
@@ -222,11 +322,23 @@ ipcMain.handle('set-display-settings', (event, settings: DisplaySettings) => {
     return true;
 });
 
+// --- Splash Screen IPC ---
+ipcMain.handle('app-ready', () => {
+    // --- Stage 6: React app mounted and ready ---
+    splashProgress(85, 'Game engine initialized', 99);
+    appReady = true;
+    tryCloseSplash();
+    return true;
+});
+
 // OS specific behaviors
 app.whenReady().then(() => {
+    createSplashWindow();
     createWindow();
     app.on('activate', () => {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+        }
     });
 });
 
